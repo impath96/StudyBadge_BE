@@ -24,7 +24,7 @@ public class MemberController {
     @Operation(summary = "회원가입", description = "회원가입")
     @Parameter(name = "signUpRequest", description = "회원가입 요청 Dto" )
     @PostMapping("/sign-up")
-    public ResponseEntity signUp(@Valid @RequestPart(value = "signUpRequest") MemberSignUpRequest signUpRequest) {
+    public ResponseEntity<Void> signUp(@Valid @RequestPart(value = "signUpRequest") MemberSignUpRequest signUpRequest) {
 
         memberService.signUp(signUpRequest, LOCAL);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -33,7 +33,7 @@ public class MemberController {
     @Parameter(name = "email", description = "이메일")
     @Parameter(name = "code", description = "인증코드")
     @PostMapping("/auth")
-    public ResponseEntity auth(@RequestParam(name = "email") String email,
+    public ResponseEntity<Void> auth(@RequestParam(name = "email") String email,
                                @RequestParam(name = "code") String code) {
 
         memberService.auth(email, code, LOCAL);
