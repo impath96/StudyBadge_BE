@@ -1,4 +1,4 @@
-package com.tenten.studybadge.member.domain.dto;
+package com.tenten.studybadge.member.dto;
 
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.type.member.BadgeLevel;
@@ -56,8 +56,7 @@ public class MemberSignUpRequest {
                 .nickname(signUpRequest.getNickname())
                 .introduction(signUpRequest.getIntroduction())
                 .imgUrl(signUpRequest.getImgUrl())
-                .auth(false)
-                .authCode(uuid)
+                .isAuth(false)
                 .point(0)
                 .banCnt(0)
                 .account(signUpRequest.getAccount())

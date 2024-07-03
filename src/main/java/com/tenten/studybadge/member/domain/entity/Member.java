@@ -10,7 +10,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -37,9 +36,7 @@ public class Member extends BaseEntity {
 
     private String imgUrl;
 
-    private String authCode;
-
-    private Boolean auth;
+    private Boolean isAuth;
 
     @Enumerated(EnumType.STRING)
     private Platform platform;
@@ -53,4 +50,5 @@ public class Member extends BaseEntity {
     private int point;
 
     private int banCnt;
+
 }
