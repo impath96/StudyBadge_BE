@@ -32,8 +32,6 @@ public class MemberSignUpRequest {
 
     private String introduction;
 
-    private String imgUrl;
-
     @NotBlank(message = "계좌번호를 입력해주세요.")
     private String account;
 
@@ -45,7 +43,7 @@ public class MemberSignUpRequest {
 
 
     public static Member toEntity(Member member, MemberSignUpRequest signUpRequest) {
-        String uuid = UUID.randomUUID().toString();
+
         String encPassword = BCrypt.hashpw(signUpRequest.getPassword(), BCrypt.gensalt());
 
         return member.toBuilder()
@@ -55,7 +53,6 @@ public class MemberSignUpRequest {
                 .name(signUpRequest.getName())
                 .nickname(signUpRequest.getNickname())
                 .introduction(signUpRequest.getIntroduction())
-                .imgUrl(signUpRequest.getImgUrl())
                 .isAuth(false)
                 .point(0)
                 .banCnt(0)
