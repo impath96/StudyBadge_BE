@@ -1,4 +1,4 @@
-package com.tenten.studybadge.common.configuration;
+package com.tenten.studybadge.common.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

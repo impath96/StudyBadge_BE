@@ -37,7 +37,7 @@ public class MemberController {
                                @RequestParam(name = "code") String code) {
 
         memberService.auth(email, code, LOCAL);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.OK).build();
 
     }
 }
