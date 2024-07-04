@@ -6,6 +6,7 @@ import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import jakarta.persistence.*;
 import lombok.*;
 
+import static com.tenten.studybadge.type.study.member.StudyMemberRole.LEADER;
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
@@ -29,5 +30,14 @@ public class StudyMember extends BaseEntity {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "study_channel_id")
     private StudyChannel studyChannel;
+
+    public static StudyMember leader(Long memberId, StudyChannel studyChannel) {
+        return StudyMember.builder()
+                .memberId(memberId)
+                .studyChannel(studyChannel)
+                .balance(0)
+                .studyMemberRole(LEADER)
+                .build();
+    }
 
 }

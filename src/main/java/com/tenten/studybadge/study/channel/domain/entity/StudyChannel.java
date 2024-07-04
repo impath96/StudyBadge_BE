@@ -6,6 +6,8 @@ import com.tenten.studybadge.type.study.channel.MeetingType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -37,4 +39,7 @@ public class StudyChannel extends BaseEntity {
     private Integer viewCnt;
     private Integer deposit;
 
+    public boolean isStartDateBeforeTo(LocalDate date) {
+        return studyDuration.isStartDateBeforeTo(date);
+    }
 }
