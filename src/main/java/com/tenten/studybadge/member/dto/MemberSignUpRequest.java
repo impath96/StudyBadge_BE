@@ -10,7 +10,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
-import java.util.UUID;
 
 @Getter
 @Setter
