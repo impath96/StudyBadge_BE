@@ -7,6 +7,8 @@ import com.tenten.studybadge.study.channel.domain.repository.StudyChannelReposit
 import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
+import com.tenten.studybadge.type.study.channel.Category;
+import com.tenten.studybadge.type.study.channel.MeetingType;
 import com.tenten.studybadge.type.study.channel.RecruitmentStatus;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,9 +56,9 @@ class StudyChannelServiceTest {
                     .endDate(LocalDate.of(2024, 7, 20))
                     .recruitmentNumber(8)
                     .minRecruitmentNumber(4)
-                    .category("IT")
+                    .category(Category.IT)
                     .region("")
-                    .meetingType("ONLINE")
+                    .meetingType(MeetingType.ONLINE)
                     .chattingUrl("오픈채팅방 URL")
                     .deposit(10_000)
                     .depositDescription("스터디 채널 승인 시 자동으로 빠져나갑니다.")
@@ -81,8 +83,8 @@ class StudyChannelServiceTest {
             StudyChannelCreateRequest request = StudyChannelCreateRequest.builder()
                     .name("스터디명")
                     .description("스터디 설명")
-                    .category("IT")
-                    .meetingType("ONLINE")
+                    .category(Category.IT)
+                    .meetingType(MeetingType.ONLINE)
                     .startDate(startDate)
                     .endDate(startDate.minusDays(1))
                     .build();
@@ -99,8 +101,8 @@ class StudyChannelServiceTest {
             StudyChannelCreateRequest request = StudyChannelCreateRequest.builder()
                     .name("스터디명")
                     .description("스터디 설명")
-                    .category("IT")
-                    .meetingType("ONLINE")
+                    .category(Category.IT)
+                    .meetingType(MeetingType.ONLINE)
                     .startDate(LocalDate.now().minusDays(1L))
                     .endDate(LocalDate.now().minusDays(1L))
                     .build();
