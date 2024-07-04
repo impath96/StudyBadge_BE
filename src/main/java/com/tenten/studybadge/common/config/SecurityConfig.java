@@ -29,7 +29,7 @@ public class SecurityConfig {
 
         return http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests( requests -> requests
-                        .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/members/login/**", "/api/members/logout/**").permitAll())
+                        .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/members/login/**").permitAll())
 
                 .headers(headers -> headers // h2-console 페이지 접속을 위한 설정
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
