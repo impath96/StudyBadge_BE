@@ -34,7 +34,7 @@ public class MemberController {
     @Parameter(name = "code", description = "인증코드")
     @PostMapping("/auth")
     public ResponseEntity<Void> auth(@RequestParam(name = "email") String email,
-                               @RequestParam(name = "code") String code) {
+                                     @RequestParam(name = "code") String code) {
 
         memberService.auth(email, code, LOCAL);
         return ResponseEntity.status(HttpStatus.OK).build();
