@@ -28,4 +28,12 @@ public class Participation extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ParticipationStatus participationStatus;
 
+    public static Participation create(Long memberId, StudyChannel studyChannel) {
+        return Participation.builder()
+                .memberId(memberId)
+                .studyChannel(studyChannel)
+                .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                .build();
+    }
+
 }
