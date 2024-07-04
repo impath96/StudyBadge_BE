@@ -11,4 +11,6 @@ import lombok.NoArgsConstructor;
 public class TokenCreateDto {
 
     private String email;
+
+    private Boolean isAdmin;
 }

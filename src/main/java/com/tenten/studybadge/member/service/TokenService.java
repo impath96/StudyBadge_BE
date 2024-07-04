@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.tenten.studybadge.common.constant.TokenConstant.REFRESH_TOKEN_EXPIRES_IN;
+import static com.tenten.studybadge.common.constant.TokenConstant.REFRESH_TOKEN_FORMAT;
+
 @Service
 @RequiredArgsConstructor
 public class TokenService {
@@ -16,17 +19,17 @@ public class TokenService {
     private final JwtTokenCreator jwtTokenCreator;
     private final RedisTemplate redisTemplate;
 
-    public TokenDto create(String email, Platform platform) {
+    public TokenDto create(String email, Boolean isAdmin, Platform platform) {
 
-        TokenDto token = jwtTokenCreator.createToken(email, platform);
+        TokenDto token = jwtTokenCreator.createToken(email, isAdmin, platform);
 
         String refreshToken = token.getRefreshToken();
-        long refreshTokenExpiresIn = 7200000;
+        String key = String.format(REFRESH_TOKEN_FORMAT, email, platform);
 
         redisTemplate.opsForValue().set(
-                "RefreshToken: " + email + " : " + platform,
+                key,
                 refreshToken,
-                refreshTokenExpiresIn,
+                REFRESH_TOKEN_EXPIRES_IN,
                 TimeUnit.MILLISECONDS);
 
         return token;

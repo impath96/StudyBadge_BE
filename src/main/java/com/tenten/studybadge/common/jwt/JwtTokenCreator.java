@@ -5,6 +5,7 @@ import com.tenten.studybadge.type.member.Platform;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.DefaultClaims;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,8 +13,10 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.util.*;
+
+import static com.tenten.studybadge.common.constant.TokenConstant.ACCESS_TOKEN_EXPIRES_IN;
+import static com.tenten.studybadge.common.constant.TokenConstant.REFRESH_TOKEN_EXPIRES_IN;
 
 @Component
 public class JwtTokenCreator {
@@ -25,21 +28,26 @@ public class JwtTokenCreator {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public TokenDto createToken(String email, Platform platform) {
+    public TokenDto createToken(String email, Boolean isAdmin, Platform platform) {
 
-        Claims accessTokenClaims = Jwts.claims().setSubject(email);
-        accessTokenClaims.put("platform", platform);
+        Claims commonClaims = Jwts.claims().setSubject(email);
+        commonClaims.put("platform", platform);
 
-        Claims refreshTokenClaims = Jwts.claims().setSubject(email);
-        refreshTokenClaims.put("platform", platform);
+        List<String> roles = isAdmin != null && isAdmin ? Arrays.asList("ROLE_USER", "ROLE_ADMIN") : Collections.singletonList("ROLE_USER");
+
+        Claims accessTokenClaims = new DefaultClaims(commonClaims);
+        accessTokenClaims.put("roles", roles);
+
+        Claims refreshTokenClaims = new DefaultClaims(commonClaims);
+        refreshTokenClaims.put("roles", roles);
 
         Instant now = Instant.now();
-        Date accessTokenExpiresIn = Date.from(now.plus(1, ChronoUnit.HOURS));
-        Date refreshTokenExpiresIn = Date.from(now.plus(2,ChronoUnit.HOURS));
+        Date accessTokenExpiresIn = Date.from(now.plusMillis(ACCESS_TOKEN_EXPIRES_IN));
+        Date refreshTokenExpiresIn = Date.from(now.plusMillis(REFRESH_TOKEN_EXPIRES_IN));
 
         String accessToken = Jwts.builder()
                 .setClaims(accessTokenClaims)
-                .setSubject(String.valueOf(email))
+                .setSubject(email)
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();

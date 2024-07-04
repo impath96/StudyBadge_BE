@@ -13,6 +13,7 @@ import com.tenten.studybadge.member.dto.TokenCreateDto;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,10 +21,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+
+import static com.tenten.studybadge.common.constant.TokenConstant.REFRESH_TOKEN_FORMAT;
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -107,11 +111,12 @@ public class MemberService {
             throw new IncorrectPasswordException();
         }
 
-        TokenCreateDto result = TokenCreateDto.builder()
+        return TokenCreateDto.builder()
                 .email(member.getEmail())
+                .isAdmin(member.getIsAdmin())
                 .build();
 
-        return result;
+
     }
 
     public void logout(String accessToken) {
@@ -123,7 +128,7 @@ public class MemberService {
         Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
         Platform platform = jwtTokenProvider.getPlatform(accessToken);
 
-        String refreshToken = "RefreshToken: " + authentication.getName() + " : " + platform;
+        String refreshToken = String.format(REFRESH_TOKEN_FORMAT, authentication.getName(), platform);
         if (redisTemplate.opsForValue()
                 .get(refreshToken) != null) {
 
@@ -131,7 +136,7 @@ public class MemberService {
         }
 
         long expiration = jwtTokenProvider.getExpiration(accessToken);
-        long now = new Date().getTime();
+        long now = Instant.now().toEpochMilli();
 
         long accessTokenExpiresIn = expiration - now;
 

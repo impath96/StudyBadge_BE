@@ -7,10 +7,8 @@ import com.tenten.studybadge.member.dto.TokenCreateDto;
 import com.tenten.studybadge.member.dto.TokenDto;
 import com.tenten.studybadge.member.service.MemberService;
 import com.tenten.studybadge.member.service.TokenService;
-import com.tenten.studybadge.type.member.Platform;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
@@ -60,7 +58,7 @@ public class MemberController {
                                                               HttpServletResponse response) {
 
         TokenCreateDto createDto = memberService.login(loginRequest, LOCAL);
-        TokenDto tokenDto = tokenService.create(createDto.getEmail(), LOCAL);
+        TokenDto tokenDto = tokenService.create(createDto.getEmail(), createDto.getIsAdmin(), LOCAL);
 
         Cookie cookie = new Cookie("accessToken", tokenDto.getAccessToken());
         cookie.setHttpOnly(true);

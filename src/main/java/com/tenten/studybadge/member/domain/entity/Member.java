@@ -38,6 +38,8 @@ public class Member extends BaseEntity {
 
     private Boolean isAuth;
 
+    private Boolean isAdmin;
+
     @Enumerated(EnumType.STRING)
     private Platform platform;
 

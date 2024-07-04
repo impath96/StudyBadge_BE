@@ -28,7 +28,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
 
-            String isLogout = (String) redisTemplate.opsForValue().get(token);
+            String isLogout = (String) redisTemplate.opsForValue().get("logout: " + token);
 
             if (ObjectUtils.isEmpty(isLogout)) {
 

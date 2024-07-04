@@ -10,10 +10,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.tenten.studybadge.common.constant.TokenConstant.BEARER;
 
 @Component
 public class JwtTokenProvider {
@@ -28,16 +35,20 @@ public class JwtTokenProvider {
 
         Claims claims = parseClaims(accessToken);
         String email = claims.getSubject();
+        Collection<? extends GrantedAuthority> authorities = getRolesFromToken(accessToken)
+                .stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
 
-        return new UsernamePasswordAuthenticationToken(email, null);
+        return new UsernamePasswordAuthenticationToken(email, null, authorities);
     }
 
     public String resolveToken(HttpServletRequest request) {
-        final String bearer = "Bearer ";
+
 
         String token = request.getHeader("Authorization");
-        if (token != null && token.startsWith(bearer)) {
-            token = token.substring(bearer.length());
+        if (token != null && token.startsWith(BEARER)) {
+            token = token.substring(BEARER.length());
         }
         return token;
     }
@@ -83,5 +94,10 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(token);
         Date expirationDate = claims.getExpiration();
         return expirationDate.getTime();
+    }
+
+    public List<String> getRolesFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.get("roles", List.class);
     }
 }
