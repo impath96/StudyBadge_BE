@@ -35,9 +35,9 @@ public class MemberController {
     @Operation(summary = "회원가입", description = "회원가입")
     @Parameter(name = "signUpRequest", description = "회원가입 요청 Dto" )
     @PostMapping("/sign-up")
-    public ResponseEntity<Void> signUp(@Valid @RequestPart(value = "signUpRequest") MemberSignUpRequest signUpRequest) {
+    public ResponseEntity<Void> signUp(@Valid @RequestPart(value = "signUpRequest") MemberSignUpRequest signUpRequest, HttpServletRequest request) {
 
-        memberService.signUp(signUpRequest, LOCAL);
+        memberService.signUp(signUpRequest, LOCAL, request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     @Operation(summary = "인증", description = "인증 요청")

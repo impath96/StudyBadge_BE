@@ -12,6 +12,7 @@ import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.member.dto.TokenCreateDto;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 
 import java.time.Instant;
@@ -39,7 +41,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     @Transactional
-    public void signUp(MemberSignUpRequest signUpRequest, Platform platform) {
+    public void signUp(MemberSignUpRequest signUpRequest, Platform platform, HttpServletRequest request) {
 
         if(!mailService.isValidEmail(signUpRequest.getEmail())) {
             throw new InvalidEmailException();
@@ -70,7 +72,9 @@ public class MemberService {
         authCode = redisService.generateAuthCode();
         redisService.saveAuthCode(signUpRequest.getEmail(), authCode);
 
-        mailService.sendMail(signUpRequest, authCode);
+        String baseUrl = ServletUriComponentsBuilder.fromRequestUri(request).build().toUriString();
+
+        mailService.sendMail(signUpRequest, authCode, baseUrl);
     }
 
     public void auth(String email, String code, Platform platform) {
