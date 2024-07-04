@@ -1,4 +1,4 @@
-package com.tenten.studybadge.study.channel.domain;
+package com.tenten.studybadge.study.channel.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
 import com.tenten.studybadge.type.study.channel.Category;

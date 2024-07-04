@@ -1,7 +1,7 @@
-package com.tenten.studybadge.study.member.domain;
+package com.tenten.studybadge.study.member.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
-import com.tenten.studybadge.study.channel.domain.StudyChannel;
+import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import jakarta.persistence.*;
 import lombok.*;

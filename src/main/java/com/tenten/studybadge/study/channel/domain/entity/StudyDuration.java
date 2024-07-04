@@ -1,4 +1,4 @@
-package com.tenten.studybadge.study.channel.domain;
+package com.tenten.studybadge.study.channel.domain.entity;
 
 import lombok.*;
 
