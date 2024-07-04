@@ -19,7 +19,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberService {
 
-    private final MailService mailComponent;
+    private final MailService mailService;
     private final RedisService redisService;
     private final MemberRepository memberRepository;
 
@@ -54,7 +54,7 @@ public class MemberService {
         authCode = redisService.generateAuthCode();
         redisService.saveAuthCode(signUpRequest.getEmail(), authCode);
 
-        mailComponent.sendMail(signUpRequest, authCode);
+        mailService.sendMail(signUpRequest, authCode);
     }
 
     public void auth(String email, String code, Platform platform) {
