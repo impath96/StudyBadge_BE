@@ -9,10 +9,9 @@ import com.tenten.studybadge.member.dto.MemberLoginRequest;
 import com.tenten.studybadge.member.dto.MemberSignUpRequest;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
-import com.tenten.studybadge.member.dto.TokenCreateDto;
+import com.tenten.studybadge.common.token.dto.TokenCreateDto;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,14 +19,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 
-import java.time.Instant;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 
+import static com.tenten.studybadge.common.constant.TokenConstant.BEARER;
 import static com.tenten.studybadge.common.constant.TokenConstant.REFRESH_TOKEN_FORMAT;
 @Slf4j
 @Service
@@ -41,7 +38,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     @Transactional
-    public void signUp(MemberSignUpRequest signUpRequest, Platform platform, HttpServletRequest request) {
+    public void signUp(MemberSignUpRequest signUpRequest, Platform platform) {
 
         if(!mailService.isValidEmail(signUpRequest.getEmail())) {
             throw new InvalidEmailException();
@@ -72,9 +69,7 @@ public class MemberService {
         authCode = redisService.generateAuthCode();
         redisService.saveAuthCode(signUpRequest.getEmail(), authCode);
 
-        String baseUrl = ServletUriComponentsBuilder.fromRequestUri(request).build().toUriString();
-
-        mailService.sendMail(signUpRequest, authCode, baseUrl);
+        mailService.sendMail(signUpRequest, authCode);
     }
 
     public void auth(String email, String code, Platform platform) {
@@ -117,13 +112,17 @@ public class MemberService {
 
         return TokenCreateDto.builder()
                 .email(member.getEmail())
-                .isAdmin(member.getIsAdmin())
+                .role(member.getRole())
                 .build();
-
-
     }
 
     public void logout(String accessToken) {
+
+        if (accessToken.startsWith(BEARER)) {
+            accessToken = accessToken.substring(7);
+        } else {
+            throw new InvalidTokenException();
+        }
 
         if (!jwtTokenProvider.validateToken(accessToken)) {
             throw new InvalidTokenException();
@@ -133,28 +132,14 @@ public class MemberService {
         Platform platform = jwtTokenProvider.getPlatform(accessToken);
 
         String refreshToken = String.format(REFRESH_TOKEN_FORMAT, authentication.getName(), platform);
-        if (redisTemplate.opsForValue()
-                .get(refreshToken) != null) {
+        if (redisTemplate.opsForValue().get(refreshToken) != null) {
 
             redisTemplate.delete(refreshToken);
         }
 
-        long expiration = jwtTokenProvider.getExpiration(accessToken);
-        long now = Instant.now().toEpochMilli();
-
-        long accessTokenExpiresIn = expiration - now;
-
-        if(accessTokenExpiresIn > 0) {
-
-            redisTemplate.opsForValue().set(
-                    "logout: " + accessToken,
-                    "logout",
-                    accessTokenExpiresIn,
-                    TimeUnit.MILLISECONDS);
-        } else {
-            throw new InvalidTokenException();
-        }
+            redisService.blackList(accessToken);
     }
 }
+
 
 

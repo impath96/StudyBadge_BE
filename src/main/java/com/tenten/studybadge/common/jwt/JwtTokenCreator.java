@@ -1,6 +1,7 @@
 package com.tenten.studybadge.common.jwt;
 
-import com.tenten.studybadge.member.dto.TokenDto;
+import com.tenten.studybadge.member.domain.type.MemberRole;
+import com.tenten.studybadge.common.token.dto.TokenDto;
 import com.tenten.studybadge.type.member.Platform;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -15,8 +16,7 @@ import java.security.Key;
 import java.time.Instant;
 import java.util.*;
 
-import static com.tenten.studybadge.common.constant.TokenConstant.ACCESS_TOKEN_EXPIRES_IN;
-import static com.tenten.studybadge.common.constant.TokenConstant.REFRESH_TOKEN_EXPIRES_IN;
+import static com.tenten.studybadge.common.constant.TokenConstant.*;
 
 @Component
 public class JwtTokenCreator {
@@ -28,18 +28,19 @@ public class JwtTokenCreator {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public TokenDto createToken(String email, Boolean isAdmin, Platform platform) {
+    public TokenDto createToken(String username, MemberRole role, Platform platform) {
 
-        Claims commonClaims = Jwts.claims().setSubject(email);
-        commonClaims.put("platform", platform);
+        Claims commonClaims = Jwts.claims().setSubject(username);
+        commonClaims.put(PLATFORM, platform);
 
-        List<String> roles = isAdmin != null && isAdmin ? Arrays.asList("ROLE_USER", "ROLE_ADMIN") : Collections.singletonList("ROLE_USER");
+
+        List<String> roles = Arrays.asList(ROLE_PREFIX + role.name());
 
         Claims accessTokenClaims = new DefaultClaims(commonClaims);
-        accessTokenClaims.put("roles", roles);
+        accessTokenClaims.put(ROLE, roles);
 
         Claims refreshTokenClaims = new DefaultClaims(commonClaims);
-        refreshTokenClaims.put("roles", roles);
+        refreshTokenClaims.put(ROLE, roles);
 
         Instant now = Instant.now();
         Date accessTokenExpiresIn = Date.from(now.plusMillis(ACCESS_TOKEN_EXPIRES_IN));
@@ -47,7 +48,7 @@ public class JwtTokenCreator {
 
         String accessToken = Jwts.builder()
                 .setClaims(accessTokenClaims)
-                .setSubject(email)
+                .setSubject(username)
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -61,7 +62,5 @@ public class JwtTokenCreator {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
-
-
     }
 }

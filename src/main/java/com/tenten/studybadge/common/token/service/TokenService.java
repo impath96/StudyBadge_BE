@@ -1,7 +1,8 @@
-package com.tenten.studybadge.member.service;
+package com.tenten.studybadge.common.token.service;
 
 import com.tenten.studybadge.common.jwt.JwtTokenCreator;
-import com.tenten.studybadge.member.dto.TokenDto;
+import com.tenten.studybadge.member.domain.type.MemberRole;
+import com.tenten.studybadge.common.token.dto.TokenDto;
 import com.tenten.studybadge.type.member.Platform;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,9 +20,11 @@ public class TokenService {
     private final JwtTokenCreator jwtTokenCreator;
     private final RedisTemplate redisTemplate;
 
-    public TokenDto create(String email, Boolean isAdmin, Platform platform) {
 
-        TokenDto token = jwtTokenCreator.createToken(email, isAdmin, platform);
+    public TokenDto create(String email, MemberRole role, Platform platform) {
+
+
+        TokenDto token = jwtTokenCreator.createToken(email, role, platform);
 
         String refreshToken = token.getRefreshToken();
         String key = String.format(REFRESH_TOKEN_FORMAT, email, platform);

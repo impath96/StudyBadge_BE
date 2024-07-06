@@ -10,6 +10,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
+import static com.tenten.studybadge.member.domain.type.MemberRole.USER;
+
 
 @Getter
 @Setter
@@ -53,7 +55,7 @@ public class MemberSignUpRequest {
                 .nickname(signUpRequest.getNickname())
                 .introduction(signUpRequest.getIntroduction())
                 .isAuth(false)
-                .isAdmin(false)
+                .role(USER)
                 .point(0)
                 .banCnt(0)
                 .account(signUpRequest.getAccount())

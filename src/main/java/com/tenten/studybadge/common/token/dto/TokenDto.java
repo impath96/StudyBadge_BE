@@ -1,4 +1,4 @@
-package com.tenten.studybadge.member.dto;
+package com.tenten.studybadge.common.token.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TokenCreateDto {
+public class TokenDto {
 
-    private String email;
+    private String accessToken;
 
-    private Boolean isAdmin;
+    private String refreshToken;
 }

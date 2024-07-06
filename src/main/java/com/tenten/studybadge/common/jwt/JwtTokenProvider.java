@@ -1,56 +1,47 @@
 package com.tenten.studybadge.common.jwt;
 
+import com.tenten.studybadge.common.security.CustomUserDetailService;
 import com.tenten.studybadge.type.member.Platform;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import static com.tenten.studybadge.common.constant.TokenConstant.BEARER;
+import static com.tenten.studybadge.common.constant.TokenConstant.PLATFORM;
+
 
 @Component
 public class JwtTokenProvider {
 
     private final Key key;
-    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
+    private final CustomUserDetailService customUserDetailService;
+
+    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey, CustomUserDetailService customUserDetailService) {
+        this.customUserDetailService = customUserDetailService;
 
         byte[] keyBytes = Decoders.BASE64URL.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
     public Authentication getAuthentication(String accessToken) {
 
-        Claims claims = parseClaims(accessToken);
-        String email = claims.getSubject();
-        Collection<? extends GrantedAuthority> authorities = getRolesFromToken(accessToken)
-                .stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+        UserDetails userDetails = customUserDetailService.loadUserByUsername(getUsername(accessToken));
 
-        return new UsernamePasswordAuthenticationToken(email, null, authorities);
+        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
-    public String resolveToken(HttpServletRequest request) {
+    public String getUsername(String token) {
+        Claims claims = parseClaims(token);
 
-
-        String token = request.getHeader("Authorization");
-        if (token != null && token.startsWith(BEARER)) {
-            token = token.substring(BEARER.length());
-        }
-        return token;
+        return claims.getSubject();
     }
 
     public boolean validateToken(String token) {
@@ -84,7 +75,7 @@ public class JwtTokenProvider {
     public Platform getPlatform(String token) {
 
         Claims claimsFromToken = parseClaims(token);
-        String platform = claimsFromToken.get("platform", String.class);
+        String platform = claimsFromToken.get(PLATFORM, String.class);
 
         return Platform.valueOf(platform);
     }
@@ -94,10 +85,5 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(token);
         Date expirationDate = claims.getExpiration();
         return expirationDate.getTime();
-    }
-
-    public List<String> getRolesFromToken(String token) {
-        Claims claims = parseClaims(token);
-        return claims.get("roles", List.class);
     }
 }
