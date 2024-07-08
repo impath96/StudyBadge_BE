@@ -1,6 +1,9 @@
 package com.tenten.studybadge.study.channel.service;
 
+import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
 import com.tenten.studybadge.common.exception.studychannel.InvalidStudyStartDateException;
+import com.tenten.studybadge.member.domain.entity.Member;
+import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
@@ -19,9 +22,12 @@ public class StudyChannelService {
 
     private final StudyChannelRepository studyChannelRepository;
     private final StudyMemberRepository studyMemberRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public Long create(StudyChannelCreateRequest request, Long memberId) {
+
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
 
         StudyChannel studyChannel = request.toEntity();
 
@@ -29,7 +35,7 @@ public class StudyChannelService {
             throw new InvalidStudyStartDateException();
         }
 
-        StudyMember studyMember = StudyMember.leader(memberId, studyChannel);
+        StudyMember studyMember = StudyMember.leader(member, studyChannel);
 
         studyChannelRepository.save(studyChannel);
         studyMemberRepository.save(studyMember);

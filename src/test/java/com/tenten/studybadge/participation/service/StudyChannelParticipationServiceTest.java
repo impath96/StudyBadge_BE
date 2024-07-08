@@ -4,6 +4,8 @@ import com.tenten.studybadge.common.exception.participation.AlreadyAppliedPartic
 import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
+import com.tenten.studybadge.member.domain.entity.Member;
+import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
@@ -39,11 +41,15 @@ class StudyChannelParticipationServiceTest {
     @Autowired
     private StudyMemberRepository studyMemberRepository;
 
+    @Autowired
+    private MemberRepository memberRepository;
+
     @BeforeEach
     void beforeEach() {
         studyMemberRepository.deleteAll();
         participationRepository.deleteAll();
         studyChannelRepository.deleteAll();
+        memberRepository.deleteAll();
     }
 
     @DisplayName("[스터디 채널 참가 신청 테스트]")
@@ -117,12 +123,18 @@ class StudyChannelParticipationServiceTest {
                             .recruitmentStatus(RecruitmentStatus.RECRUITING).
                             build())
                     .build();
+            Member member = Member.builder()
+                    .email("이메일")
+                    .name("김민호")
+                    .build();
             StudyMember studyMember = StudyMember.builder()
                     .studyChannel(studyChannel)
-                    .memberId(1L)
+                    .member(member)
                     .studyMemberRole(StudyMemberRole.STUDY_MEMBER)
                     .build();
+
             studyChannelRepository.save(studyChannel);
+            memberRepository.save(member);
             studyMemberRepository.save(studyMember);
 
             assertThatThrownBy(() -> studyChannelParticipationService.apply(studyChannel.getId(), 1L))
