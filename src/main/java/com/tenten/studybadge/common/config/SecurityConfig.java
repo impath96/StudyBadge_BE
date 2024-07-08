@@ -24,7 +24,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests( requests -> requests
                         .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/members/login/**").permitAll()
                         .requestMatchers("/api/study-channels/**", "/error").permitAll()
-                .requestMatchers("/api/members/logout", "api/study-channels/*/places").hasRole("USER"))
+                .requestMatchers("/api/members/logout", "api/study-channels/*/places",
+                    "/api/study-channels/*/schedules").hasRole("USER"))
 
 
                 .headers(headers -> headers // h2-console 페이지 접속을 위한 설정
