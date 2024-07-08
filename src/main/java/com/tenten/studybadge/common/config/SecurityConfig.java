@@ -40,6 +40,7 @@ public class SecurityConfig {
 
                 .requestMatchers("/api/members/logout", "api/study-channels/*/places").hasRole("USER"))
 
+
                 .headers(headers -> headers // h2-console 페이지 접속을 위한 설정
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                         .contentSecurityPolicy(csp -> csp
