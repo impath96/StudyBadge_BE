@@ -1,14 +1,12 @@
 package com.tenten.studybadge.member.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
+import com.tenten.studybadge.member.domain.type.MemberRole;
 import com.tenten.studybadge.type.member.BadgeLevel;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
 @Getter
@@ -37,6 +35,9 @@ public class Member extends BaseEntity {
     private String imgUrl;
 
     private Boolean isAuth;
+
+    @Enumerated(EnumType.STRING)
+    private MemberRole role;
 
     @Enumerated(EnumType.STRING)
     private Platform platform;
