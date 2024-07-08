@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,4 +34,12 @@ public class PlaceController {
     return ResponseEntity.ok(placeService.postPlace(studyChannelId, placeRequest));
   }
 
+
+  @GetMapping("/study-channels/{studyChannelId}/places/{placeId}")
+  @Operation(summary = "장소 정보 조회", description = "오프라인 일정의 장소 정보 조회" ,security = @SecurityRequirement(name = "bearerToken"))
+  @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
+  @Parameter(name = "placeId", description = "장소의 id 값", required = true)
+  public ResponseEntity<PlaceResponse> getPlace(@PathVariable Long studyChannelId, @PathVariable Long placeId)  {
+    return ResponseEntity.ok(placeService.getPlace(studyChannelId, placeId));
+  }
 }

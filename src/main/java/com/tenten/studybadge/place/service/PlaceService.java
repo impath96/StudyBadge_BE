@@ -1,6 +1,8 @@
 package com.tenten.studybadge.place.service;
 
 
+import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
+import com.tenten.studybadge.common.exception.place.NotFoundPlaceException;
 import com.tenten.studybadge.place.domain.entity.Place;
 import com.tenten.studybadge.place.domain.repository.PlaceRepository;
 import com.tenten.studybadge.place.dto.PlaceRequest;
@@ -35,5 +37,17 @@ public class PlaceService {
     }
 
     return new PlaceResponse(placeRepository.save(placeRequest.toEntity()).getId());
+  }
+
+  public PlaceResponse getPlace(Long studyChannelId, Long placeId) {
+    // TODO studyChannel Exception 사용 예정
+    studyChannelRepository.findById(studyChannelId).orElseThrow(
+        (() -> new EntityNotFoundException(
+            "StudyChannel with id " + studyChannelId + " not found")));
+
+    Place place = placeRepository.findById(placeId)
+        .orElseThrow(NotFoundPlaceException::new);
+
+    return new PlaceResponse(place.getId());
   }
 }
