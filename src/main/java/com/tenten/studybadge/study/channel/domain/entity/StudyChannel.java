@@ -51,7 +51,7 @@ public class StudyChannel extends BaseEntity {
     }
 
     public boolean isStudyMember(Long memberId) {
-        return members.stream().anyMatch(member -> member.getId().equals(memberId));
+        return members.stream().anyMatch(studyMember -> studyMember.getMember().getId().equals(memberId));
     }
 
     public boolean isRecruitmentCompleted() {
