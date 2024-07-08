@@ -3,11 +3,13 @@ package com.tenten.studybadge.place.service;
 import static com.tenten.studybadge.type.study.channel.Category.IT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import com.tenten.studybadge.common.exception.place.NotFoundPlaceException;
 import com.tenten.studybadge.place.domain.entity.Place;
 import com.tenten.studybadge.place.domain.repository.PlaceRepository;
 import com.tenten.studybadge.place.dto.PlaceRequest;
@@ -143,5 +145,36 @@ public class PlaceServiceTest {
 
     // then
     assertEquals(existingPlace.getPlaceName(), "Old Name");
+  }
+
+
+  @Test
+  @DisplayName("장소 조회 성공 테스트")
+  void getPlace_ShouldReturnPlaceResponse() {
+    // given
+    given(placeRepository.findById(1L)).willReturn(Optional.of(place));
+    given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+
+    // when
+    PlaceResponse result = placeService.getPlace(1L, 1L);
+
+    // then
+    assertEquals(place.getId(), result.getId());
+
+  }
+
+  @Test
+  @DisplayName("장소 조회 실패 테스트")
+  void getPlace_ShouldThrowException_WhenPlaceNotFound() {
+    // given
+    given(placeRepository.findById(anyLong())).willReturn(Optional.empty());
+    given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+
+    // when & then
+    NotFoundPlaceException exception = assertThrows(NotFoundPlaceException.class, () -> {
+      placeService.getPlace(1L, 1L);
+    });
+
+    assertEquals( "존재하지 않는 장소입니다.", exception.getMessage());
   }
 }
