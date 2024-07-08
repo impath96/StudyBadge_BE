@@ -1,5 +1,6 @@
 package com.tenten.studybadge.place.controller;
 
+import com.tenten.studybadge.place.dto.PlaceCreateResponse;
 import com.tenten.studybadge.place.dto.PlaceRequest;
 import com.tenten.studybadge.place.dto.PlaceResponse;
 import com.tenten.studybadge.place.service.PlaceService;
@@ -28,7 +29,7 @@ public class PlaceController {
   @Operation(summary = "장소 저장", description = "지도 api에서 선택한 장소 저장" ,security = @SecurityRequirement(name = "bearerToken"))
   @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
   @Parameter(name = "PlaceRequest", description = "저장할 장소 request", required = true )
-  public ResponseEntity<PlaceResponse> postPlace(
+  public ResponseEntity<PlaceCreateResponse> postPlace(
       @PathVariable Long studyChannelId,
       @Valid @RequestBody PlaceRequest placeRequest)  {
     return ResponseEntity.ok(placeService.postPlace(studyChannelId, placeRequest));

@@ -9,10 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlaceResponse {
+public class PlaceCreateResponse {
   private long id;
-  private double lat;
-  private double lng;
-  private String placeName;
-  private String placeAddress;
 }
