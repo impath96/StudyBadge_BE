@@ -1,6 +1,7 @@
 package com.tenten.studybadge.study.member.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
+import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import jakarta.persistence.*;
@@ -20,20 +21,22 @@ public class StudyMember extends BaseEntity {
     @Column(name = "study_member_id")
     private Long id;
 
-    private Long memberId;
-
     @Enumerated(EnumType.STRING)
     private StudyMemberRole studyMemberRole;
 
     private Integer balance;
 
+    @ManyToOne
+    @JoinColumn(name = "member_id")
+    private Member member;
+
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "study_channel_id")
     private StudyChannel studyChannel;
 
-    public static StudyMember leader(Long memberId, StudyChannel studyChannel) {
+    public static StudyMember leader(Member member, StudyChannel studyChannel) {
         return StudyMember.builder()
-                .memberId(memberId)
+                .member(member)
                 .studyChannel(studyChannel)
                 .balance(0)
                 .studyMemberRole(LEADER)

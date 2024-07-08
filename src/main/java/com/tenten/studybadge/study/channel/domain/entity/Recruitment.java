@@ -5,6 +5,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.*;
 
+import java.util.Objects;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -17,5 +19,9 @@ public class Recruitment {
 
     @Enumerated(EnumType.STRING)
     private RecruitmentStatus recruitmentStatus;
+
+    public boolean isCompleted() {
+        return Objects.equals(recruitmentStatus, RecruitmentStatus.RECRUIT_COMPLETED);
+    }
 
 }
