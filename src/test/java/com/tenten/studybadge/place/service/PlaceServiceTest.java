@@ -3,13 +3,16 @@ package com.tenten.studybadge.place.service;
 import static com.tenten.studybadge.type.study.channel.Category.IT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import com.tenten.studybadge.common.exception.place.NotFoundPlaceException;
 import com.tenten.studybadge.place.domain.entity.Place;
 import com.tenten.studybadge.place.domain.repository.PlaceRepository;
+import com.tenten.studybadge.place.dto.PlaceCreateResponse;
 import com.tenten.studybadge.place.dto.PlaceRequest;
 import com.tenten.studybadge.place.dto.PlaceResponse;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
@@ -106,7 +109,7 @@ public class PlaceServiceTest {
     given(placeRepository.save(any(Place.class))).willReturn(place);
 
     // when
-    PlaceResponse result = placeService.postPlace(1L, placeRequest);
+    PlaceCreateResponse result = placeService.postPlace(1L, placeRequest);
 
     // then
     verify(placeRepository).save(any(Place.class));
@@ -123,7 +126,7 @@ public class PlaceServiceTest {
     given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
 
     // when
-    PlaceResponse result = placeService.postPlace(1L, newNamePlaceRequest);
+    PlaceCreateResponse result = placeService.postPlace(1L, newNamePlaceRequest);
 
     // then
     assertEquals(existingPlace.getPlaceName(), "New Name");
@@ -139,9 +142,43 @@ public class PlaceServiceTest {
     given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
 
     // when
-    PlaceResponse result = placeService.postPlace(1L, sameNamePlaceRequest);
+    PlaceCreateResponse result = placeService.postPlace(1L, sameNamePlaceRequest);
 
     // then
     assertEquals(existingPlace.getPlaceName(), "Old Name");
+  }
+
+
+  @Test
+  @DisplayName("장소 조회 성공 테스트")
+  void getPlace_ShouldReturnPlaceResponse() {
+    // given
+    given(placeRepository.findById(1L)).willReturn(Optional.of(place));
+    given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+
+    // when
+    PlaceResponse result = placeService.getPlace(1L, 1L);
+
+    // then
+    assertEquals(place.getId(), result.getId());
+    assertEquals(place.getLat(), result.getLat());
+    assertEquals(place.getLng(), result.getLng());
+    assertEquals(place.getPlaceName(), result.getPlaceName());
+    assertEquals(place.getPlaceAddress(), result.getPlaceAddress());
+  }
+
+  @Test
+  @DisplayName("장소 조회 실패 테스트")
+  void getPlace_ShouldThrowException_WhenPlaceNotFound() {
+    // given
+    given(placeRepository.findById(anyLong())).willReturn(Optional.empty());
+    given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+
+    // when & then
+    NotFoundPlaceException exception = assertThrows(NotFoundPlaceException.class, () -> {
+      placeService.getPlace(1L, 1L);
+    });
+
+    assertEquals( "존재하지 않는 장소입니다.", exception.getMessage());
   }
 }
