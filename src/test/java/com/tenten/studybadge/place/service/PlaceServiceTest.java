@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import com.tenten.studybadge.common.exception.place.NotFoundPlaceException;
 import com.tenten.studybadge.place.domain.entity.Place;
 import com.tenten.studybadge.place.domain.repository.PlaceRepository;
+import com.tenten.studybadge.place.dto.PlaceCreateResponse;
 import com.tenten.studybadge.place.dto.PlaceRequest;
 import com.tenten.studybadge.place.dto.PlaceResponse;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
@@ -108,7 +109,7 @@ public class PlaceServiceTest {
     given(placeRepository.save(any(Place.class))).willReturn(place);
 
     // when
-    PlaceResponse result = placeService.postPlace(1L, placeRequest);
+    PlaceCreateResponse result = placeService.postPlace(1L, placeRequest);
 
     // then
     verify(placeRepository).save(any(Place.class));
@@ -125,7 +126,7 @@ public class PlaceServiceTest {
     given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
 
     // when
-    PlaceResponse result = placeService.postPlace(1L, newNamePlaceRequest);
+    PlaceCreateResponse result = placeService.postPlace(1L, newNamePlaceRequest);
 
     // then
     assertEquals(existingPlace.getPlaceName(), "New Name");
@@ -141,7 +142,7 @@ public class PlaceServiceTest {
     given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
 
     // when
-    PlaceResponse result = placeService.postPlace(1L, sameNamePlaceRequest);
+    PlaceCreateResponse result = placeService.postPlace(1L, sameNamePlaceRequest);
 
     // then
     assertEquals(existingPlace.getPlaceName(), "Old Name");
@@ -160,7 +161,10 @@ public class PlaceServiceTest {
 
     // then
     assertEquals(place.getId(), result.getId());
-
+    assertEquals(place.getLat(), result.getLat());
+    assertEquals(place.getLng(), result.getLng());
+    assertEquals(place.getPlaceName(), result.getPlaceName());
+    assertEquals(place.getPlaceAddress(), result.getPlaceAddress());
   }
 
   @Test
