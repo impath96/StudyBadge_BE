@@ -38,7 +38,7 @@ public enum RepeatSituation {
         return situation;
       }
     }
-    throw new IllegalArgumentException("Unknown repeat situation: " + value);
+    throw new IllegalArgumentForRepeatSituationException();
   }
 
   public static RepeatSituation fromInt(int value) {
@@ -47,6 +47,6 @@ public enum RepeatSituation {
         return situation;
       }
     }
-    throw new IllegalArgumentException("Unknown repeat situation: " + value);
+    throw new IllegalArgumentForRepeatSituationException();
   }
 }

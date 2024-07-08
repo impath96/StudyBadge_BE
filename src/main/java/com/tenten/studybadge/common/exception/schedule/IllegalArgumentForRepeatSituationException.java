@@ -15,6 +15,6 @@ public class IllegalArgumentForRepeatSituationException extends AbstractExceptio
     }
     @Override
     public String getMessage() {
-        return "올바르지 않은 월간 반복 요청 값입니다..";
+        return "올바르지 않은 월간 반복 요청 값입니다.";
     }
 }
