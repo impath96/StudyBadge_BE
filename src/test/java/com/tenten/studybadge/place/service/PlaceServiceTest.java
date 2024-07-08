@@ -4,6 +4,7 @@ import static com.tenten.studybadge.type.study.channel.Category.IT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -101,8 +102,8 @@ public class PlaceServiceTest {
   @DisplayName("유효한 장소 저장")
   void postPlace_ShouldSavePlaceSuccessfully() {
     // given
-    when(placeRepository.save(any(Place.class))).thenReturn(place);
-    when(studyChannelRepository.findById(1L)).thenReturn(Optional.of(studyChannel));
+    given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+    given(placeRepository.save(any(Place.class))).willReturn(place);
 
     // when
     PlaceResponse result = placeService.postPlace(1L, placeRequest);
@@ -117,9 +118,9 @@ public class PlaceServiceTest {
   void postPlace_ShouldSavePlaceSuccessfully_ByDifferentName() {
 
     // given
-    when(placeRepository.findPlaceByLatAndLng(newNamePlaceRequest.getLat(), newNamePlaceRequest.getLng()))
-        .thenReturn(Optional.of(existingPlace));
-    when(studyChannelRepository.findById(1L)).thenReturn(Optional.of(studyChannel));
+    given(placeRepository.findPlaceByLatAndLng(newNamePlaceRequest.getLat(), newNamePlaceRequest.getLng()))
+        .willReturn(Optional.of(existingPlace));
+    given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
 
     // when
     PlaceResponse result = placeService.postPlace(1L, newNamePlaceRequest);
@@ -133,9 +134,9 @@ public class PlaceServiceTest {
   @DisplayName("유효한 장소 저장 > 기존에 존재하는 위/경도 값이지만 이름이 같을 때")
   void postPlace_ShouldSavePlaceSuccessfully_BySameName() {
     // given
-    when(placeRepository.findPlaceByLatAndLng(sameNamePlaceRequest.getLat(), sameNamePlaceRequest.getLng()))
-        .thenReturn(Optional.of(existingPlace));
-    when(studyChannelRepository.findById(1L)).thenReturn(Optional.of(studyChannel));
+    given(placeRepository.findPlaceByLatAndLng(newNamePlaceRequest.getLat(), newNamePlaceRequest.getLng()))
+        .willReturn(Optional.of(existingPlace));
+    given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
 
     // when
     PlaceResponse result = placeService.postPlace(1L, sameNamePlaceRequest);
