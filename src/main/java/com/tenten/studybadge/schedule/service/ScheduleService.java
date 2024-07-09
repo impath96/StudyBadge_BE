@@ -7,9 +7,14 @@ import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.ScheduleRepository;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
+import jakarta.persistence.EntityNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -59,5 +64,28 @@ public class ScheduleService {
     } else {
       throw new IllegalArgumentForScheduleRequestException();
     }
+  }
+
+  public List<ScheduleResponse> getSchedulesInStudyChannel(Long studyChannelId) {
+    StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId)
+        .orElseThrow(NotFoundStudyChannelException::new);
+
+    List<ScheduleResponse> scheduleResponses = new ArrayList<>();
+    List<ScheduleResponse> singleScheduleResponses = singleScheduleRepository.findAllByStudyChannelId(
+            studyChannelId)
+        .stream()
+        .map(SingleSchedule::toResponse)
+        .collect(Collectors.toList());
+
+    List<ScheduleResponse> repeatScheduleResponses = repeatScheduleRepository.findAllByStudyChannelId(
+            studyChannelId)
+        .stream()
+        .map(RepeatSchedule::toResponse)
+        .collect(Collectors.toList());
+
+    scheduleResponses.addAll(singleScheduleResponses);
+    scheduleResponses.addAll(repeatScheduleResponses);
+
+    return scheduleResponses;
   }
 }
