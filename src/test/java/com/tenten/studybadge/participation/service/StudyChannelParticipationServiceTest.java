@@ -1,10 +1,12 @@
 package com.tenten.studybadge.participation.service;
 
 import com.tenten.studybadge.common.exception.participation.AlreadyAppliedParticipationException;
+import com.tenten.studybadge.common.exception.participation.OtherMemberParticipationCancelException;
 import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
 import com.tenten.studybadge.member.domain.entity.Member;
+import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
@@ -14,6 +16,7 @@ import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
 import com.tenten.studybadge.type.study.channel.RecruitmentStatus;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,8 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class StudyChannelParticipationServiceTest {
@@ -43,6 +45,9 @@ class StudyChannelParticipationServiceTest {
 
     @Mock
     private ParticipationRepository participationRepository;
+
+    @Mock
+    private MemberRepository memberRepository;
 
     @DisplayName("[스터디 채널 참가 신청 테스트]")
     @Nested
@@ -62,8 +67,9 @@ class StudyChannelParticipationServiceTest {
                             .recruitmentStatus(RecruitmentStatus.RECRUITING)
                             .build())
                     .build();
-            studyChannelRepository.save(studyChannel);
+            Member member = Member.builder().id(1L).build();
 
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
             given(participationRepository.existsByMemberIdAndStudyChannelId(anyLong(), anyLong())).willReturn(false);
 
@@ -87,6 +93,8 @@ class StudyChannelParticipationServiceTest {
         void fail_notFoundStudyChannel() {
 
             // given
+            Member member = mock(Member.class);
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.empty());
 
             // when & then
@@ -108,6 +116,8 @@ class StudyChannelParticipationServiceTest {
                             .recruitmentStatus(RecruitmentStatus.RECRUITING).
                             build())
                     .build();
+            Member member = mock(Member.class);
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
             given(participationRepository.existsByMemberIdAndStudyChannelId(anyLong(), anyLong())).willReturn(true);
 
@@ -142,7 +152,7 @@ class StudyChannelParticipationServiceTest {
                     .studyMemberRole(StudyMemberRole.STUDY_MEMBER)
                     .build();
             studyChannel.getMembers().add(studyMember);
-
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
 
             // when & then
@@ -164,11 +174,60 @@ class StudyChannelParticipationServiceTest {
                             .recruitmentStatus(RecruitmentStatus.RECRUIT_COMPLETED)
                             .build())
                     .build();
+            Member member = mock(Member.class);
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
 
             // when & then
             assertThatThrownBy(() -> studyChannelParticipationService.apply(studyChannel.getId(), 1L))
                     .isExactlyInstanceOf(RecruitmentCompletedStudyChannelException.class);
+        }
+
+    }
+
+    @DisplayName("스터디 채널 참가 취소 테스트]")
+    @Nested
+    class CancelStudyChannelParticipationTest {
+
+        @DisplayName("정상적으로 참가 신청을 취소한다.")
+        @Test
+        void success_cancelStudyChannelParticipation() {
+
+            //given
+            Member member = Member.builder().id(1L).build();
+            Participation participation = Participation.builder()
+                    .id(1L)
+                    .member(member)
+                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .build();
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+
+            //when
+            studyChannelParticipationService.cancel(1L, 1L);
+
+            //then
+            assertThat(participation.getParticipationStatus()).isEqualTo(ParticipationStatus.CANCELED);
+        }
+
+        @DisplayName("다른 회원의 참가 신청을 취소하려는 경우 예외가 발생한다.")
+        @Test
+        void fail_cancelOtherMemberParticipation() {
+
+            //given
+            Member member = Member.builder().id(1L).build();
+            Member other = Member.builder().id(2L).build();
+            Participation participation = Participation.builder()
+                    .id(1L)
+                    .member(member)
+                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .build();
+            given(memberRepository.findById(2L)).willReturn(Optional.of(other));
+            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+
+            //when & then
+            Assertions.assertThatThrownBy(() -> studyChannelParticipationService.cancel(1L, 2L))
+                    .isExactlyInstanceOf(OtherMemberParticipationCancelException.class);
         }
 
     }

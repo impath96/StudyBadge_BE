@@ -1,6 +1,7 @@
 package com.tenten.studybadge.participation.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
+import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
 import jakarta.persistence.*;
@@ -23,17 +24,27 @@ public class Participation extends BaseEntity {
     @JoinColumn(name = "study_channel_id")
     private StudyChannel studyChannel;
 
-    private Long memberId;
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @Enumerated(EnumType.STRING)
     private ParticipationStatus participationStatus;
 
-    public static Participation create(Long memberId, StudyChannel studyChannel) {
+    public static Participation create(Member member, StudyChannel studyChannel) {
         return Participation.builder()
-                .memberId(memberId)
+                .member(member)
                 .studyChannel(studyChannel)
                 .participationStatus(ParticipationStatus.APPROVE_WAITING)
                 .build();
+    }
+
+    public boolean isCreatedBy(Member member) {
+        return member.getId().equals(this.member.getId());
+    }
+
+    public void cancel() {
+        this.participationStatus = ParticipationStatus.CANCELED;
     }
 
 }
