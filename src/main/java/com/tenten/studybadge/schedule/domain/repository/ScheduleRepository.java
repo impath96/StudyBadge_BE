@@ -2,12 +2,16 @@ package com.tenten.studybadge.schedule.domain.repository;
 
 import com.tenten.studybadge.schedule.domain.Schedule;
 import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.NoRepositoryBean;
 
-
-public interface ScheduleRepository<T extends Schedule> {
-  T save(T entity);
+@NoRepositoryBean
+public interface ScheduleRepository<T extends Schedule> extends JpaRepository<T, Long> {
 
   @Query("SELECT s FROM #{#entityName} s WHERE s.studyChannel.id = :studyChannelId")
   List<T> findAllByStudyChannelId(Long studyChannelId);
+
+  @Query("SELECT s FROM #{#entityName} s WHERE s.studyChannel.id = :studyChannelId AND s.scheduleYear = :year AND s.scheduleMonth = :month")
+  List<T> findAllByStudyChannelIdAndScheduleYearAndMonth(Long studyChannelId, int year, int month);
 }

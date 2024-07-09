@@ -11,7 +11,6 @@ import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
-import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -86,6 +85,28 @@ public class ScheduleService {
     scheduleResponses.addAll(singleScheduleResponses);
     scheduleResponses.addAll(repeatScheduleResponses);
 
+    return scheduleResponses;
+  }
+
+  public List<ScheduleResponse> getSchedulesInStudyChannelForYearAndMonth(Long studyChannelId, int year, int month) {
+    StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId)
+        .orElseThrow(NotFoundStudyChannelException::new);
+
+    List<ScheduleResponse> scheduleResponses = new ArrayList<>();
+    List<ScheduleResponse> singleScheduleResponses = singleScheduleRepository.findAllByStudyChannelIdAndScheduleYearAndMonth(
+            studyChannelId, year, month)
+        .stream()
+        .map(SingleSchedule::toResponse)
+        .collect(Collectors.toList());
+
+    List<ScheduleResponse> repeatScheduleResponses = repeatScheduleRepository.findAllByStudyChannelIdAndScheduleYearAndMonth(
+            studyChannelId, year, month)
+        .stream()
+        .map(RepeatSchedule::toResponse)
+        .collect(Collectors.toList());
+
+    scheduleResponses.addAll(singleScheduleResponses);
+    scheduleResponses.addAll(repeatScheduleResponses);
     return scheduleResponses;
   }
 }
