@@ -6,6 +6,7 @@ import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberExc
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
 import com.tenten.studybadge.member.domain.entity.Member;
+import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
@@ -31,8 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class StudyChannelParticipationServiceTest {
@@ -45,6 +45,9 @@ class StudyChannelParticipationServiceTest {
 
     @Mock
     private ParticipationRepository participationRepository;
+
+    @Mock
+    private MemberRepository memberRepository;
 
     @DisplayName("[스터디 채널 참가 신청 테스트]")
     @Nested
@@ -64,8 +67,9 @@ class StudyChannelParticipationServiceTest {
                             .recruitmentStatus(RecruitmentStatus.RECRUITING)
                             .build())
                     .build();
-            studyChannelRepository.save(studyChannel);
+            Member member = Member.builder().id(1L).build();
 
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
             given(participationRepository.existsByMemberIdAndStudyChannelId(anyLong(), anyLong())).willReturn(false);
 
@@ -89,6 +93,8 @@ class StudyChannelParticipationServiceTest {
         void fail_notFoundStudyChannel() {
 
             // given
+            Member member = mock(Member.class);
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.empty());
 
             // when & then
@@ -110,6 +116,8 @@ class StudyChannelParticipationServiceTest {
                             .recruitmentStatus(RecruitmentStatus.RECRUITING).
                             build())
                     .build();
+            Member member = mock(Member.class);
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
             given(participationRepository.existsByMemberIdAndStudyChannelId(anyLong(), anyLong())).willReturn(true);
 
@@ -144,7 +152,7 @@ class StudyChannelParticipationServiceTest {
                     .studyMemberRole(StudyMemberRole.STUDY_MEMBER)
                     .build();
             studyChannel.getMembers().add(studyMember);
-
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
 
             // when & then
@@ -166,6 +174,8 @@ class StudyChannelParticipationServiceTest {
                             .recruitmentStatus(RecruitmentStatus.RECRUIT_COMPLETED)
                             .build())
                     .build();
+            Member member = mock(Member.class);
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
 
             // when & then
@@ -184,12 +194,13 @@ class StudyChannelParticipationServiceTest {
         void success_cancelStudyChannelParticipation() {
 
             //given
+            Member member = Member.builder().id(1L).build();
             Participation participation = Participation.builder()
                     .id(1L)
-                    .memberId(1L)
+                    .member(member)
                     .participationStatus(ParticipationStatus.APPROVE_WAITING)
                     .build();
-
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
 
             //when
@@ -204,12 +215,14 @@ class StudyChannelParticipationServiceTest {
         void fail_cancelOtherMemberParticipation() {
 
             //given
+            Member member = Member.builder().id(1L).build();
+            Member other = Member.builder().id(2L).build();
             Participation participation = Participation.builder()
                     .id(1L)
-                    .memberId(1L)
+                    .member(member)
                     .participationStatus(ParticipationStatus.APPROVE_WAITING)
                     .build();
-
+            given(memberRepository.findById(2L)).willReturn(Optional.of(other));
             given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
 
             //when & then
