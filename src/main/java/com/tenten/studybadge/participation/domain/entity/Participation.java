@@ -36,4 +36,12 @@ public class Participation extends BaseEntity {
                 .build();
     }
 
+    public boolean isCreatedBy(Long memberId) {
+        return memberId.equals(this.memberId);
+    }
+
+    public void cancel() {
+        this.participationStatus = ParticipationStatus.CANCELED;
+    }
+
 }

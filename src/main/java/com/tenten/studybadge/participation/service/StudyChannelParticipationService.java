@@ -1,6 +1,8 @@
 package com.tenten.studybadge.participation.service;
 
 import com.tenten.studybadge.common.exception.participation.AlreadyAppliedParticipationException;
+import com.tenten.studybadge.common.exception.participation.NotFoundParticipationException;
+import com.tenten.studybadge.common.exception.participation.OtherMemberParticipationCancelException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberException;
 import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
@@ -43,6 +45,17 @@ public class StudyChannelParticipationService {
 
         participationRepository.save(participation);
 
+    }
+
+    // TODO 이미 승인/거절된 참가 신청을 취소할 경우 예외 처리
+    @Transactional
+    public void cancel(Long participationId, Long memberId) {
+        // TODO 존재하는 회원 여부 검증
+        Participation participation = participationRepository.findById(participationId).orElseThrow(NotFoundParticipationException::new);
+        if (!participation.isCreatedBy(memberId)) {
+            throw new OtherMemberParticipationCancelException();
+        }
+        participation.cancel();
     }
 
 }
