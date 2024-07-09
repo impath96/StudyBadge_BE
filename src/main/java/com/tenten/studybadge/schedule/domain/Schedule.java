@@ -5,10 +5,8 @@ import jakarta.persistence.MappedSuperclass;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 @MappedSuperclass
 public abstract class Schedule extends BaseEntity {
   protected String scheduleName;
