@@ -11,6 +11,7 @@ import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
+import com.tenten.studybadge.type.participation.ParticipationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +73,9 @@ public class StudyChannelParticipationService {
         }
         if (!studyChannel.isLeader(member)){
             throw new NotAuthorizedApprovalException();
+        }
+        if (!participation.getParticipationStatus().equals(ParticipationStatus.APPROVE_WAITING)) {
+            throw new InvalidApprovalStatusException();
         }
         participation.approve();
         studyChannel.addMember(participation.getMember());
