@@ -1,9 +1,7 @@
 package com.tenten.studybadge.participation.service;
 
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
-import com.tenten.studybadge.common.exception.participation.AlreadyAppliedParticipationException;
-import com.tenten.studybadge.common.exception.participation.NotFoundParticipationException;
-import com.tenten.studybadge.common.exception.participation.OtherMemberParticipationCancelException;
+import com.tenten.studybadge.common.exception.participation.*;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberException;
 import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
@@ -62,4 +60,21 @@ public class StudyChannelParticipationService {
         participation.cancel();
     }
 
+    @Transactional
+    public void approve(Long studyChannelId, Long participationId, Long memberId) {
+
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        Participation participation = participationRepository.findById(participationId).orElseThrow(NotFoundParticipationException::new);
+        StudyChannel studyChannel = participation.getStudyChannel();
+
+        if (!participation.getStudyChannel().getId().equals(studyChannelId)) {
+             throw new OtherStudyChannelParticipationException();
+        }
+        if (!studyChannel.isLeader(member)){
+            throw new NotAuthorizedApprovalException();
+        }
+        participation.approve();
+        studyChannel.addMember(participation.getMember());
+
+    }
 }

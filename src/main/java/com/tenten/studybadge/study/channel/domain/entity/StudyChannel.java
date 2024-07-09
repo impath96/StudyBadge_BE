@@ -1,6 +1,7 @@
 package com.tenten.studybadge.study.channel.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
+import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
@@ -56,6 +57,19 @@ public class StudyChannel extends BaseEntity {
 
     public boolean isRecruitmentCompleted() {
         return recruitment.isCompleted();
+    }
+
+    public boolean isLeader(Member member) {
+        return members.stream()
+                .filter(studyMember -> studyMember.getMember().equals(member))
+                .findFirst()
+                .map(StudyMember::isLeader)
+                .orElse(false);
+    }
+
+    public void addMember(Member member) {
+        StudyMember studyMember = StudyMember.member(member, this);
+        members.add(studyMember);
     }
 
 }
