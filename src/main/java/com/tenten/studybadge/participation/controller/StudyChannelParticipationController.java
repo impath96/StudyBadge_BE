@@ -37,4 +37,12 @@ public class StudyChannelParticipationController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/api/study-channels/{studyChannelId}/participation/{participationId}/approve")
+    public ResponseEntity<Void> approveParticipation(
+            @PathVariable("studyChannelId") Long studyChannelId,
+            @PathVariable("participationId") Long participationId) {
+        Long memberId = 2L;
+        studyChannelParticipationService.approve(studyChannelId, participationId, memberId);
+        return ResponseEntity.ok().build();
+    }
 }
