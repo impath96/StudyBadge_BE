@@ -237,6 +237,31 @@ class ScheduleServiceTest {
   }
 
   @Test
+  @DisplayName("스터디 채널 내의 일정 yyyy.mm 기준 전체 조회 성공")
+  public void success_testGetSchedulesInStudyChannelByYearAndMonth() {
+    // given
+    given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+    given(singleScheduleRepository.findAllByStudyChannelIdAndScheduleYearAndMonth(
+        1L, 2024, 7))
+        .willReturn(Arrays.asList(singleScheduleWithoutPlace));
+    given(repeatScheduleRepository.findAllByStudyChannelIdAndScheduleYearAndMonth(
+        1L, 2024, 7))
+        .willReturn(Arrays.asList(repeatScheduleWithoutPlace));
+
+    // when
+    List<ScheduleResponse> scheduleResponses = scheduleService.getSchedulesInStudyChannelForYearAndMonth(
+        1L, 2024, 7);
+
+    // then
+    assertEquals(2, scheduleResponses.size());
+    verify(studyChannelRepository, times(1)).findById(1L);
+    verify(singleScheduleRepository, times(1)).findAllByStudyChannelIdAndScheduleYearAndMonth(
+        1L, 2024, 7);
+    verify(repeatScheduleRepository, times(1)).findAllByStudyChannelIdAndScheduleYearAndMonth(
+        1L, 2024, 7);
+  }
+
+  @Test
   @DisplayName("스터디 채널 내의 일정 전체 조회 실패: study channel이 존재하지 않을 때")
   public void fail_testGetSchedulesInStudyChannel() {
     // given
