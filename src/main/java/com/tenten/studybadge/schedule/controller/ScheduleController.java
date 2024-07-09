@@ -37,9 +37,9 @@ public class ScheduleController {
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
+  @GetMapping("/study-channels/{studyChannelId}/schedules")
   @Operation(summary = "스터디 채널에 존재하는 일정 전체 조회", description = "특정 스터디 채널에 존재하는 일정 전체 조회 api" ,security = @SecurityRequirement(name = "bearerToken"))
   @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
-  @GetMapping("/study-channels/{studyChannelId}/schedules")
   public ResponseEntity<List<ScheduleResponse>> getSchedules(@PathVariable Long studyChannelId) {
     return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannel(studyChannelId));
   }
