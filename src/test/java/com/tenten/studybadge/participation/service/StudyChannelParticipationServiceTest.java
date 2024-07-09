@@ -1,6 +1,7 @@
 package com.tenten.studybadge.participation.service;
 
 import com.tenten.studybadge.common.exception.participation.AlreadyAppliedParticipationException;
+import com.tenten.studybadge.common.exception.participation.OtherMemberParticipationCancelException;
 import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
@@ -14,6 +15,7 @@ import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
 import com.tenten.studybadge.type.study.channel.RecruitmentStatus;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -169,6 +171,50 @@ class StudyChannelParticipationServiceTest {
             // when & then
             assertThatThrownBy(() -> studyChannelParticipationService.apply(studyChannel.getId(), 1L))
                     .isExactlyInstanceOf(RecruitmentCompletedStudyChannelException.class);
+        }
+
+    }
+
+    @DisplayName("스터디 채널 참가 취소 테스트]")
+    @Nested
+    class CancelStudyChannelParticipationTest {
+
+        @DisplayName("정상적으로 참가 신청을 취소한다.")
+        @Test
+        void success_cancelStudyChannelParticipation() {
+
+            //given
+            Participation participation = Participation.builder()
+                    .id(1L)
+                    .memberId(1L)
+                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .build();
+
+            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+
+            //when
+            studyChannelParticipationService.cancel(1L, 1L);
+
+            //then
+            assertThat(participation.getParticipationStatus()).isEqualTo(ParticipationStatus.CANCELED);
+        }
+
+        @DisplayName("다른 회원의 참가 신청을 취소하려는 경우 예외가 발생한다.")
+        @Test
+        void fail_cancelOtherMemberParticipation() {
+
+            //given
+            Participation participation = Participation.builder()
+                    .id(1L)
+                    .memberId(1L)
+                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .build();
+
+            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+
+            //when & then
+            Assertions.assertThatThrownBy(() -> studyChannelParticipationService.cancel(1L, 2L))
+                    .isExactlyInstanceOf(OtherMemberParticipationCancelException.class);
         }
 
     }
