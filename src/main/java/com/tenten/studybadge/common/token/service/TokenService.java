@@ -45,11 +45,20 @@ public class TokenService {
         return token;
     }
 
-    public String reissue(String refreshToken) {
+    public String reissue(String accessToken, String refreshToken) {
 
-        if (refreshToken.startsWith(BEARER)) {
-            refreshToken = refreshToken.substring(7);
+        if (accessToken.startsWith(BEARER)) {
+            accessToken = accessToken.substring(7);
         } else {
+            throw new InvalidTokenException();
+        }
+
+        if (!jwtTokenProvider.validateToken(accessToken)) {
+            throw new InvalidTokenException();
+        }
+
+        long accessTokenExpiration = jwtTokenProvider.getExpiration(accessToken);
+        if (accessTokenExpiration >= 0) {
             throw new InvalidTokenException();
         }
 
@@ -63,6 +72,11 @@ public class TokenService {
 
         String storedRefreshToken = (String) redisTemplate.opsForValue().get(String.format(REFRESH_TOKEN_FORMAT, email, platform));
         if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+            throw new InvalidTokenException();
+        }
+
+        long refreshTokenExpiration = jwtTokenProvider.getExpiration(refreshToken);
+        if (refreshTokenExpiration <= 0) {
             throw new InvalidTokenException();
         }
 

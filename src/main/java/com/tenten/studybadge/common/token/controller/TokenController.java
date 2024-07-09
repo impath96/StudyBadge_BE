@@ -10,10 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static com.tenten.studybadge.common.constant.TokenConstant.AUTHORIZATION;
 
@@ -26,13 +23,13 @@ public class TokenController {
     private final TokenService tokenService;
     @Operation(summary = "토큰 재발급", description = "토큰 재발급", security = @SecurityRequirement(name = "bearerToken"))
     @PostMapping("/re-issue")
-    public ResponseEntity<String> reissue(@RequestHeader(AUTHORIZATION) String token) {
+    public ResponseEntity<String> reissue(@RequestHeader(AUTHORIZATION) String accessToken,
+                                          @CookieValue(value = "refreshToken", defaultValue = "") String refreshToken) {
 
-        String response = tokenService.reissue(token);
-        ResponseCookie addCookie = CookieUtils.addCookie(response);
+        String response = tokenService.reissue(accessToken, refreshToken);
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header(HttpHeaders.SET_COOKIE, addCookie.toString())
+                .header("Authorization", "Bearer " + response)
                 .body(response);
     }
 }

@@ -56,10 +56,12 @@ public class MemberController {
 
         TokenCreateDto createDto = memberService.login(loginRequest, LOCAL);
         TokenDto tokenDto = tokenService.create(createDto.getEmail(), createDto.getRole(), LOCAL);
-        ResponseCookie addCookie = CookieUtils.addCookie(tokenDto.getAccessToken());
+        ResponseCookie addCookie = CookieUtils.addCookie(tokenDto.getRefreshToken());
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header(HttpHeaders.SET_COOKIE, addCookie.toString()).body(tokenDto);
+                .header(HttpHeaders.SET_COOKIE, addCookie.toString())
+                .header("Authorization", "Bearer " + tokenDto.getAccessToken())
+                .body(tokenDto);
     }
     @Operation(summary = "로그아웃", description = "로그아웃" , security = @SecurityRequirement(name = "bearerToken"))
     @PostMapping("/logout")
