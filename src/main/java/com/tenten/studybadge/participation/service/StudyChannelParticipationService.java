@@ -27,7 +27,6 @@ public class StudyChannelParticipationService {
 
     // TODO 1) 탈퇴 당한 회원인가?
     //      2) 참가 거절 당한 회원인가?
-    @Transactional
     public void apply(Long studyChannelId, Long memberId) {
 
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
