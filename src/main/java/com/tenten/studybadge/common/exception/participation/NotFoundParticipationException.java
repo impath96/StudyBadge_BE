@@ -3,7 +3,7 @@ package com.tenten.studybadge.common.exception.participation;
 import com.tenten.studybadge.common.exception.basic.AbstractException;
 import org.springframework.http.HttpStatus;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 public class NotFoundParticipationException extends AbstractException {
 
@@ -12,7 +12,7 @@ public class NotFoundParticipationException extends AbstractException {
 
     @Override
     public HttpStatus getHttpStatus() {
-        return BAD_REQUEST;
+        return NOT_FOUND;
     }
 
     @Override
