@@ -260,6 +260,7 @@ class StudyChannelParticipationServiceTest {
             Participation participation = Participation.builder()
                     .member(member)
                     .studyChannel(studyChannel)
+                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
                     .build();
 
             given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
