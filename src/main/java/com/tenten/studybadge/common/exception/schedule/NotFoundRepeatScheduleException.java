@@ -1,22 +1,27 @@
 package com.tenten.studybadge.common.exception.schedule;
 
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
 import com.tenten.studybadge.common.exception.basic.AbstractException;
 import org.springframework.http.HttpStatus;
 
-public class IllegalArgumentForRepeatSituationException extends AbstractException {
-    private static final String ERROR_CODE = "ILLEGAL_ARGUMENT_FOR_REPEAT_SITUATION";
-    private static final String ERROR_MESSAGE = "올바르지 않은 월간 반복 요청 값입니다.";
+public class NotFoundRepeatScheduleException extends AbstractException {
+
+    private static final String ERROR_CODE = "NOT_FOUND_REPEAT_SCHEDULE";
+    private static final String ERROR_MESSAGE = "존재하지 않는 반복 일정입니다.";
 
     @Override
     public HttpStatus getHttpStatus() {
-        return HttpStatus.BAD_REQUEST;
+        return NOT_FOUND;
     }
+
     @Override
     public String getErrorCode() {
         return ERROR_CODE;
     }
+
     @Override
     public String getMessage() {
-        return ERROR_MESSAGE ;
+        return ERROR_MESSAGE;
     }
 }

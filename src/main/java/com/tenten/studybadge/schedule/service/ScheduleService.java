@@ -1,17 +1,24 @@
 package com.tenten.studybadge.schedule.service;
 
+import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatScheduleEditRequestException;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForScheduleRequestException;
+import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleException;
+import com.tenten.studybadge.common.exception.schedule.NotFoundSingleScheduleException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
 import com.tenten.studybadge.schedule.domain.repository.SingleScheduleRepository;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.RepeatScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.ScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.SingleScheduleEditRequest;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
+import com.tenten.studybadge.type.schedule.ScheduleOriginType;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -113,5 +120,69 @@ public class ScheduleService {
     scheduleResponses.addAll(singleScheduleResponses);
     scheduleResponses.addAll(repeatScheduleResponses);
     return scheduleResponses;
+  }
+
+  public void putSchedule(Long studyChannelId, ScheduleEditRequest scheduleEditRequest) {
+    StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId)
+        .orElseThrow(NotFoundStudyChannelException::new);
+
+    if (scheduleEditRequest.getOriginType() == ScheduleOriginType.SINGLE) {
+      SingleSchedule singleSchedule = singleScheduleRepository.findById(
+              scheduleEditRequest.getScheduleId())
+          .orElseThrow(NotFoundSingleScheduleException::new);
+
+      if (scheduleEditRequest instanceof SingleScheduleEditRequest) {
+        putScheduleSingleToSingle(
+            singleSchedule, (SingleScheduleEditRequest) scheduleEditRequest);
+      } else if (scheduleEditRequest instanceof RepeatScheduleEditRequest) {
+        putScheduleSingleToRepeat(
+            singleSchedule, (RepeatScheduleEditRequest) scheduleEditRequest);
+      }
+    } else if (scheduleEditRequest.getOriginType() == ScheduleOriginType.REPEAT) {
+      RepeatSchedule repeatSchedule = repeatScheduleRepository.findById(
+              scheduleEditRequest.getScheduleId())
+          .orElseThrow(NotFoundRepeatScheduleException::new);
+
+      if (scheduleEditRequest instanceof RepeatScheduleEditRequest) {
+        putScheduleRepeatToRepeat(
+            repeatSchedule, (RepeatScheduleEditRequest) scheduleEditRequest);
+      }
+    } else {
+      throw new IllegalArgumentForScheduleRequestException();
+    }
+  }
+
+  public void putScheduleSingleToSingle(SingleSchedule singleSchedule, SingleScheduleEditRequest singleScheduleEditRequest) {
+      singleSchedule.updateSingleSchedule(singleScheduleEditRequest);
+      singleScheduleRepository.save(singleSchedule);
+  }
+
+  public void putScheduleSingleToRepeat(SingleSchedule singleSchedule, RepeatScheduleEditRequest repeatScheduleEditRequest) {
+
+    repeatScheduleRepository.save(RepeatSchedule.withoutIdBuilder()
+        .scheduleName(repeatScheduleEditRequest.getScheduleName())
+        .scheduleContent(repeatScheduleEditRequest.getScheduleContent())
+        .scheduleContent(repeatScheduleEditRequest.getScheduleContent())
+        .scheduleDate(repeatScheduleEditRequest.getSelectedDate())
+        .scheduleStartTime(repeatScheduleEditRequest.getScheduleStartTime())
+        .scheduleEndTime(repeatScheduleEditRequest.getScheduleEndTime())
+        .isRepeated(true)
+        .repeatEndDate(repeatScheduleEditRequest.getRepeatEndDate())
+        .repeatCycle(repeatScheduleEditRequest.getRepeatCycle())
+        .repeatSituation(repeatScheduleEditRequest.getRepeatSituation())
+        .studyChannel(singleSchedule.getStudyChannel())
+        .placeId(repeatScheduleEditRequest.getPlaceId())
+        .build());
+    singleScheduleRepository.deleteById(repeatScheduleEditRequest.getScheduleId());
+  }
+
+  public void putScheduleRepeatToRepeat(RepeatSchedule repeatSchedule, RepeatScheduleEditRequest repeatScheduleEditRequest) {
+
+    if (repeatSchedule.getRepeatCycle() != repeatScheduleEditRequest.getRepeatCycle()) {
+      throw new IllegalArgumentForRepeatScheduleEditRequestException();
+    }
+
+    repeatSchedule.updateRepeatSchedule(repeatScheduleEditRequest);
+    repeatScheduleRepository.save(repeatSchedule);
   }
 }

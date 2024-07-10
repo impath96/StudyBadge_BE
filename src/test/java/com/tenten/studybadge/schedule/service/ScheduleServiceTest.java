@@ -1,6 +1,7 @@
 package com.tenten.studybadge.schedule.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -15,12 +16,15 @@ import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository
 import com.tenten.studybadge.schedule.domain.repository.ScheduleRepository;
 import com.tenten.studybadge.schedule.domain.repository.SingleScheduleRepository;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.RepeatScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.SingleScheduleEditRequest;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
 import com.tenten.studybadge.type.schedule.RepeatSituation;
+import com.tenten.studybadge.type.schedule.ScheduleOriginType;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
@@ -28,9 +32,11 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -286,5 +292,106 @@ class ScheduleServiceTest {
     verify(studyChannelRepository, times(1)).findById(1L);
     verify(singleScheduleRepository, times(0)).findAllByStudyChannelId(1L);
     verify(repeatScheduleRepository, times(0)).findAllByStudyChannelId(1L);
+  }
+
+  @DisplayName("일정 수정")
+  @Nested
+  class ScheduleEditTest {
+    @Test
+    @DisplayName("단일 일정 -> 단일 일정 수정 성공")
+    public void testPutSchedulesSingleToSingle() {
+      // given
+      SingleScheduleEditRequest singleScheduleEditRequest = new SingleScheduleEditRequest(
+          1L, ScheduleOriginType.SINGLE, "Single Meeting Edit", "Content for single meeting Edit",
+          LocalDate.of(2024, 8, 12), LocalTime.of(12, 0), LocalTime.of(13, 0),
+          null
+      );
+
+      given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+      given(singleScheduleRepository.findById(1L)).willReturn(Optional.of(singleScheduleWithPlace));
+
+      // when
+      scheduleService.putSchedule(1L, singleScheduleEditRequest);
+
+      // then
+      ArgumentCaptor<SingleSchedule> captor = ArgumentCaptor.forClass(SingleSchedule.class);
+      verify(singleScheduleRepository, times(1)).save(captor.capture());
+      SingleSchedule savedSchedule = captor.getValue();
+
+      assertEquals("Single Meeting Edit", savedSchedule.getScheduleName());
+      assertEquals("Content for single meeting Edit", savedSchedule.getScheduleContent());
+      assertEquals(LocalDate.of(2024, 8, 12), savedSchedule.getScheduleDate());
+      assertEquals(LocalTime.of(12, 0), savedSchedule.getScheduleStartTime());
+      assertEquals(LocalTime.of(13, 0), savedSchedule.getScheduleEndTime());
+      assertNull(singleScheduleWithPlace.getPlaceId());
+    }
+
+    @Test
+    @DisplayName("단일 일정 -> 반복 일정 수정 성공")
+    public void testPutSchedulesSingleToRepeat() {
+      // given
+      RepeatScheduleEditRequest repeatScheduleEditRequest = new RepeatScheduleEditRequest(
+          1L, ScheduleOriginType.SINGLE, "Repeat Meeting", "Content for repeat meeting",
+          LocalDate.of(2024, 7, 5), LocalTime.of(12, 0), LocalTime.of(13, 0),
+          false, RepeatCycle.WEEKLY, RepeatSituation.MONDAY, LocalDate.of(2024, 12, 31),
+          null
+      );
+
+      given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+      given(singleScheduleRepository.findById(1L)).willReturn(Optional.of(singleScheduleWithPlace));
+
+      // when
+      scheduleService.putSchedule(1L, repeatScheduleEditRequest);
+
+      // then
+      ArgumentCaptor<RepeatSchedule> captor = ArgumentCaptor.forClass(RepeatSchedule.class);
+      verify(repeatScheduleRepository, times(1)).save(captor.capture());
+      RepeatSchedule savedSchedule = captor.getValue();
+
+      assertEquals("Repeat Meeting", savedSchedule.getScheduleName());
+      assertEquals("Content for repeat meeting", savedSchedule.getScheduleContent());
+      assertEquals(LocalDate.of(2024, 7, 5), savedSchedule.getScheduleDate());
+      assertEquals(LocalTime.of(12, 0), savedSchedule.getScheduleStartTime());
+      assertEquals(LocalTime.of(13, 0), savedSchedule.getScheduleEndTime());
+      assertEquals(RepeatCycle.WEEKLY, savedSchedule.getRepeatCycle());
+      assertEquals(RepeatSituation.MONDAY, savedSchedule.getRepeatSituation());
+      assertEquals(LocalDate.of(2024, 12, 31), savedSchedule.getRepeatEndDate());
+      assertNull(savedSchedule.getPlaceId());
+      verify(singleScheduleRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("반복 일정 -> 반복 일정 수정 성공")
+    public void testPutSchedulesRepeatToRepeat() {
+      // given
+      RepeatScheduleEditRequest repeatScheduleEditRequest = new RepeatScheduleEditRequest(
+          2L, ScheduleOriginType.REPEAT,
+          "Repeat Meeting Edit", "Content for repeat meeting Edit",
+          LocalDate.of(2024,  8, 5), LocalTime.of(12, 0), LocalTime.of(13, 0),
+          false, RepeatCycle.WEEKLY, RepeatSituation.TUESDAY, LocalDate.of(2024, 12, 31),
+          null
+      );
+      given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+      given(repeatScheduleRepository.findById(2L)).willReturn(Optional.of(repeatScheduleWithPlace));
+
+      // when
+      scheduleService.putSchedule(1L, repeatScheduleEditRequest);
+
+      // then
+      ArgumentCaptor<RepeatSchedule> captor = ArgumentCaptor.forClass(RepeatSchedule.class);
+      verify(repeatScheduleRepository, times(1)).save(captor.capture());
+      RepeatSchedule savedSchedule = captor.getValue();
+
+      assertEquals("Repeat Meeting Edit", savedSchedule.getScheduleName());
+      assertEquals("Content for repeat meeting Edit", savedSchedule.getScheduleContent());
+      assertEquals(LocalDate.of(2024, 8, 5), savedSchedule.getScheduleDate());
+      assertEquals(LocalTime.of(12, 0), savedSchedule.getScheduleStartTime());
+      assertEquals(LocalTime.of(13, 0), savedSchedule.getScheduleEndTime());
+      assertEquals(RepeatCycle.WEEKLY, savedSchedule.getRepeatCycle());
+      assertEquals(RepeatSituation.TUESDAY, savedSchedule.getRepeatSituation());
+      assertEquals(LocalDate.of(2024, 12, 31), savedSchedule.getRepeatEndDate());
+      assertNull( savedSchedule.getPlaceId());
+    }
+
   }
 }
