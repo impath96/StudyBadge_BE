@@ -63,6 +63,6 @@ public class ScheduleController {
       @PathVariable Long studyChannelId,
       @Valid @RequestBody ScheduleEditRequest scheduleEditRequest)  {
     scheduleService.putSchedule(studyChannelId, scheduleEditRequest);
-    return ResponseEntity.status(HttpStatus.OK).build();
+    return ResponseEntity.ok().build();
   }
 }
