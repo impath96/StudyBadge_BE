@@ -51,4 +51,7 @@ public class Participation extends BaseEntity {
         this.participationStatus = ParticipationStatus.APPROVED;
     }
 
+    public void reject() {
+        this.participationStatus = ParticipationStatus.REJECTED;
+    }
 }
