@@ -153,7 +153,7 @@ class StudyChannelParticipationServiceTest {
                     .member(member)
                     .studyMemberRole(StudyMemberRole.STUDY_MEMBER)
                     .build();
-            studyChannel.getMembers().add(studyMember);
+            studyChannel.getStudyMembers().add(studyMember);
             given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
 
@@ -255,7 +255,7 @@ class StudyChannelParticipationServiceTest {
                     .studyMemberRole(StudyMemberRole.LEADER)
                     .member(leader)
                     .build();
-            studyChannel.getMembers().add(studyMember);
+            studyChannel.getStudyMembers().add(studyMember);
 
             Participation participation = Participation.builder()
                     .member(member)
@@ -270,7 +270,7 @@ class StudyChannelParticipationServiceTest {
 
             //then
             assertThat(participation.getParticipationStatus()).isEqualTo(ParticipationStatus.APPROVED);
-            assertThat(studyChannel.getMembers().size()).isEqualTo(2);
+            assertThat(studyChannel.getStudyMembers().size()).isEqualTo(2);
 
         }
 
@@ -291,7 +291,7 @@ class StudyChannelParticipationServiceTest {
                     .studyMemberRole(StudyMemberRole.LEADER)
                     .member(leader)
                     .build();
-            studyChannel.getMembers().add(studyMember);
+            studyChannel.getStudyMembers().add(studyMember);
 
             Participation participation = Participation.builder()
                     .member(member)
@@ -324,7 +324,7 @@ class StudyChannelParticipationServiceTest {
                     .studyMemberRole(StudyMemberRole.STUDY_MEMBER)
                     .member(member2)
                     .build();
-            studyChannel.getMembers().add(studyMember);
+            studyChannel.getStudyMembers().add(studyMember);
 
             Participation participation = Participation.builder()
                     .member(member)
