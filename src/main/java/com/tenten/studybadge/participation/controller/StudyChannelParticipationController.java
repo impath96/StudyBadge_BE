@@ -37,4 +37,15 @@ public class StudyChannelParticipationController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/api/study-channels/{studyChannelId}/participation/{participationId}/approve")
+    @Operation(summary = "참가 신청 승인", description = "참가 신청을 승인하는 기능", security = @SecurityRequirement(name = "BearerToken"))
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    @Parameter(name = "participationId", description = "참가 신청 ID", required = true)
+    public ResponseEntity<Void> approveParticipation(
+            @PathVariable("studyChannelId") Long studyChannelId,
+            @PathVariable("participationId") Long participationId) {
+        Long memberId = 2L;
+        studyChannelParticipationService.approve(studyChannelId, participationId, memberId);
+        return ResponseEntity.ok().build();
+    }
 }

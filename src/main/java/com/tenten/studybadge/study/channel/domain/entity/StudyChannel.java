@@ -1,6 +1,7 @@
 package com.tenten.studybadge.study.channel.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
+import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
@@ -44,18 +45,31 @@ public class StudyChannel extends BaseEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "studyChannel", cascade = { CascadeType.PERSIST, CascadeType.REMOVE }, orphanRemoval = true)
-    private List<StudyMember> members = new ArrayList<>();
+    private List<StudyMember> studyMembers = new ArrayList<>();
 
     public boolean isStartDateBeforeTo(LocalDate date) {
         return studyDuration.isStartDateBeforeTo(date);
     }
 
     public boolean isStudyMember(Long memberId) {
-        return members.stream().anyMatch(studyMember -> studyMember.getMember().getId().equals(memberId));
+        return studyMembers.stream().anyMatch(studyMember -> studyMember.getMember().getId().equals(memberId));
     }
 
     public boolean isRecruitmentCompleted() {
         return recruitment.isCompleted();
+    }
+
+    public boolean isLeader(Member member) {
+        return studyMembers.stream()
+                .filter(studyMember -> studyMember.getMember().equals(member))
+                .findFirst()
+                .map(StudyMember::isLeader)
+                .orElse(false);
+    }
+
+    public void addMember(Member member) {
+        StudyMember studyMember = StudyMember.member(member, this);
+        studyMembers.add(studyMember);
     }
 
 }
