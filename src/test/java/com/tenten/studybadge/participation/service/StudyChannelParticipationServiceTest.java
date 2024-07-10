@@ -1,9 +1,6 @@
 package com.tenten.studybadge.participation.service;
 
-import com.tenten.studybadge.common.exception.participation.AlreadyAppliedParticipationException;
-import com.tenten.studybadge.common.exception.participation.NotAuthorizedApprovalException;
-import com.tenten.studybadge.common.exception.participation.OtherMemberParticipationCancelException;
-import com.tenten.studybadge.common.exception.participation.OtherStudyChannelParticipationException;
+import com.tenten.studybadge.common.exception.participation.*;
 import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
@@ -341,7 +338,39 @@ class StudyChannelParticipationServiceTest {
 
         }
 
+        @DisplayName("참가 신청 상태가 승인 대기 상태가 아닐 경우 예외가 발생한다.")
+        @Test
+        void fail_invalidApprovalStatusException() {
 
+            //given
+            Member member = Member.builder().id(1L).build();
+            Member leader = Member.builder().id(2L).build();
+
+            StudyChannel studyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .build();
+
+            StudyMember studyMember = StudyMember.builder()
+                    .id(2L)
+                    .studyMemberRole(StudyMemberRole.LEADER)
+                    .member(leader)
+                    .build();
+            studyChannel.getStudyMembers().add(studyMember);
+
+            Participation participation = Participation.builder()
+                    .member(member)
+                    .studyChannel(studyChannel)
+                    .participationStatus(ParticipationStatus.CANCELED)
+                    .build();
+
+            given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
+            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+
+            //when & then
+            assertThatThrownBy(() -> studyChannelParticipationService.approve(1L, 1L, 2L))
+                    .isExactlyInstanceOf(InvalidApprovalStatusException.class);
+
+        }
 
     }
 
