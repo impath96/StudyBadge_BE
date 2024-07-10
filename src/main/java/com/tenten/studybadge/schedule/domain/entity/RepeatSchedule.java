@@ -2,6 +2,7 @@ package com.tenten.studybadge.schedule.domain.entity;
 
 
 import com.tenten.studybadge.schedule.domain.Schedule;
+import com.tenten.studybadge.schedule.dto.RepeatScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
@@ -65,6 +66,19 @@ public class RepeatSchedule extends Schedule {
     this.repeatEndDate = repeatEndDate;
     this.placeId = placeId;
     this.studyChannel = studyChannel;
+  }
+
+  public void updateRepeatSchedule(RepeatScheduleEditRequest scheduleEditRequest) {
+    this.scheduleName = scheduleEditRequest.getScheduleName();
+    this.scheduleContent = scheduleEditRequest.getScheduleContent();
+    this.scheduleDate = scheduleEditRequest.getSelectedDate();
+    this.scheduleStartTime = scheduleEditRequest.getScheduleStartTime();
+    this.scheduleEndTime = scheduleEditRequest.getScheduleEndTime();
+    this.isRepeated = true;
+    this.repeatCycle = scheduleEditRequest.getRepeatCycle();
+    this.repeatSituation = scheduleEditRequest.getRepeatSituation();
+    this.repeatEndDate = scheduleEditRequest.getRepeatEndDate();
+    this.placeId = scheduleEditRequest.getPlaceId();
   }
 
   public ScheduleResponse toResponse() {
