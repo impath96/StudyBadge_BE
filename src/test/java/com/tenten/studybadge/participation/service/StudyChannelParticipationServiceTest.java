@@ -374,4 +374,146 @@ class StudyChannelParticipationServiceTest {
 
     }
 
+    @DisplayName("[스터디 채널 참가 신청 거절 테스트]")
+    @Nested
+    class  rejectStudyChannelParticipationTest {
+
+        @DisplayName("정상적으로 스터디 채널 신청을 거절한다.")
+        @Test
+        void success_approveStudyChannelParticipation() {
+
+            //given
+            Member member = Member.builder().id(1L).build();
+            Member leader = Member.builder().id(2L).build();
+
+            StudyChannel studyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .build();
+
+            StudyMember studyMember = StudyMember.builder()
+                    .id(2L)
+                    .studyMemberRole(StudyMemberRole.LEADER)
+                    .member(leader)
+                    .build();
+            studyChannel.getStudyMembers().add(studyMember);
+
+            Participation participation = Participation.builder()
+                    .member(member)
+                    .studyChannel(studyChannel)
+                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .build();
+
+            given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
+            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+
+            //when
+            studyChannelParticipationService.reject(1L, 1L, 2L);
+
+            //then
+            assertThat(participation.getParticipationStatus()).isEqualTo(ParticipationStatus.REJECTED);
+
+        }
+
+        @DisplayName("다른 스터디 채널의 참가 신청일 경우 예외")
+        @Test
+        void fail_otherStudyChannelParticipationException() {
+
+            //given
+            Member member = Member.builder().id(1L).build();
+            Member leader = Member.builder().id(2L).build();
+
+            StudyChannel studyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .build();
+
+            StudyMember studyMember = StudyMember.builder()
+                    .id(2L)
+                    .studyMemberRole(StudyMemberRole.LEADER)
+                    .member(leader)
+                    .build();
+            studyChannel.getStudyMembers().add(studyMember);
+
+            Participation participation = Participation.builder()
+                    .member(member)
+                    .studyChannel(studyChannel)
+                    .build();
+
+            given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
+            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+
+            //when & then
+            assertThatThrownBy(() -> studyChannelParticipationService.reject(2L, 1L, 2L))
+                    .isExactlyInstanceOf(OtherStudyChannelParticipationException.class);
+
+        }
+
+        @DisplayName("거절은 해당 스터디 채널의 리더만 가능하다.")
+        @Test
+        void fail_notAuthorizedApprovalException() {
+
+            //given
+            Member member = Member.builder().id(1L).build();
+            Member member2 = Member.builder().id(2L).build();
+
+            StudyChannel studyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .build();
+
+            StudyMember studyMember = StudyMember.builder()
+                    .id(2L)
+                    .studyMemberRole(StudyMemberRole.STUDY_MEMBER)
+                    .member(member2)
+                    .build();
+            studyChannel.getStudyMembers().add(studyMember);
+
+            Participation participation = Participation.builder()
+                    .member(member)
+                    .studyChannel(studyChannel)
+                    .build();
+
+            given(memberRepository.findById(2L)).willReturn(Optional.of(member2));
+            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+
+            //when & then
+            assertThatThrownBy(() -> studyChannelParticipationService.reject(1L, 1L, 2L))
+                    .isExactlyInstanceOf(NotAuthorizedRejectException.class);
+
+        }
+
+        @DisplayName("참가 신청 상태가 승인 대기 상태가 아닐 경우 예외가 발생한다.")
+        @Test
+        void fail_invalidApprovalStatusException() {
+
+            //given
+            Member member = Member.builder().id(1L).build();
+            Member leader = Member.builder().id(2L).build();
+
+            StudyChannel studyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .build();
+
+            StudyMember studyMember = StudyMember.builder()
+                    .id(2L)
+                    .studyMemberRole(StudyMemberRole.LEADER)
+                    .member(leader)
+                    .build();
+            studyChannel.getStudyMembers().add(studyMember);
+
+            Participation participation = Participation.builder()
+                    .member(member)
+                    .studyChannel(studyChannel)
+                    .participationStatus(ParticipationStatus.CANCELED)
+                    .build();
+
+            given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
+            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+
+            //when & then
+            assertThatThrownBy(() -> studyChannelParticipationService.reject(1L, 1L, 2L))
+                    .isExactlyInstanceOf(InvalidApprovalStatusException.class);
+
+        }
+
+    }
+
 }
