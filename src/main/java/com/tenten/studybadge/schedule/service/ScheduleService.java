@@ -219,7 +219,7 @@ public class ScheduleService {
 
     LocalDate selectedDate = singleScheduleEditRequest.getSelectedDate();
     if (selectedDate.equals(repeatSchedule.getScheduleDate())) {
-      repeatScheduleRepository.deleteById(repeatSchedule.getId());
+      repeatScheduleRepository.deleteById(singleScheduleEditRequest.getScheduleId());
     } else if (isNextRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule.getScheduleDate())) {
         repeatScheduleRepository.deleteById(singleScheduleEditRequest.getScheduleId());
         singleScheduleRepository.save(SingleSchedule.withoutIdBuilder()
@@ -248,7 +248,7 @@ public class ScheduleService {
           .studyChannel(repeatSchedule.getStudyChannel())
           .placeId(repeatSchedule.getPlaceId())
           .build();
-      repeatScheduleRepository.deleteById(repeatSchedule.getId());
+      repeatScheduleRepository.deleteById(singleScheduleEditRequest.getScheduleId());
     }
 
     // 선택 날짜 single schedule
