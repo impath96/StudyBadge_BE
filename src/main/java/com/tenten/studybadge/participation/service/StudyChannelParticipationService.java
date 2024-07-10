@@ -68,7 +68,7 @@ public class StudyChannelParticipationService {
         Participation participation = participationRepository.findById(participationId).orElseThrow(NotFoundParticipationException::new);
         StudyChannel studyChannel = participation.getStudyChannel();
 
-        if (!participation.getStudyChannel().getId().equals(studyChannelId)) {
+        if (!studyChannel.getId().equals(studyChannelId)) {
              throw new OtherStudyChannelParticipationException();
         }
         if (!studyChannel.isLeader(member)){
