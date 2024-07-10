@@ -59,6 +59,9 @@ public class ScheduleController {
   }
 
   @PutMapping("/study-channels/{studyChannelId}/schedules")
+  @Operation(summary = "단일 일정 -> any 일정 | 반복 일정 -> 반복 일정으로 수정", description = "특정 스터디 채널의 일정을 수정할 때 [단일 -> any | 반복 -> 반복]일정으로 수정할 경우 수정 api" ,security = @SecurityRequirement(name = "bearerToken"))
+  @Parameter(name = "studyChannelId", description = "일정이 존재하는 study channel의 id 값", required = true)
+  @Parameter(name = "ScheduleEditRequest", description = "일정 수정 request, type의 값이 single, repeat에 따라 단일 일정 / 반복 일정 등록으로 나뉜다.", required = true )
   public ResponseEntity<Void> putSchedule(
       @PathVariable Long studyChannelId,
       @Valid @RequestBody ScheduleEditRequest scheduleEditRequest)  {
@@ -67,6 +70,9 @@ public class ScheduleController {
   }
 
   @PutMapping("/study-channels/{studyChannelId}/schedules/isAfterEvent")
+  @Operation(summary = "반복 일정 -> 단일 일정으로 수정", description = "특정 스터디 채널의 일정을 수정할 때 반복 일정에서 단일 일정으로 수정할 경우 수정하는 api" ,security = @SecurityRequirement(name = "bearerToken"))
+  @Parameter(name = "studyChannelId", description = "일정이 존재하는 study channel의 id 값", required = true)
+  @Parameter(name = "ScheduleEditRequest", description = "일정 등록 request, type의 값이 single, repeat에 따라 단일 일정 / 반복 일정 등록으로 나뉜다.", required = true )
   public ResponseEntity<Void> putRepeatScheduleWithAfterEventSame(
       @PathVariable Long studyChannelId,
       @RequestParam("Same") Boolean isAfterEventSame,
