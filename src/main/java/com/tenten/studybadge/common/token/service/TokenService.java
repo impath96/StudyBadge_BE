@@ -45,22 +45,7 @@ public class TokenService {
         return token;
     }
 
-    public String reissue(String accessToken, String refreshToken) {
-
-        if (accessToken.startsWith(BEARER)) {
-            accessToken = accessToken.substring(7);
-        } else {
-            throw new InvalidTokenException();
-        }
-
-        if (!jwtTokenProvider.validateToken(accessToken)) {
-            throw new InvalidTokenException();
-        }
-
-        long accessTokenExpiration = jwtTokenProvider.getExpiration(accessToken);
-        if (accessTokenExpiration >= 0) {
-            throw new InvalidTokenException();
-        }
+    public String reissue(String refreshToken) {
 
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new InvalidTokenException();

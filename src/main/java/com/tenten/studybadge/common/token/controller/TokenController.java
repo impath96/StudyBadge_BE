@@ -20,13 +20,12 @@ public class TokenController {
     private final TokenService tokenService;
     @Operation(summary = "토큰 재발급", description = "토큰 재발급", security = @SecurityRequirement(name = "bearerToken"))
     @PostMapping("/re-issue")
-    public ResponseEntity<String> reissue(@RequestHeader(AUTHORIZATION) String accessToken,
-                                          @CookieValue(value = "refreshToken", defaultValue = "") String refreshToken) {
+    public ResponseEntity<String> reissue(@CookieValue(value = "refreshToken", defaultValue = "") String refreshToken) {
 
-        String response = tokenService.reissue(accessToken, refreshToken);
+        String newAccessToken = tokenService.reissue(refreshToken);
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header("Authorization", "Bearer " + response)
-                .body(response);
+                .header("Authorization", "Bearer " + newAccessToken)
+                .body(newAccessToken);
     }
 }
