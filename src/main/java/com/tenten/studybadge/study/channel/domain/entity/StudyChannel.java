@@ -45,14 +45,14 @@ public class StudyChannel extends BaseEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "studyChannel", cascade = { CascadeType.PERSIST, CascadeType.REMOVE }, orphanRemoval = true)
-    private List<StudyMember> members = new ArrayList<>();
+    private List<StudyMember> studyMembers = new ArrayList<>();
 
     public boolean isStartDateBeforeTo(LocalDate date) {
         return studyDuration.isStartDateBeforeTo(date);
     }
 
     public boolean isStudyMember(Long memberId) {
-        return members.stream().anyMatch(studyMember -> studyMember.getMember().getId().equals(memberId));
+        return studyMembers.stream().anyMatch(studyMember -> studyMember.getMember().getId().equals(memberId));
     }
 
     public boolean isRecruitmentCompleted() {
@@ -60,7 +60,7 @@ public class StudyChannel extends BaseEntity {
     }
 
     public boolean isLeader(Member member) {
-        return members.stream()
+        return studyMembers.stream()
                 .filter(studyMember -> studyMember.getMember().equals(member))
                 .findFirst()
                 .map(StudyMember::isLeader)
@@ -69,7 +69,7 @@ public class StudyChannel extends BaseEntity {
 
     public void addMember(Member member) {
         StudyMember studyMember = StudyMember.member(member, this);
-        members.add(studyMember);
+        studyMembers.add(studyMember);
     }
 
 }
