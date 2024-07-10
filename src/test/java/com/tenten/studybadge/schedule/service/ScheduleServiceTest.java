@@ -333,7 +333,7 @@ class ScheduleServiceTest {
       RepeatScheduleEditRequest repeatScheduleEditRequest = new RepeatScheduleEditRequest(
           1L, ScheduleOriginType.SINGLE, "Repeat Meeting", "Content for repeat meeting",
           LocalDate.of(2024, 7, 5), LocalTime.of(12, 0), LocalTime.of(13, 0),
-          false, RepeatCycle.WEEKLY, RepeatSituation.MONDAY, LocalDate.of(2024, 12, 31),
+          RepeatCycle.WEEKLY, RepeatSituation.MONDAY, LocalDate.of(2024, 12, 31),
           null
       );
 
@@ -368,7 +368,7 @@ class ScheduleServiceTest {
           2L, ScheduleOriginType.REPEAT,
           "Repeat Meeting Edit", "Content for repeat meeting Edit",
           LocalDate.of(2024,  8, 5), LocalTime.of(12, 0), LocalTime.of(13, 0),
-          false, RepeatCycle.WEEKLY, RepeatSituation.TUESDAY, LocalDate.of(2024, 12, 31),
+          RepeatCycle.WEEKLY, RepeatSituation.TUESDAY, LocalDate.of(2024, 12, 31),
           null
       );
       given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));

@@ -14,9 +14,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class RepeatScheduleEditRequest extends ScheduleEditRequest{
-  private boolean isAfterEventSame;
+
   @NotNull(message = "일정 반복 주기는 필수입니다.")
   private RepeatCycle repeatCycle;
+  @NotNull(message = "일정 반복 상황은 필수입니다.")
   @JsonDeserialize(using = RepeatSituationNumberDeserializer.class)
   private RepeatSituation repeatSituation;
   @NotNull(message = "일정 반복 끝나는 날짜는 필수입니다.")
@@ -25,7 +26,6 @@ public class RepeatScheduleEditRequest extends ScheduleEditRequest{
   public RepeatScheduleEditRequest(Long scheduleId, ScheduleOriginType originType,
       String scheduleName, String scheduleContent,
       LocalDate selectedDate, LocalTime startTime, LocalTime endTime,
-      boolean isAfterEventSame,
       RepeatCycle repeatCycle, RepeatSituation repeatSituation, LocalDate repeatEndDate,
       Long placeId) {
     this.scheduleId = scheduleId;
@@ -35,7 +35,6 @@ public class RepeatScheduleEditRequest extends ScheduleEditRequest{
     this.selectedDate = selectedDate;
     this.scheduleStartTime = startTime;
     this.scheduleEndTime = endTime;
-    this.isAfterEventSame = isAfterEventSame;
     this.repeatCycle = repeatCycle;
     this.repeatSituation = repeatSituation;
     this.repeatEndDate = repeatEndDate;
