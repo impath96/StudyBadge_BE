@@ -42,6 +42,7 @@ public class RepeatSchedule extends Schedule {
   private RepeatCycle repeatCycle;
   @Enumerated(EnumType.STRING)
   private RepeatSituation repeatSituation;
+  @Setter
   private LocalDate repeatEndDate;
   @Setter
   private Long placeId;
@@ -51,6 +52,9 @@ public class RepeatSchedule extends Schedule {
   @JoinColumn(name = "study_channel_id", nullable = false)
   private StudyChannel studyChannel;
 
+  public void setRepeatStartDate(LocalDate startDate) {
+    this.scheduleDate = startDate;
+  }
   @Builder(builderMethodName = "withoutIdBuilder")
   public RepeatSchedule(String scheduleName, String scheduleContent, LocalDate scheduleDate, LocalTime scheduleStartTime,
       LocalTime scheduleEndTime, boolean isRepeated, RepeatCycle repeatCycle, RepeatSituation repeatSituation,

@@ -4,6 +4,7 @@ import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatS
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForScheduleRequestException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundSingleScheduleException;
+import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
@@ -18,6 +19,7 @@ import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.SingleScheduleEditRequest;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
+import com.tenten.studybadge.type.schedule.RepeatCycle;
 import com.tenten.studybadge.type.schedule.ScheduleOriginType;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -184,5 +186,227 @@ public class ScheduleService {
 
     repeatSchedule.updateRepeatSchedule(repeatScheduleEditRequest);
     repeatScheduleRepository.save(repeatSchedule);
+  }
+
+  public void putRepeatScheduleWithAfterEventSame(
+      Long studyChannelId, Boolean isAfterEventSame, ScheduleEditRequest scheduleEditRequest) {
+
+    StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId)
+        .orElseThrow(NotFoundStudyChannelException::new);
+
+    RepeatSchedule repeatSchedule = repeatScheduleRepository.findById(
+            scheduleEditRequest.getScheduleId())
+        .orElseThrow(NotFoundRepeatScheduleException::new);
+
+    if (isNotIncluded(scheduleEditRequest.getSelectedDate(), repeatSchedule.getScheduleDate(), repeatSchedule.getRepeatEndDate())) {
+      throw new OutRangeScheduleException();
+    }
+
+    if (scheduleEditRequest.getOriginType() == ScheduleOriginType.REPEAT
+    && !isAfterEventSame) {
+      putScheduleRepeatToSingleAfterEventNo(repeatSchedule, (SingleScheduleEditRequest) scheduleEditRequest);
+
+    } else if (scheduleEditRequest.getOriginType() == ScheduleOriginType.REPEAT
+        && isAfterEventSame) {
+      putScheduleRepeatToSingleAfterEventYes(repeatSchedule, (SingleScheduleEditRequest) scheduleEditRequest);
+
+    } else {
+      throw new IllegalArgumentForScheduleRequestException();
+    }
+  }
+
+  public void putScheduleRepeatToSingleAfterEventYes(RepeatSchedule repeatSchedule, SingleScheduleEditRequest singleScheduleEditRequest) {
+
+    LocalDate selectedDate = singleScheduleEditRequest.getSelectedDate();
+    if (selectedDate.equals(repeatSchedule.getScheduleDate())) {
+      repeatScheduleRepository.deleteById(repeatSchedule.getId());
+    } else if (isNextRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule.getScheduleDate())) {
+        repeatScheduleRepository.deleteById(singleScheduleEditRequest.getScheduleId());
+        singleScheduleRepository.save(SingleSchedule.withoutIdBuilder()
+            .scheduleName(repeatSchedule.getScheduleName())
+            .scheduleContent(repeatSchedule.getScheduleContent())
+            .scheduleDate(repeatSchedule.getScheduleDate())
+            .scheduleStartTime(repeatSchedule.getScheduleStartTime())
+            .scheduleEndTime(repeatSchedule.getScheduleEndTime())
+            .studyChannel(repeatSchedule.getStudyChannel())
+            .placeId(repeatSchedule.getPlaceId())
+            .isRepeated(false)
+            .build());
+    }
+
+    changeRepeatEndDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
+
+    // 만일 변경한 기존 반복 일정이 반복 시작 날짜와 끝나는 날짜가 같을 경우 단일 일정으로 변경한다.
+    if (repeatSchedule.getScheduleDate().equals(repeatSchedule.getRepeatEndDate())) {
+      SingleSchedule.withoutIdBuilder()
+          .scheduleName(repeatSchedule.getScheduleName())
+          .scheduleContent(repeatSchedule.getScheduleContent())
+          .scheduleDate(repeatSchedule.getScheduleDate())
+          .scheduleStartTime(repeatSchedule.getScheduleStartTime())
+          .scheduleEndTime(repeatSchedule.getScheduleEndTime())
+          .isRepeated(false)
+          .studyChannel(repeatSchedule.getStudyChannel())
+          .placeId(repeatSchedule.getPlaceId())
+          .build();
+      repeatScheduleRepository.deleteById(repeatSchedule.getId());
+    }
+
+    // 선택 날짜 single schedule
+    singleScheduleRepository.save(SingleSchedule.withoutIdBuilder()
+        .scheduleName(singleScheduleEditRequest.getScheduleName())
+        .scheduleContent(singleScheduleEditRequest.getScheduleContent())
+        .scheduleDate(selectedDate)
+        .scheduleStartTime(singleScheduleEditRequest.getScheduleStartTime())
+        .scheduleEndTime(singleScheduleEditRequest.getScheduleEndTime())
+        .isRepeated(false)
+        .studyChannel(repeatSchedule.getStudyChannel())
+        .placeId(singleScheduleEditRequest.getPlaceId())
+        .build());
+  }
+
+  public void putScheduleRepeatToSingleAfterEventNo(RepeatSchedule repeatSchedule, SingleScheduleEditRequest singleScheduleEditRequest) {
+
+    LocalDate selectedDate = singleScheduleEditRequest.getSelectedDate();
+    if (selectedDate.equals(repeatSchedule.getScheduleDate())) {
+      // 기존 반복 일정: scheduleDate = scheduleDate + (주기 1)으로 변경
+      changeRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
+    } else if (selectedDate.equals(repeatSchedule.getRepeatEndDate())) {
+      // 기존 반복 일정: endDate = endDate - (주기 1)으로 변경
+      changeRepeatEndDate(selectedDate,repeatSchedule.getRepeatCycle(), repeatSchedule);
+    } else if (isNextRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule.getScheduleDate())) {
+        singleScheduleRepository.save(
+            SingleSchedule.withoutIdBuilder()
+                .scheduleName(repeatSchedule.getScheduleName())
+                .scheduleContent(repeatSchedule.getScheduleContent())
+                .scheduleDate(repeatSchedule.getScheduleDate())
+                .scheduleStartTime(repeatSchedule.getScheduleStartTime())
+                .scheduleEndTime(repeatSchedule.getScheduleEndTime())
+                .isRepeated(false)
+                .studyChannel(repeatSchedule.getStudyChannel())
+                .placeId(repeatSchedule.getPlaceId())
+                .build()
+        );
+        changeRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
+
+    } else if (isFrontRepeatEndDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule.getRepeatEndDate())) {
+      singleScheduleRepository.save(
+          SingleSchedule.withoutIdBuilder()
+              .scheduleName(repeatSchedule.getScheduleName())
+              .scheduleContent(repeatSchedule.getScheduleContent())
+              .scheduleDate(repeatSchedule.getRepeatEndDate()) // 반복 마지막 날짜로 단일 일정이된다.
+              .scheduleStartTime(repeatSchedule.getScheduleStartTime())
+              .scheduleEndTime(repeatSchedule.getScheduleEndTime())
+              .isRepeated(false)
+              .studyChannel(repeatSchedule.getStudyChannel())
+              .placeId(repeatSchedule.getPlaceId())
+              .build()
+      );
+      changeRepeatEndDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
+
+    } else {
+      RepeatSchedule secondRepeatSchedule =  makeAfterCycleRepeatSchedule(selectedDate,  repeatSchedule);
+      changeRepeatEndDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
+
+      repeatScheduleRepository.save(secondRepeatSchedule);
+    }
+
+    // 선택 날짜 single schedule
+    singleScheduleRepository.save(SingleSchedule.withoutIdBuilder()
+        .scheduleName(singleScheduleEditRequest.getScheduleName())
+        .scheduleContent(singleScheduleEditRequest.getScheduleContent())
+        .scheduleDate(selectedDate)
+        .scheduleStartTime(singleScheduleEditRequest.getScheduleStartTime())
+        .scheduleEndTime(singleScheduleEditRequest.getScheduleEndTime())
+        .isRepeated(false)
+        .studyChannel(repeatSchedule.getStudyChannel())
+        .placeId(singleScheduleEditRequest.getPlaceId())
+        .build());
+  }
+
+  private boolean isNotIncluded(LocalDate selectedDate, LocalDate repeatStartDate, LocalDate repeatEndDate) {
+    return (selectedDate.isAfter(repeatEndDate) || selectedDate.isBefore(repeatStartDate));
+  }
+
+  private boolean isNextRepeatStartDate(LocalDate selectedDate, RepeatCycle repeatCycle, LocalDate repeatStartDate) {
+    switch (repeatCycle) {
+      case DAILY:
+        return selectedDate.minusDays(1).isEqual(repeatStartDate);
+      case WEEKLY:
+        return selectedDate.minusWeeks(1).isEqual(repeatStartDate);
+      case MONTHLY:
+        return selectedDate.minusMonths(1).isEqual(repeatStartDate);
+    }
+    return false;
+  }
+
+  private boolean isFrontRepeatEndDate(LocalDate selectedDate, RepeatCycle repeatCycle, LocalDate repeatEndDate) {
+    switch (repeatCycle) {
+      case DAILY:
+        return selectedDate.plusDays(1).isEqual(repeatEndDate);
+      case WEEKLY:
+        return selectedDate.plusWeeks(1).isEqual(repeatEndDate);
+      case MONTHLY:
+        return selectedDate.plusMonths(1).isEqual(repeatEndDate);
+    }
+    return false;
+  }
+
+  private void changeRepeatStartDate(LocalDate selectedDate, RepeatCycle repeatCycle
+      , RepeatSchedule repeatSchedule) {
+    switch (repeatCycle) {
+      case DAILY:
+        repeatSchedule.setRepeatStartDate(selectedDate.plusDays(1));
+        break;
+      case WEEKLY:
+        repeatSchedule.setRepeatStartDate(selectedDate.plusWeeks(1));
+        break;
+      case MONTHLY:
+        repeatSchedule.setRepeatStartDate(selectedDate.plusMonths(1));
+        break;
+    }
+  }
+
+  private void changeRepeatEndDate(LocalDate selectedDate, RepeatCycle repeatCycle
+      , RepeatSchedule repeatSchedule) {
+    switch (repeatCycle) {
+      case DAILY:
+        repeatSchedule.setRepeatEndDate(selectedDate.minusDays(1));
+        break;
+      case WEEKLY:
+        repeatSchedule.setRepeatEndDate(selectedDate.minusWeeks(1));
+        break;
+      case MONTHLY:
+        repeatSchedule.setRepeatEndDate(selectedDate.minusMonths(1));
+        break;
+    }
+  }
+
+  private RepeatSchedule makeAfterCycleRepeatSchedule(LocalDate selectedDate, RepeatSchedule existRepeatSchedule) {
+    LocalDate afterStartDate = null;
+
+    switch (existRepeatSchedule.getRepeatCycle()) {
+      case DAILY:
+        afterStartDate = selectedDate.plusDays(1);
+        break;
+      case WEEKLY:
+        afterStartDate = selectedDate.plusWeeks(1);
+        break;
+      case MONTHLY:
+        afterStartDate = selectedDate.plusMonths(1);
+        break;
+    }
+
+    return  RepeatSchedule.withoutIdBuilder()
+        .scheduleName(existRepeatSchedule.getScheduleName())
+        .scheduleContent(existRepeatSchedule.getScheduleContent())
+        .scheduleDate(afterStartDate)
+        .scheduleStartTime(existRepeatSchedule.getScheduleStartTime())
+        .scheduleEndTime(existRepeatSchedule.getScheduleEndTime())
+        .isRepeated(true)
+        .studyChannel(existRepeatSchedule.getStudyChannel())
+        .repeatSituation(existRepeatSchedule.getRepeatSituation())
+        .repeatCycle(existRepeatSchedule.getRepeatCycle())
+        .repeatEndDate(existRepeatSchedule.getRepeatEndDate())
+        .build();
   }
 }

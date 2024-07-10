@@ -65,4 +65,13 @@ public class ScheduleController {
     scheduleService.putSchedule(studyChannelId, scheduleEditRequest);
     return ResponseEntity.ok().build();
   }
+
+  @PutMapping("/study-channels/{studyChannelId}/schedules/isAfterEvent")
+  public ResponseEntity<Void> putRepeatScheduleWithAfterEventSame(
+      @PathVariable Long studyChannelId,
+      @RequestParam("Same") Boolean isAfterEventSame,
+      @Valid @RequestBody ScheduleEditRequest scheduleEditRequest)  {
+    scheduleService.putRepeatScheduleWithAfterEventSame(studyChannelId, isAfterEventSame, scheduleEditRequest);
+    return ResponseEntity.ok().build();
+  }
 }
