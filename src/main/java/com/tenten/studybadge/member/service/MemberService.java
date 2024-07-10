@@ -160,7 +160,7 @@ public class MemberService {
 
         Member member = memberRepository.findByEmailAndPlatform(email, platform).orElseThrow(NotFoundMemberException::new);
 
-        return MemberResponse.of(member);
+        return MemberResponse.toResponse(member);
     }
 
 
@@ -187,7 +187,7 @@ public class MemberService {
                 .build();
         memberRepository.save(updateMember);
 
-        return MemberResponse.of(updateMember);
+        return MemberResponse.toResponse(updateMember);
     }
 }
 

@@ -30,7 +30,7 @@ public class MemberResponse {
     private int banCnt;
 
 
-    public static MemberResponse of(Member member) {
+    public static MemberResponse toResponse(Member member) {
 
         return MemberResponse.builder()
                 .email(member.getEmail())
