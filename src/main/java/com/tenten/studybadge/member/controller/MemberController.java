@@ -81,7 +81,7 @@ public class MemberController {
 
         MemberResponse memberResponse = memberService.myInfo(principal.getUsername());
 
-        return ResponseEntity.status(HttpStatus.OK).body(memberResponse);
+        return ResponseEntity.ok(memberResponse);
     }
     @PutMapping("/my-info/update")
     public ResponseEntity<MemberResponse> update(@AuthenticationPrincipal CustomUserDetails principal,
