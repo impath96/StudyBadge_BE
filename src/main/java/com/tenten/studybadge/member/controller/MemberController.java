@@ -77,7 +77,7 @@ public class MemberController {
     }
     @Operation(summary = "내 정보", description = "회원의 나의 정보", security = @SecurityRequirement(name = "bearerToken"))
     @GetMapping("/my-info")
-    public ResponseEntity<MemberResponse> myInfo(@AuthenticationPrincipal CustomUserDetails principal) {
+    public ResponseEntity<MemberResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails principal) {
 
         MemberResponse memberResponse = memberService.myInfo(principal.getUsername());
 
@@ -90,6 +90,6 @@ public class MemberController {
 
         memberService.updateMember(principal.getUsername(), updateRequest, profile);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
