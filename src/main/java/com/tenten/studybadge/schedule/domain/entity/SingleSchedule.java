@@ -58,20 +58,6 @@ public class SingleSchedule extends Schedule {
     this.studyChannel = studyChannel;
   }
 
-  @Builder(builderMethodName = "withIdBuilder")
-  public SingleSchedule(long scheduleId, String scheduleName, String scheduleContent, LocalDate scheduleDate, LocalTime scheduleStartTime,
-      LocalTime scheduleEndTime, boolean isRepeated, Long placeId, StudyChannel studyChannel) {
-    this.id = scheduleId;
-    this.scheduleName = scheduleName;
-    this.scheduleContent = scheduleContent;
-    this.scheduleDate = scheduleDate;
-    this.scheduleStartTime = scheduleStartTime;
-    this.scheduleEndTime = scheduleEndTime;
-    this.isRepeated = isRepeated;
-    this.placeId = placeId;
-    this.studyChannel = studyChannel;
-  }
-
   public ScheduleResponse toResponse() {
     return ScheduleResponse.builder()
         .id(this.getId())
