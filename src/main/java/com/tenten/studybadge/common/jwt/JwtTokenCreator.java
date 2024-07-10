@@ -48,12 +48,14 @@ public class JwtTokenCreator {
 
         String accessToken = Jwts.builder()
                 .setClaims(accessTokenClaims)
+                .setIssuedAt(Date.from(now))
                 .setSubject(username)
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
         String refreshToken = Jwts.builder()
                 .setClaims(refreshTokenClaims)
+                .setIssuedAt(Date.from(now))
                 .setExpiration(refreshTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -62,5 +64,23 @@ public class JwtTokenCreator {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    public String reissue(String email, MemberRole role, Platform platform) {
+
+        Claims claims = Jwts.claims().setSubject(email);
+        claims.put(PLATFORM, platform);
+        List<String> roles = Arrays.asList(ROLE_PREFIX + role.name());
+        claims.put(ROLE, roles);
+
+        Instant now = Instant.now();
+        Date accessTokenExpiresIn = Date.from(now.plusMillis(ACCESS_TOKEN_EXPIRES_IN));
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(accessTokenExpiresIn)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
     }
 }

@@ -2,6 +2,7 @@ package com.tenten.studybadge.member.controller;
 
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
 import com.tenten.studybadge.common.token.dto.TokenDto;
+import com.tenten.studybadge.common.utils.CookieUtils;
 import com.tenten.studybadge.member.dto.*;
 import com.tenten.studybadge.member.service.MemberService;
 import com.tenten.studybadge.common.token.service.TokenService;
@@ -9,10 +10,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,30 +56,21 @@ public class MemberController {
 
         TokenCreateDto createDto = memberService.login(loginRequest, LOCAL);
         TokenDto tokenDto = tokenService.create(createDto.getEmail(), createDto.getRole(), LOCAL);
-
-        Cookie cookie = new Cookie("accessToken", tokenDto.getAccessToken());
-        cookie.setHttpOnly(true);
-        cookie.setDomain("localhost");
-        cookie.setMaxAge(3600);
-        cookie.setSecure(true);
-        cookie.setPath("/");
+        ResponseCookie addCookie = CookieUtils.addCookie(tokenDto.getRefreshToken());
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header("set-cookie", String.valueOf(cookie)).body(tokenDto);
+                .header(HttpHeaders.SET_COOKIE, addCookie.toString())
+                .header("Authorization", "Bearer " + tokenDto.getAccessToken())
+                .body(tokenDto);
     }
     @Operation(summary = "로그아웃", description = "로그아웃" , security = @SecurityRequirement(name = "bearerToken"))
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader(AUTHORIZATION) String token) {
 
         memberService.logout(token);
-
-        Cookie cookie = new Cookie("accessToken", null);
-        cookie.setHttpOnly(true);
-        cookie.setDomain("localhost");
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
+        ResponseCookie deleteCookie = CookieUtils.deleteCookie(null);
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header("set-cookie", String.valueOf(cookie)).build();
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString()).build();
     }
 }
