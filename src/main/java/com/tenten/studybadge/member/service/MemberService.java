@@ -1,24 +1,35 @@
 package com.tenten.studybadge.member.service;
 
+import com.tenten.studybadge.common.component.AwsS3Service;
 import com.tenten.studybadge.common.email.MailService;
 import com.tenten.studybadge.common.exception.InvalidTokenException;
 import com.tenten.studybadge.common.exception.member.*;
 import com.tenten.studybadge.common.jwt.JwtTokenProvider;
 import com.tenten.studybadge.common.redis.RedisService;
+import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.member.dto.MemberLoginRequest;
+import com.tenten.studybadge.member.dto.MemberResponse;
 import com.tenten.studybadge.member.dto.MemberSignUpRequest;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
+import com.tenten.studybadge.member.dto.MemberUpdateRequest;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.Optional;
@@ -34,6 +45,7 @@ public class MemberService {
     private final MailService mailService;
     private final RedisService redisService;
     private final RedisTemplate redisTemplate;
+    private final AwsS3Service awsS3Service;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -138,6 +150,44 @@ public class MemberService {
         }
 
             redisService.blackList(accessToken);
+    }
+
+    public MemberResponse myInfo(String email) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Platform platform = userDetails.getPlatform();
+
+        Member member = memberRepository.findByEmailAndPlatform(email, platform).orElseThrow(NotFoundMemberException::new);
+
+        return MemberResponse.of(member);
+    }
+
+
+    public MemberResponse updateMember(String email, MemberUpdateRequest updateRequest, MultipartFile profile) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Platform platform = userDetails.getPlatform();
+
+        String imgUrl = null;
+
+        if (profile != null && !profile.isEmpty()) {
+            imgUrl = awsS3Service.uploadFile(profile);
+            updateRequest.setImgUrl(imgUrl);
+        }
+
+        Member member = memberRepository.findByEmailAndPlatform(email, platform).orElseThrow(NotFoundMemberException::new);
+
+        Member updateMember = member.toBuilder()
+                .account(updateRequest.getAccount())
+                .nickname(updateRequest.getNickname())
+                .introduction(updateRequest.getIntroduction())
+                .imgUrl(updateRequest.getImgUrl())
+                .build();
+        memberRepository.save(updateMember);
+
+        return MemberResponse.of(updateMember);
     }
 }
 

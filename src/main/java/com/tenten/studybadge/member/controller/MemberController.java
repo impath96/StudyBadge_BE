@@ -1,5 +1,6 @@
 package com.tenten.studybadge.member.controller;
 
+import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
 import com.tenten.studybadge.common.token.dto.TokenDto;
 import com.tenten.studybadge.common.utils.CookieUtils;
@@ -16,8 +17,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
 
 
 import static com.tenten.studybadge.common.constant.TokenConstant.AUTHORIZATION;
@@ -72,5 +74,22 @@ public class MemberController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString()).build();
+    }
+    @Operation(summary = "내 정보", description = "회원의 나의 정보", security = @SecurityRequirement(name = "bearerToken"))
+    @GetMapping("/my-info")
+    public ResponseEntity<MemberResponse> myInfo(@AuthenticationPrincipal CustomUserDetails principal) {
+
+        MemberResponse memberResponse = memberService.myInfo(principal.getUsername());
+
+        return ResponseEntity.status(HttpStatus.OK).body(memberResponse);
+    }
+    @PutMapping("/my-info/update")
+    public ResponseEntity<MemberResponse> update(@AuthenticationPrincipal CustomUserDetails principal,
+                                                 @RequestPart("updateRequest") MemberUpdateRequest updateRequest,
+                                                 @RequestPart(value = "file", required = false) MultipartFile profile) {
+
+        memberService.updateMember(principal.getUsername(), updateRequest, profile);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
