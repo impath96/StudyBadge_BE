@@ -50,9 +50,9 @@ public class ScheduleController {
   @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
   @Parameter(name = "year", description = "일정의 year 값", required = true)
   @Parameter(name = "month", description = "일정의 month 값", required = true)
-  public ResponseEntity<List<ScheduleResponse>> getSchedules(
+  public ResponseEntity<List<ScheduleResponse>> getSchedulesWithFormula(
       @PathVariable Long studyChannelId,
       @RequestParam int year, @RequestParam int month) {
-    return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannelForYearAndMonth(studyChannelId, year, month));
+    return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannelForYearAndMonth( studyChannelId, year, month));
   }
 }

@@ -12,6 +12,4 @@ public interface ScheduleRepository<T extends Schedule> extends JpaRepository<T,
   @Query("SELECT s FROM #{#entityName} s WHERE s.studyChannel.id = :studyChannelId")
   List<T> findAllByStudyChannelId(Long studyChannelId);
 
-  @Query("SELECT s FROM #{#entityName} s WHERE s.studyChannel.id = :studyChannelId AND s.scheduleYear = :year AND s.scheduleMonth = :month")
-  List<T> findAllByStudyChannelIdAndScheduleYearAndMonth(Long studyChannelId, int year, int month);
 }
