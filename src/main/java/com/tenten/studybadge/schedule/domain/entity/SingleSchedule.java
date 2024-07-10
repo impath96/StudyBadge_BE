@@ -21,16 +21,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Formula;
 
 @Entity
 @Getter
 @DynamicUpdate
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(indexes = {
-    @Index(name = "idx_study_channel_id", columnList = "study_channel_id"),
-    @Index(name = "idx_schedule_year_month", columnList = "scheduleYear, scheduleMonth")})
+@Table(indexes = @Index(name = "idx_study_channel_id", columnList = "study_channel_id"))
 public class SingleSchedule extends Schedule {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,11 +41,9 @@ public class SingleSchedule extends Schedule {
   @JoinColumn(name = "study_channel_id", nullable = false)
   private StudyChannel studyChannel;
 
-  @Formula("YEAR(schedule_date)")
-  private int scheduleYear;
-
-  @Formula("MONTH(schedule_date)")
-  private int scheduleMonth;
+//  // TODO 단일 일정에만 실제 year, month 필드를 두고 인덱스를 만들지 고민
+//  private int scheduleYear;
+//  private int scheduleMonth;
 
   @Builder(builderMethodName = "withoutIdBuilder")
   public SingleSchedule(String scheduleName, String scheduleContent, LocalDate scheduleDate, LocalTime scheduleStartTime,

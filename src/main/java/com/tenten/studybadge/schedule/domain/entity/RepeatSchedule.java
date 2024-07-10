@@ -3,9 +3,9 @@ package com.tenten.studybadge.schedule.domain.entity;
 
 import com.tenten.studybadge.schedule.domain.Schedule;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
+import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
 import com.tenten.studybadge.type.schedule.RepeatSituation;
-import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -25,16 +25,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Formula;
 
 @Entity
 @Getter
 @DynamicUpdate
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(indexes = {
-    @Index(name = "idx_study_channel_id", columnList = "study_channel_id"),
-    @Index(name = "idx_schedule_year_month", columnList = "scheduleYear, scheduleMonth")})
+@Table(indexes = @Index(name = "idx_study_channel_id", columnList = "study_channel_id"))
 public class RepeatSchedule extends Schedule {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,12 +49,6 @@ public class RepeatSchedule extends Schedule {
   @ManyToOne
   @JoinColumn(name = "study_channel_id", nullable = false)
   private StudyChannel studyChannel;
-
-  @Formula("YEAR(schedule_date)")
-  private int scheduleYear;
-
-  @Formula("MONTH(schedule_date)")
-  private int scheduleMonth;
 
   @Builder(builderMethodName = "withoutIdBuilder")
   public RepeatSchedule(String scheduleName, String scheduleContent, LocalDate scheduleDate, LocalTime scheduleStartTime,
