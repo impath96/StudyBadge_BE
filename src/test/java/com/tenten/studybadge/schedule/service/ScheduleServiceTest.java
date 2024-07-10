@@ -11,7 +11,9 @@ import com.tenten.studybadge.common.exception.studychannel.InvalidStudyDurationE
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
+import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
 import com.tenten.studybadge.schedule.domain.repository.ScheduleRepository;
+import com.tenten.studybadge.schedule.domain.repository.SingleScheduleRepository;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
@@ -36,11 +38,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 class ScheduleServiceTest {
-
   @Mock
-  private ScheduleRepository<SingleSchedule> singleScheduleRepository;
+  private SingleScheduleRepository singleScheduleRepository;
   @Mock
-  private ScheduleRepository<RepeatSchedule> repeatScheduleRepository;
+  private RepeatScheduleRepository repeatScheduleRepository;
   @Mock
   private StudyChannelRepository studyChannelRepository;
 
@@ -240,13 +241,22 @@ class ScheduleServiceTest {
   @DisplayName("스터디 채널 내의 일정 yyyy.mm 기준 전체 조회 성공")
   public void success_testGetSchedulesInStudyChannelByYearAndMonth() {
     // given
+    RepeatSchedule repeatSchedule2 = RepeatSchedule.withoutIdBuilder()
+        .scheduleDate(LocalDate.of(2024, 5, 15))
+        .repeatEndDate(LocalDate.of(2024, 9, 15))
+        .studyChannel(studyChannel)
+        .build();
+    LocalDate selectMonthFirstDate = LocalDate.of(2024, 7, 1);
+    LocalDate selectMonthLastDate = selectMonthFirstDate.withDayOfMonth(selectMonthFirstDate.lengthOfMonth());
+
     given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
-    given(singleScheduleRepository.findAllByStudyChannelIdAndScheduleYearAndMonth(
-        1L, 2024, 7))
+    given(singleScheduleRepository.findAllByStudyChannelIdAndDateRange(
+        1L, selectMonthFirstDate, selectMonthLastDate))
         .willReturn(Arrays.asList(singleScheduleWithoutPlace));
-    given(repeatScheduleRepository.findAllByStudyChannelIdAndScheduleYearAndMonth(
-        1L, 2024, 7))
-        .willReturn(Arrays.asList(repeatScheduleWithoutPlace));
+
+    given(repeatScheduleRepository.findAllByStudyChannelIdAndDate(
+        1L, selectMonthFirstDate))
+        .willReturn(Arrays.asList(repeatSchedule2));
 
     // when
     List<ScheduleResponse> scheduleResponses = scheduleService.getSchedulesInStudyChannelForYearAndMonth(
@@ -255,10 +265,10 @@ class ScheduleServiceTest {
     // then
     assertEquals(2, scheduleResponses.size());
     verify(studyChannelRepository, times(1)).findById(1L);
-    verify(singleScheduleRepository, times(1)).findAllByStudyChannelIdAndScheduleYearAndMonth(
-        1L, 2024, 7);
-    verify(repeatScheduleRepository, times(1)).findAllByStudyChannelIdAndScheduleYearAndMonth(
-        1L, 2024, 7);
+    verify(singleScheduleRepository, times(1)).findAllByStudyChannelIdAndDateRange(
+        1L, selectMonthFirstDate, selectMonthLastDate);
+    verify(repeatScheduleRepository, times(1)).findAllByStudyChannelIdAndDate(
+        1L, selectMonthFirstDate);
   }
 
   @Test
