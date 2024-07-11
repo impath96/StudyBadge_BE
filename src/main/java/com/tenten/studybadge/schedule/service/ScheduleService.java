@@ -328,78 +328,48 @@ public class ScheduleService {
         return (selectedDate.isAfter(repeatEndDate) || selectedDate.isBefore(repeatStartDate));
     }
 
-    private boolean isNextRepeatStartDate(LocalDate selectedDate, RepeatCycle repeatCycle
-        , LocalDate repeatStartDate) {
-        switch (repeatCycle) {
-            case DAILY:
-                return selectedDate.minusDays(1).isEqual(repeatStartDate);
-            case WEEKLY:
-                return selectedDate.minusWeeks(1).isEqual(repeatStartDate);
-            case MONTHLY:
-                return selectedDate.minusMonths(1).isEqual(repeatStartDate);
-        }
-        return false;
+    private boolean isNextRepeatStartDate(LocalDate selectedDate, RepeatCycle repeatCycle, LocalDate repeatStartDate) {
+        return switch (repeatCycle) {
+            case DAILY -> selectedDate.minusDays(1).isEqual(repeatStartDate);
+            case WEEKLY -> selectedDate.minusWeeks(1).isEqual(repeatStartDate);
+            case MONTHLY -> selectedDate.minusMonths(1).isEqual(repeatStartDate);
+        };
     }
 
-    private boolean isFrontRepeatEndDate(LocalDate selectedDate, RepeatCycle repeatCycle
-        , LocalDate repeatEndDate) {
-        switch (repeatCycle) {
-            case DAILY:
-                return selectedDate.plusDays(1).isEqual(repeatEndDate);
-            case WEEKLY:
-                return selectedDate.plusWeeks(1).isEqual(repeatEndDate);
-            case MONTHLY:
-                return selectedDate.plusMonths(1).isEqual(repeatEndDate);
-        }
-        return false;
+    private boolean isFrontRepeatEndDate(LocalDate selectedDate, RepeatCycle repeatCycle, LocalDate repeatEndDate) {
+        return switch (repeatCycle) {
+            case DAILY -> selectedDate.plusDays(1).isEqual(repeatEndDate);
+            case WEEKLY -> selectedDate.plusWeeks(1).isEqual(repeatEndDate);
+            case MONTHLY -> selectedDate.plusMonths(1).isEqual(repeatEndDate);
+        };
     }
 
-    private void changeRepeatStartDate(LocalDate selectedDate, RepeatCycle repeatCycle
-        , RepeatSchedule repeatSchedule) {
-        switch (repeatCycle) {
-            case DAILY:
-                repeatSchedule.setRepeatStartDate(selectedDate.plusDays(1));
-                break;
-            case WEEKLY:
-                repeatSchedule.setRepeatStartDate(selectedDate.plusWeeks(1));
-                break;
-            case MONTHLY:
-                repeatSchedule.setRepeatStartDate(selectedDate.plusMonths(1));
-                break;
-        }
+    private void changeRepeatStartDate(LocalDate selectedDate, RepeatCycle repeatCycle, RepeatSchedule repeatSchedule) {
+        LocalDate newStartDate = switch (repeatCycle) {
+            case DAILY -> selectedDate.plusDays(1);
+            case WEEKLY -> selectedDate.plusWeeks(1);
+            case MONTHLY -> selectedDate.plusMonths(1);
+        };
+        repeatSchedule.setRepeatStartDate(newStartDate);
         repeatScheduleRepository.save(repeatSchedule);
     }
 
-    private void changeRepeatEndDate(LocalDate selectedDate, RepeatCycle repeatCycle
-        , RepeatSchedule repeatSchedule) {
-        switch (repeatCycle) {
-            case DAILY:
-                repeatSchedule.setRepeatEndDate(selectedDate.minusDays(1));
-                break;
-            case WEEKLY:
-                repeatSchedule.setRepeatEndDate(selectedDate.minusWeeks(1));
-                break;
-            case MONTHLY:
-                repeatSchedule.setRepeatEndDate(selectedDate.minusMonths(1));
-                break;
-        }
+    private void changeRepeatEndDate(LocalDate selectedDate, RepeatCycle repeatCycle, RepeatSchedule repeatSchedule) {
+        LocalDate newEndDate = switch (repeatCycle) {
+            case DAILY -> selectedDate.minusDays(1);
+            case WEEKLY -> selectedDate.minusWeeks(1);
+            case MONTHLY -> selectedDate.minusMonths(1);
+        };
+        repeatSchedule.setRepeatEndDate(newEndDate);
         repeatScheduleRepository.save(repeatSchedule);
     }
 
     private RepeatSchedule makeAfterCycleRepeatSchedule(LocalDate selectedDate, RepeatSchedule existRepeatSchedule) {
-        LocalDate afterStartDate = null;
-
-        switch (existRepeatSchedule.getRepeatCycle()) {
-            case DAILY:
-                afterStartDate = selectedDate.plusDays(1);
-                break;
-            case WEEKLY:
-                afterStartDate = selectedDate.plusWeeks(1);
-                break;
-            case MONTHLY:
-                afterStartDate = selectedDate.plusMonths(1);
-                break;
-        }
+        LocalDate afterStartDate = switch (existRepeatSchedule.getRepeatCycle()) {
+            case DAILY -> selectedDate.plusDays(1);
+            case WEEKLY -> selectedDate.plusWeeks(1);
+            case MONTHLY -> selectedDate.plusMonths(1);
+        };
 
         return  RepeatSchedule.withoutIdBuilder()
             .scheduleName(existRepeatSchedule.getScheduleName())
