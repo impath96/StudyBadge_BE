@@ -5,20 +5,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.tenten.studybadge.common.exception.schedule.NotEqualSingleScheduleDate;
 import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
-import com.tenten.studybadge.common.exception.studychannel.InvalidStudyDurationException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
-import com.tenten.studybadge.schedule.domain.repository.ScheduleRepository;
 import com.tenten.studybadge.schedule.domain.repository.SingleScheduleRepository;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleEditRequest;
+import com.tenten.studybadge.schedule.dto.ScheduleDeleteRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.SingleScheduleEditRequest;
@@ -689,6 +688,47 @@ class ScheduleServiceTest {
             // when & then
             assertThrows(OutRangeScheduleException.class, () -> {
               scheduleService.putRepeatScheduleWithAfterEventSame(1L, true, singleScheduleEditRequest);
+            });
+        }
+    }
+
+    @DisplayName("일정 삭제")
+    @Nested
+    class scheduleDelete {
+        @Test
+        @DisplayName("단일 일정 삭제 성공")
+        public void testDeleteSingleSchedule() {
+            // given
+            ScheduleDeleteRequest deleteRequest =
+                new ScheduleDeleteRequest(
+                    1L, LocalDate.of(2024, 7, 5));
+
+            given(studyChannelRepository.findById(1L))
+                .willReturn(Optional.of(studyChannel));
+            given(singleScheduleRepository.findById(1L))
+                .willReturn(Optional.of(singleScheduleWithoutPlace));
+
+            // when
+            scheduleService.deleteSingleSchedule(1L, deleteRequest);
+
+            // then
+            verify(singleScheduleRepository, times(1)).deleteById(1L);
+        }
+
+        @Test
+        @DisplayName("단일 일정 삭제 실패 - 선택한 날짜가 다름")
+        public void testDeleteSingleScheduleWrongDate() {
+            // given
+            ScheduleDeleteRequest deleteRequest =
+                new ScheduleDeleteRequest(
+                    1L, LocalDate.of(2024, 9, 30));
+
+            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+            given(singleScheduleRepository.findById(1L)).willReturn(Optional.of(singleScheduleWithPlace));
+
+            // when & then
+            assertThrows(NotEqualSingleScheduleDate.class, () -> {
+              scheduleService.deleteSingleSchedule(1L, deleteRequest);
             });
         }
     }
