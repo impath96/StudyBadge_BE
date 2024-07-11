@@ -2,6 +2,7 @@ package com.tenten.studybadge.participation.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
 import com.tenten.studybadge.member.domain.entity.Member;
+import com.tenten.studybadge.participation.ParticipantResponse;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
 import jakarta.persistence.*;
@@ -53,5 +54,16 @@ public class Participation extends BaseEntity {
 
     public void reject() {
         this.participationStatus = ParticipationStatus.REJECTED;
+    }
+
+    public ParticipantResponse toResponse() {
+        return ParticipantResponse.builder()
+                .participationId(this.id)
+                .banCnt(this.member.getBanCnt())
+                .memberId(this.member.getId())
+                .imageUrl(this.member.getImgUrl())
+                .name(this.member.getName())
+                .badgeLevel(this.member.getBadgeLevel())
+                .build();
     }
 }
