@@ -1,5 +1,6 @@
 package com.tenten.studybadge.study.channel.controller;
 
+import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
 import com.tenten.studybadge.study.channel.service.StudyChannelService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,10 +27,10 @@ public class StudyChannelController {
     @PostMapping("/api/study-channels")
     @Operation(summary = "스터디 채널을 생성", description = "스터디 채널을 만들기 위해 사용되는 API", security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "request", description = "스터디 채널을 생성하기 위해 필요한 정보", required = true)
-    public ResponseEntity<Void> createStudyChannel(@RequestBody @Valid StudyChannelCreateRequest request) {
-        // TODO 추후 로그인 기능 완료되면 파라미터로 memberId 를 받아오는 것으로 변경해야 함.
-        Long memberId = 1L;
-        Long studyChannelId = studyChannelService.create(request, memberId);
+    public ResponseEntity<Void> createStudyChannel(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @RequestBody @Valid StudyChannelCreateRequest request) {
+        Long studyChannelId = studyChannelService.create(request, principal.getId());
         return ResponseEntity
                 .created(URI.create("/api/study-channels/" + studyChannelId))
                 .build();
