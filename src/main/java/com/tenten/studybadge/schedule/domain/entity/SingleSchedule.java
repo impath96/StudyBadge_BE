@@ -2,7 +2,6 @@ package com.tenten.studybadge.schedule.domain.entity;
 
 
 import com.tenten.studybadge.schedule.domain.Schedule;
-import com.tenten.studybadge.schedule.dto.RepeatScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.schedule.dto.SingleScheduleEditRequest;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
