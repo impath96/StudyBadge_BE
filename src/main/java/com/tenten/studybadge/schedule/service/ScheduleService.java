@@ -313,6 +313,21 @@ public class ScheduleService {
             changeRepeatEndDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
         }
 
+      // 만일 변경한 기존 반복 일정이 반복 시작 날짜와 끝나는 날짜가 같을 경우 단일 일정으로 변경한다.
+      if (repeatSchedule.getScheduleDate().equals(repeatSchedule.getRepeatEndDate())) {
+        singleScheduleRepository.save(SingleSchedule.withoutIdBuilder()
+            .scheduleName(repeatSchedule.getScheduleName())
+            .scheduleContent(repeatSchedule.getScheduleContent())
+            .scheduleDate(repeatSchedule.getScheduleDate())
+            .scheduleStartTime(repeatSchedule.getScheduleStartTime())
+            .scheduleEndTime(repeatSchedule.getScheduleEndTime())
+            .isRepeated(false)
+            .studyChannel(repeatSchedule.getStudyChannel())
+            .placeId(repeatSchedule.getPlaceId())
+            .build());
+        repeatScheduleRepository.deleteById(singleScheduleEditRequest.getScheduleId());
+      }
+
         // 선택 날짜 single schedule
         singleScheduleRepository.save(SingleSchedule.withoutIdBuilder()
             .scheduleName(singleScheduleEditRequest.getScheduleName())
