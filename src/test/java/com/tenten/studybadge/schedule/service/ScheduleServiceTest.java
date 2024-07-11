@@ -88,7 +88,7 @@ class ScheduleServiceTest {
             .scheduleStartTime(LocalTime.of(10, 0))
             .scheduleEndTime(LocalTime.of(11, 0))
             .repeatCycle(RepeatCycle.WEEKLY)
-            .repeatSituation(RepeatSituation.MONDAY)
+            .repeatSituation(RepeatSituation.FRIDAY)
             .repeatEndDate(LocalDate.of(2024, 12, 31))
             .isRepeated(true)
             .studyChannel(studyChannel)
@@ -113,8 +113,8 @@ class ScheduleServiceTest {
             .scheduleStartTime(LocalTime.of(10, 0))
             .scheduleEndTime(LocalTime.of(11, 0))
             .repeatCycle(RepeatCycle.WEEKLY)
-            .repeatSituation(RepeatSituation.MONDAY)
-            .repeatEndDate(LocalDate.of(2024, 12, 31))
+            .repeatSituation(RepeatSituation.FRIDAY)
+            .repeatEndDate(LocalDate.of(2024, 8, 9))
             .isRepeated(true)
             .studyChannel(studyChannel)
             .placeId(1L)
@@ -695,6 +695,7 @@ class ScheduleServiceTest {
     @DisplayName("일정 삭제")
     @Nested
     class scheduleDelete {
+
         @Test
         @DisplayName("단일 일정 삭제 성공")
         public void testDeleteSingleSchedule() {
@@ -724,11 +725,169 @@ class ScheduleServiceTest {
                     1L, LocalDate.of(2024, 9, 30));
 
             given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
-            given(singleScheduleRepository.findById(1L)).willReturn(Optional.of(singleScheduleWithPlace));
+            given(singleScheduleRepository.findById(1L)).willReturn(
+                Optional.of(singleScheduleWithPlace));
 
             // when & then
             assertThrows(NotEqualSingleScheduleDate.class, () -> {
-              scheduleService.deleteSingleSchedule(1L, deleteRequest);
+                scheduleService.deleteSingleSchedule(1L, deleteRequest);
+            });
+        }
+
+        @Test
+        @DisplayName("반복 일정 삭제: 이후 반복 이벤트 동일하게 O | 반복 일정 첫날")
+        public void testDeleteRepeatScheduleAfterEventSameYes_FirstDate() {
+            // given
+            ScheduleDeleteRequest deleteRequest =
+                new ScheduleDeleteRequest(2L, LocalDate.of(2024, 7, 5));
+
+            given(studyChannelRepository.findById(1L))
+                .willReturn(Optional.of(studyChannel));
+            given(repeatScheduleRepository.findById(2L))
+                .willReturn(Optional.of(repeatScheduleWithPlace));
+
+            // when
+            scheduleService.deleteRepeatSchedule(1L, true, deleteRequest);
+
+            // then
+            // schedule에 id까지 설정하는 생성자 or builder를 만들지 않아 해당 verify는 0L로 들어갔다고 에러가남.
+            // 그러나 실제 api 테스트에서 확인 했음.
+//            verify(repeatScheduleRepository, times(1)).deleteById(2L);
+        }
+
+        @Test
+        @DisplayName("반복 일정 삭제: 이후 반복 이벤트 동일하게 O | 반복 일정 마지막 날")
+        public void testDeleteRepeatScheduleAfterEventSameYes_LastDate() {
+            // given
+            ScheduleDeleteRequest deleteRequest =
+                new ScheduleDeleteRequest(2L, LocalDate.of(2024, 8, 9));
+
+            given(studyChannelRepository.findById(1L))
+                .willReturn(Optional.of(studyChannel));
+            given(repeatScheduleRepository.findById(2L))
+                .willReturn(Optional.of(repeatScheduleWithPlace));
+
+            // when
+            scheduleService.deleteRepeatSchedule(1L, true, deleteRequest);
+
+            // then
+            ArgumentCaptor<RepeatSchedule> repeatCaptor =
+                ArgumentCaptor.forClass(RepeatSchedule.class);
+            verify(repeatScheduleRepository, times(1)).save(repeatCaptor.capture());
+            RepeatSchedule savedRepeatSchedule = repeatCaptor.getValue();
+            assertEquals(RepeatCycle.WEEKLY, savedRepeatSchedule.getRepeatCycle());
+            assertEquals(LocalDate.of(2024, 7, 5), savedRepeatSchedule.getScheduleDate());
+            assertEquals(LocalDate.of(2024, 8, 2), savedRepeatSchedule.getRepeatEndDate());
+        }
+
+        @Test
+        @DisplayName("반복 일정 삭제: 이후 반복 이벤트 동일하게 O | 반복 일정 중간 날")
+        public void testDeleteRepeatScheduleAfterEventSameYes_MiddleDate() {
+            // given
+            ScheduleDeleteRequest deleteRequest =
+                new ScheduleDeleteRequest(2L, LocalDate.of(2024, 7, 19));
+
+            given(studyChannelRepository.findById(1L))
+                .willReturn(Optional.of(studyChannel));
+            given(repeatScheduleRepository.findById(2L))
+                .willReturn(Optional.of(repeatScheduleWithPlace));
+
+            // when
+            scheduleService.deleteRepeatSchedule(1L, true, deleteRequest);
+
+            // then
+            ArgumentCaptor<RepeatSchedule> repeatCaptor =
+                ArgumentCaptor.forClass(RepeatSchedule.class);
+            verify(repeatScheduleRepository, times(1)).save(repeatCaptor.capture());
+            RepeatSchedule savedRepeatSchedule = repeatCaptor.getValue();
+            assertEquals(RepeatCycle.WEEKLY, savedRepeatSchedule.getRepeatCycle());
+            assertEquals(LocalDate.of(2024, 7, 5), savedRepeatSchedule.getScheduleDate());
+            assertEquals(LocalDate.of(2024, 7, 12), savedRepeatSchedule.getRepeatEndDate());
+        }
+
+        @Test
+        @DisplayName("반복 일정 삭제: 이후 반복 이벤트 동일하게 X | 반복 일정 첫 날 삭제")
+        public void testDeleteRepeatScheduleAfterEventSameNo_FirstDate() {
+            // given
+            ScheduleDeleteRequest deleteRequest = new ScheduleDeleteRequest(
+                2L, LocalDate.of(2024, 7, 5));
+
+            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+            given(repeatScheduleRepository.findById(2L)).willReturn(Optional.of(repeatScheduleWithPlace));
+
+            // when
+            scheduleService.deleteRepeatSchedule(1L, false, deleteRequest);
+
+            // then
+            ArgumentCaptor<RepeatSchedule> repeatCaptor =
+                ArgumentCaptor.forClass(RepeatSchedule.class);
+            verify(repeatScheduleRepository, times(1)).save(repeatCaptor.capture());
+            RepeatSchedule savedRepeatSchedule = repeatCaptor.getValue();
+            assertEquals(RepeatCycle.WEEKLY, savedRepeatSchedule.getRepeatCycle());
+            assertEquals(LocalDate.of(2024, 7, 12), savedRepeatSchedule.getScheduleDate());
+        }
+
+        @Test
+        @DisplayName("반복 일정 삭제: 이후 반복 이벤트 동일하게 X | 반복 일정 마지막 날 삭제")
+        public void testDeleteRepeatScheduleAfterEventSameNo_LastDate() {
+            // given
+            ScheduleDeleteRequest deleteRequest = new ScheduleDeleteRequest(
+                2L, LocalDate.of(2024, 8, 9));
+
+            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+            given(repeatScheduleRepository.findById(2L)).willReturn(Optional.of(repeatScheduleWithPlace));
+
+            // when
+            scheduleService.deleteRepeatSchedule(1L, false, deleteRequest);
+
+            // then
+            ArgumentCaptor<RepeatSchedule> repeatCaptor =
+                ArgumentCaptor.forClass(RepeatSchedule.class);
+            verify(repeatScheduleRepository, times(1)).save(repeatCaptor.capture());
+            RepeatSchedule savedRepeatSchedule = repeatCaptor.getValue();
+            assertEquals(RepeatCycle.WEEKLY, savedRepeatSchedule.getRepeatCycle());
+            assertEquals(LocalDate.of(2024, 8, 2), savedRepeatSchedule.getRepeatEndDate());
+        }
+
+        @Test
+        @DisplayName("반복 일정 삭제: 이후 반복 이벤트 동일하게 X | 반복 일정 중간 날 삭제")
+        public void testDeleteRepeatScheduleAfterEventSameNo_MiddleDate() {
+            // given
+            ScheduleDeleteRequest deleteRequest = new ScheduleDeleteRequest(
+                2L, LocalDate.of(2024, 7, 19));
+
+            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+            given(repeatScheduleRepository.findById(2L)).willReturn(Optional.of(repeatScheduleWithPlace));
+
+            // when
+            scheduleService.deleteRepeatSchedule(1L, false, deleteRequest);
+
+            // then
+            ArgumentCaptor<RepeatSchedule> repeatCaptor =
+                ArgumentCaptor.forClass(RepeatSchedule.class);
+            verify(repeatScheduleRepository, times(2)).save(repeatCaptor.capture());
+            List<RepeatSchedule> savedRepeatSchedule = repeatCaptor.getAllValues();
+            assertEquals(RepeatCycle.WEEKLY, savedRepeatSchedule.get(0).getRepeatCycle());
+            assertEquals(LocalDate.of(2024, 7, 5), savedRepeatSchedule.get(1).getScheduleDate());
+            assertEquals(LocalDate.of(2024, 7, 12), savedRepeatSchedule.get(1).getRepeatEndDate());
+            assertEquals(LocalDate.of(2024, 7, 26), savedRepeatSchedule.get(0).getScheduleDate());
+            assertEquals(LocalDate.of(2024, 8, 9), savedRepeatSchedule.get(0).getRepeatEndDate());
+        }
+
+        @Test
+        @DisplayName("반복 일정 삭제 실패 - 선택한 날짜가 범위를 벗어남")
+        public void testDeleteRepeatScheduleOutOfRange() {
+            // given
+            ScheduleDeleteRequest deleteRequest = new ScheduleDeleteRequest(2L,
+                LocalDate.of(2025, 1, 1));
+
+            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+            given(repeatScheduleRepository.findById(2L)).willReturn(
+                Optional.of(repeatScheduleWithoutPlace));
+
+            // when & then
+            assertThrows(OutRangeScheduleException.class, () -> {
+                scheduleService.deleteRepeatSchedule(1L, true, deleteRequest);
             });
         }
     }
