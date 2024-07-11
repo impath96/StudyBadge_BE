@@ -1,6 +1,7 @@
 package com.tenten.studybadge.schedule.controller;
 
 import com.tenten.studybadge.schedule.dto.ScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.ScheduleDeleteRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.schedule.service.ScheduleService;
@@ -13,6 +14,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -65,7 +67,7 @@ public class ScheduleController {
     public ResponseEntity<Void> putSchedule(
         @PathVariable Long studyChannelId,
         @Valid @RequestBody ScheduleEditRequest scheduleEditRequest)  {
-      scheduleService.putSchedule(studyChannelId, scheduleEditRequest);
+        scheduleService.putSchedule(studyChannelId, scheduleEditRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -78,6 +80,17 @@ public class ScheduleController {
         @RequestParam("Same") Boolean isAfterEventSame,
         @Valid @RequestBody ScheduleEditRequest scheduleEditRequest)  {
         scheduleService.putRepeatScheduleWithAfterEventSame(studyChannelId, isAfterEventSame, scheduleEditRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/study-channels/{studyChannelId}/schedules")
+    @Operation(summary = "단일 일정 삭제", description = "단일 일정 삭제 api" ,security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "일정이 존재하는 study channel의 id 값", required = true)
+    @Parameter(name = "ScheduleDeleteRequest", description = "일정 삭제 request. 단일/반복 일정에 따라 api경로 자체를 변경했기 때문에 type필드는 없다", required = true )
+    public ResponseEntity<Void> deleteSingleSchedule(
+        @PathVariable Long studyChannelId,
+        @Valid @RequestBody ScheduleDeleteRequest scheduleDeleteRequest) {
+        scheduleService.deleteSingleSchedule(studyChannelId, scheduleDeleteRequest);
         return ResponseEntity.ok().build();
     }
 }

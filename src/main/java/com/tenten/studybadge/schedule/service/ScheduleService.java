@@ -2,6 +2,7 @@ package com.tenten.studybadge.schedule.service;
 
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatScheduleEditRequestException;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForScheduleRequestException;
+import com.tenten.studybadge.common.exception.schedule.NotEqualSingleScheduleDate;
 import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundSingleScheduleException;
 import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
@@ -13,6 +14,7 @@ import com.tenten.studybadge.schedule.domain.repository.SingleScheduleRepository
 import com.tenten.studybadge.schedule.dto.RepeatScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.ScheduleDeleteRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
@@ -21,6 +23,7 @@ import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
 import com.tenten.studybadge.type.schedule.ScheduleOriginType;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -321,6 +324,21 @@ public class ScheduleService {
             .studyChannel(repeatSchedule.getStudyChannel())
             .placeId(singleScheduleEditRequest.getPlaceId())
             .build());
+    }
+
+    public void deleteSingleSchedule(Long studyChannelId, ScheduleDeleteRequest scheduleDeleteRequest) {
+        StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId)
+            .orElseThrow(NotFoundStudyChannelException::new);
+
+        SingleSchedule singleSchedule = singleScheduleRepository.findById(
+                scheduleDeleteRequest.getScheduleId())
+            .orElseThrow(NotFoundSingleScheduleException::new);
+
+        if (!scheduleDeleteRequest.getSelectedDate().equals(singleSchedule.getScheduleDate())) {
+            throw new NotEqualSingleScheduleDate();
+        }
+
+        singleScheduleRepository.deleteById(scheduleDeleteRequest.getScheduleId());
     }
 
     private boolean isNotIncluded(LocalDate selectedDate, LocalDate repeatStartDate
