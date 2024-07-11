@@ -57,11 +57,12 @@ class StudyChannelServiceTest {
         void success_createStudyChannel() {
 
             // given
+            LocalDate now = LocalDate.now();
             StudyChannelCreateRequest request = StudyChannelCreateRequest.builder()
                     .name("스터디명")
                     .description("스터디 설명")
-                    .startDate(LocalDate.of(2024, 7, 10))
-                    .endDate(LocalDate.of(2024, 7, 20))
+                    .startDate(now.plusDays(3))
+                    .endDate(now.plusMonths(3))
                     .recruitmentNumber(8)
                     .minRecruitmentNumber(4)
                     .category(Category.IT)
