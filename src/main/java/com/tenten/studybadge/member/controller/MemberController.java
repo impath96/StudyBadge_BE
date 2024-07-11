@@ -79,7 +79,7 @@ public class MemberController {
     @GetMapping("/my-info")
     public ResponseEntity<MemberResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails principal) {
 
-        MemberResponse memberResponse = memberService.myInfo(principal.getUsername());
+        MemberResponse memberResponse = memberService.myInfo(principal.getId());
 
         return ResponseEntity.ok(memberResponse);
     }
@@ -88,8 +88,17 @@ public class MemberController {
                                                  @RequestPart("updateRequest") MemberUpdateRequest updateRequest,
                                                  @RequestPart(value = "file", required = false) MultipartFile profile) {
 
-        memberService.updateMember(principal.getUsername(), updateRequest, profile);
+        memberService.updateMember(principal.getId(), updateRequest, profile);
 
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @DeleteMapping("/withdrawal")
+    public ResponseEntity<Void> withdrawal(@AuthenticationPrincipal CustomUserDetails principal) {
+
+        memberService.withdrawal(principal.getId());
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+
     }
 }
