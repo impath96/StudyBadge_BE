@@ -24,12 +24,14 @@ public class CustomUserDetails implements UserDetails {
     private MemberStatus status;
     private MemberRole role;
     private Platform platform;
+    private Long id;
 
     public CustomUserDetails(Member member) {
         this.email = member.getEmail();
         this.status = member.getStatus();
         this.role = member.getRole();
         this.platform = member.getPlatform();
+        this.id = member.getId();
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
