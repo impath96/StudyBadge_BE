@@ -24,18 +24,20 @@ public class StudyChannelParticipationController {
     @PostMapping("/api/study-channels/{studyChannelId}/participation")
     @Operation(summary = "스터디 채널 참가 신청", description = "특정 스터디 채널에 참가 신청을 하는 기능", security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "studyChannelId", description = "참가 신청을 할 스터디 채널 ID", required = true)
-    public ResponseEntity<Void> applyParticipation(@PathVariable("studyChannelId") Long studyChannelId) {
-        Long memberId = 1L;
-        studyChannelParticipationService.apply(studyChannelId, memberId);
+    public ResponseEntity<Void> applyParticipation(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable("studyChannelId") Long studyChannelId) {
+        studyChannelParticipationService.apply(studyChannelId, principal.getId());
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/api/participation/{participationId}")
     @Operation(summary = "참가 신청 취소", description = "참가 신청을 취소하는 기능", security = @SecurityRequirement(name = "BearerToken"))
     @Parameter(name = "participationId", description = "참가 신청 ID", required = true)
-    public ResponseEntity<Void> cancelParticipation(@PathVariable("participationId") Long participationId) {
-        Long memberId = 1L;
-        studyChannelParticipationService.cancel(participationId, memberId);
+    public ResponseEntity<Void> cancelParticipation(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable("participationId") Long participationId) {
+        studyChannelParticipationService.cancel(participationId, principal.getId());
         return ResponseEntity.ok().build();
     }
 
