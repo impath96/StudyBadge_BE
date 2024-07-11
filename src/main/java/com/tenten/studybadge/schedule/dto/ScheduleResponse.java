@@ -14,16 +14,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ScheduleResponse {
-  private long id;
-  private long studyChannelId;
-  private String scheduleName;
-  private String scheduleContent;
-  private LocalDate scheduleDate;
-  private LocalTime scheduleStartTime;
-  private LocalTime scheduleEndTime;
-  private boolean isRepeated;
-  private RepeatCycle repeatCycle;
-  private RepeatSituation repeatSituation;
-  private LocalDate repeatEndDate;
-  private Long placeId;
+    private long id;
+    private long studyChannelId;
+    private String scheduleName;
+    private String scheduleContent;
+    private LocalDate scheduleDate;
+    private LocalTime scheduleStartTime;
+    private LocalTime scheduleEndTime;
+    private boolean isRepeated;
+    private RepeatCycle repeatCycle;
+    private RepeatSituation repeatSituation;
+    private LocalDate repeatEndDate;
+    private Long placeId;
 }

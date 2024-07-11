@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RepeatScheduleRepository extends ScheduleRepository<RepeatSchedule> {
 
-  @Query("SELECT rs FROM RepeatSchedule rs WHERE rs.studyChannel.id = :studyChannelId AND " +
-      "(:date BETWEEN rs.scheduleDate AND rs.repeatEndDate)")
-  List<RepeatSchedule> findAllByStudyChannelIdAndDate(Long studyChannelId, LocalDate date);
+    @Query("SELECT rs FROM RepeatSchedule rs WHERE rs.studyChannel.id = :studyChannelId AND " +
+        "(:date BETWEEN rs.scheduleDate AND rs.repeatEndDate)")
+    List<RepeatSchedule> findAllByStudyChannelIdAndDate(Long studyChannelId, LocalDate date);
 }
