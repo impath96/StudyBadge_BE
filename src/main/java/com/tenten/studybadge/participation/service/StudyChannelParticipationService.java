@@ -68,7 +68,7 @@ public class StudyChannelParticipationService {
         Participation participation = participationRepository.findById(participationId).orElseThrow(NotFoundParticipationException::new);
         StudyChannel studyChannel = participation.getStudyChannel();
 
-        if (!participation.getStudyChannel().getId().equals(studyChannelId)) {
+        if (!studyChannel.getId().equals(studyChannelId)) {
              throw new OtherStudyChannelParticipationException();
         }
         if (!studyChannel.isLeader(member)){
@@ -81,4 +81,25 @@ public class StudyChannelParticipationService {
         studyChannel.addMember(participation.getMember());
 
     }
+
+    public void reject(Long studyChannelId, Long participationId, Long memberId) {
+
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        Participation participation = participationRepository.findById(participationId).orElseThrow(NotFoundParticipationException::new);
+        StudyChannel studyChannel = participation.getStudyChannel();
+
+        if (!studyChannel.getId().equals(studyChannelId)) {
+            throw new OtherStudyChannelParticipationException();
+        }
+        if (!studyChannel.isLeader(member)){
+            throw new NotAuthorizedRejectException();
+        }
+        if (!participation.getParticipationStatus().equals(ParticipationStatus.APPROVE_WAITING)) {
+            throw new InvalidApprovalStatusException();
+        }
+        participation.reject();
+
+        participationRepository.save(participation);
+    }
+
 }
