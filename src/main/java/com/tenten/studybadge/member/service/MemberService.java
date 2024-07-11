@@ -152,23 +152,16 @@ public class MemberService {
             redisService.blackList(accessToken);
     }
 
-    public MemberResponse myInfo(String email) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public MemberResponse getMyInfo(Long memberId) {
 
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        Platform platform = userDetails.getPlatform();
-
-        Member member = memberRepository.findByEmailAndPlatform(email, platform).orElseThrow(NotFoundMemberException::new);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(NotFoundMemberException::new);
 
         return MemberResponse.toResponse(member);
     }
 
 
-    public MemberResponse updateMember(String email, MemberUpdateRequest updateRequest, MultipartFile profile) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        Platform platform = userDetails.getPlatform();
+    public MemberResponse memberUpdate(Long memberId, MemberUpdateRequest updateRequest, MultipartFile profile) {
 
         String imgUrl = null;
 
@@ -177,7 +170,7 @@ public class MemberService {
             updateRequest.setImgUrl(imgUrl);
         }
 
-        Member member = memberRepository.findByEmailAndPlatform(email, platform).orElseThrow(NotFoundMemberException::new);
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
 
         Member updateMember = member.toBuilder()
                 .account(updateRequest.getAccount())
@@ -188,6 +181,16 @@ public class MemberService {
         memberRepository.save(updateMember);
 
         return MemberResponse.toResponse(updateMember);
+    }
+
+    public void withdrawal(Long memberId) {
+
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+
+        Member withdrawMember = member.toBuilder()
+                .status(MemberStatus.WITHDRAWN)
+                .build();
+        memberRepository.save(withdrawMember);
     }
 }
 
