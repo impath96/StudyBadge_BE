@@ -32,7 +32,7 @@ import org.hibernate.annotations.DynamicUpdate;
 @DynamicUpdate
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(indexes = @Index(name = "idx_study_channel_id", columnList = "study_channel_id"))
+@Table(indexes = @Index(name = "idx_study_channel_id_repeat", columnList = "study_channel_id"))
 public class RepeatSchedule extends Schedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
