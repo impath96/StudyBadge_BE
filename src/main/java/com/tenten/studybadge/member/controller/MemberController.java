@@ -79,16 +79,16 @@ public class MemberController {
     @GetMapping("/my-info")
     public ResponseEntity<MemberResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails principal) {
 
-        MemberResponse memberResponse = memberService.myInfo(principal.getId());
+        MemberResponse memberResponse = memberService.getMyInfo(principal.getId());
 
         return ResponseEntity.ok(memberResponse);
     }
     @PutMapping("/my-info/update")
-    public ResponseEntity<MemberResponse> update(@AuthenticationPrincipal CustomUserDetails principal,
+    public ResponseEntity<MemberResponse> memberUpdate(@AuthenticationPrincipal CustomUserDetails principal,
                                                  @RequestPart("updateRequest") MemberUpdateRequest updateRequest,
                                                  @RequestPart(value = "file", required = false) MultipartFile profile) {
 
-        memberService.updateMember(principal.getId(), updateRequest, profile);
+        memberService.memberUpdate(principal.getId(), updateRequest, profile);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

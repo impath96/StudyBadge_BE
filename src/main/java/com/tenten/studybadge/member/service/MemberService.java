@@ -152,7 +152,7 @@ public class MemberService {
             redisService.blackList(accessToken);
     }
 
-    public MemberResponse myInfo(Long memberId) {
+    public MemberResponse getMyInfo(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(NotFoundMemberException::new);
@@ -161,7 +161,7 @@ public class MemberService {
     }
 
 
-    public MemberResponse updateMember(Long memberId, MemberUpdateRequest updateRequest, MultipartFile profile) {
+    public MemberResponse memberUpdate(Long memberId, MemberUpdateRequest updateRequest, MultipartFile profile) {
 
         String imgUrl = null;
 
