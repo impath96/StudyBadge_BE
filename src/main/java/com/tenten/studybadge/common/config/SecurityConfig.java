@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,10 +35,9 @@ public class SecurityConfig {
 
         return http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests( requests -> requests
-                        .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/members/login/**").permitAll()
-                        .requestMatchers("/api/study-channels/**", "/error", "/api/participation/**").permitAll()
-                .requestMatchers("/api/members/logout", "api/study-channels/*/places",
-                    "/api/study-channels/*/schedules", "/api/token/re-issue").hasRole("USER"))
+                        .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/members/login/**", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/study-channels").permitAll()
+                        .requestMatchers("/api/members/logout", "api/study-channels/*/places", "/api/study-channels/**", "/api/token/re-issue").hasRole("USER"))
 
 
                 .headers(headers -> headers // h2-console 페이지 접속을 위한 설정
