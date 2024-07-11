@@ -110,7 +110,7 @@ public class StudyChannelParticipationService {
 
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
         StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
-        if (studyChannel.isLeader(member)) {
+        if (!studyChannel.isLeader(member)) {
             throw new NotStudyLeaderException();
         }
         List<Participation> participationList = participationRepository.findByStudyChannelIdWithMember(studyChannelId);
