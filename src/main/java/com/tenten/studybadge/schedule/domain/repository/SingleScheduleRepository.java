@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SingleScheduleRepository extends ScheduleRepository<SingleSchedule> {
-  @Query("SELECT ss FROM SingleSchedule ss WHERE ss.studyChannel.id = :studyChannelId AND ss.scheduleDate BETWEEN :startDate AND :endDate")
-  List<SingleSchedule> findAllByStudyChannelIdAndDateRange(Long studyChannelId, LocalDate startDate, LocalDate endDate);
+    @Query("SELECT ss FROM SingleSchedule ss WHERE ss.studyChannel.id = :studyChannelId AND ss.scheduleDate BETWEEN :startDate AND :endDate")
+    List<SingleSchedule> findAllByStudyChannelIdAndDateRange(Long studyChannelId, LocalDate startDate, LocalDate endDate);
 }

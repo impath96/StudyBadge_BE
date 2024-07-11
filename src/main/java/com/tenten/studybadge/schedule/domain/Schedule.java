@@ -9,9 +9,9 @@ import lombok.Getter;
 @Getter
 @MappedSuperclass
 public abstract class Schedule extends BaseEntity {
-  protected String scheduleName;
-  protected String scheduleContent;
-  protected LocalDate scheduleDate;
-  protected LocalTime scheduleStartTime;
-  protected LocalTime scheduleEndTime;
+    protected String scheduleName;
+    protected String scheduleContent;
+    protected LocalDate scheduleDate;
+    protected LocalTime scheduleStartTime;
+    protected LocalTime scheduleEndTime;
 }

@@ -31,58 +31,58 @@ import org.hibernate.annotations.DynamicUpdate;
 @AllArgsConstructor
 @Table(indexes = @Index(name = "idx_study_channel_id", columnList = "study_channel_id"))
 public class SingleSchedule extends Schedule {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private long id;
-  private boolean isRepeated;
-  @Setter
-  private Long placeId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+    private boolean isRepeated;
+    @Setter
+    private Long placeId;
 
-  @Setter
-  @ManyToOne
-  @JoinColumn(name = "study_channel_id", nullable = false)
-  private StudyChannel studyChannel;
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "study_channel_id", nullable = false)
+    private StudyChannel studyChannel;
 
-//  // TODO 단일 일정에만 실제 year, month 필드를 두고 인덱스를 만들지 고민
-//  private int scheduleYear;
-//  private int scheduleMonth;
+  //  // TODO 단일 일정에만 실제 year, month 필드를 두고 인덱스를 만들지 고민
+  //  private int scheduleYear;
+  //  private int scheduleMonth;
 
-  @Builder(builderMethodName = "withoutIdBuilder")
-  public SingleSchedule(String scheduleName, String scheduleContent, LocalDate scheduleDate, LocalTime scheduleStartTime,
-      LocalTime scheduleEndTime, boolean isRepeated, Long placeId, StudyChannel studyChannel) {
-    this.scheduleName = scheduleName;
-    this.scheduleContent = scheduleContent;
-    this.scheduleDate = scheduleDate;
-    this.scheduleStartTime = scheduleStartTime;
-    this.scheduleEndTime = scheduleEndTime;
-    this.isRepeated = isRepeated;
-    this.placeId = placeId;
-    this.studyChannel = studyChannel;
-  }
+    @Builder(builderMethodName = "withoutIdBuilder")
+    public SingleSchedule(String scheduleName, String scheduleContent, LocalDate scheduleDate, LocalTime scheduleStartTime,
+        LocalTime scheduleEndTime, boolean isRepeated, Long placeId, StudyChannel studyChannel) {
+        this.scheduleName = scheduleName;
+        this.scheduleContent = scheduleContent;
+        this.scheduleDate = scheduleDate;
+        this.scheduleStartTime = scheduleStartTime;
+        this.scheduleEndTime = scheduleEndTime;
+        this.isRepeated = isRepeated;
+        this.placeId = placeId;
+        this.studyChannel = studyChannel;
+    }
 
-  public void updateSingleSchedule(SingleScheduleEditRequest scheduleEditRequest) {
-    this.scheduleName = scheduleEditRequest.getScheduleName();
-    this.scheduleContent = scheduleEditRequest.getScheduleContent();
-    this.scheduleDate = scheduleEditRequest.getSelectedDate();
-    this.scheduleStartTime = scheduleEditRequest.getScheduleStartTime();
-    this.scheduleEndTime = scheduleEditRequest.getScheduleEndTime();
-    this.isRepeated = false;
-    this.placeId = scheduleEditRequest.getPlaceId();
-  }
+    public void updateSingleSchedule(SingleScheduleEditRequest scheduleEditRequest) {
+        this.scheduleName = scheduleEditRequest.getScheduleName();
+        this.scheduleContent = scheduleEditRequest.getScheduleContent();
+        this.scheduleDate = scheduleEditRequest.getSelectedDate();
+        this.scheduleStartTime = scheduleEditRequest.getScheduleStartTime();
+        this.scheduleEndTime = scheduleEditRequest.getScheduleEndTime();
+        this.isRepeated = false;
+        this.placeId = scheduleEditRequest.getPlaceId();
+    }
 
-  public ScheduleResponse toResponse() {
-    return ScheduleResponse.builder()
-        .id(this.getId())
-        .scheduleName(this.getScheduleName())
-        .scheduleContent(this.getScheduleContent())
-        .scheduleDate(this.getScheduleDate())
-        .scheduleStartTime(this.getScheduleStartTime())
-        .scheduleEndTime(this.getScheduleEndTime())
-        .isRepeated(this.isRepeated())
-        .repeatCycle(null)
-        .repeatSituation(null)
-        .placeId(this.getPlaceId())
-        .studyChannelId(this.getStudyChannel().getId())
-        .build();
-  }
+    public ScheduleResponse toResponse() {
+        return ScheduleResponse.builder()
+            .id(this.getId())
+            .scheduleName(this.getScheduleName())
+            .scheduleContent(this.getScheduleContent())
+            .scheduleDate(this.getScheduleDate())
+            .scheduleStartTime(this.getScheduleStartTime())
+            .scheduleEndTime(this.getScheduleEndTime())
+            .isRepeated(this.isRepeated())
+            .repeatCycle(null)
+            .repeatSituation(null)
+            .placeId(this.getPlaceId())
+            .studyChannelId(this.getStudyChannel().getId())
+            .build();
+    }
 }

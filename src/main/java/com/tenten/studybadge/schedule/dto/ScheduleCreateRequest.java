@@ -20,16 +20,16 @@ import lombok.Setter;
     @JsonSubTypes.Type(value = RepeatScheduleCreateRequest.class, name = "repeat")
 })
 public abstract class ScheduleCreateRequest {
-  @NotBlank(message = "일정 이름은 필수입니다.")
-  protected String scheduleName;
-  @NotBlank(message = "일정 내용은 필수입니다.")
-  protected String scheduleContent;
-  @NotNull(message = "일정 날짜는 필수입니다.")
-  protected LocalDate scheduleDate;
-  @NotNull(message = "일정 시작 시간은 필수입니다.")
-  protected LocalTime scheduleStartTime;
-  @NotNull(message = "일정 끝 시간은 필수입니다.")
-  protected LocalTime scheduleEndTime;
-  @Setter
-  protected Long placeId;
+    @NotBlank(message = "일정 이름은 필수입니다.")
+    protected String scheduleName;
+    @NotBlank(message = "일정 내용은 필수입니다.")
+    protected String scheduleContent;
+    @NotNull(message = "일정 날짜는 필수입니다.")
+    protected LocalDate scheduleDate;
+    @NotNull(message = "일정 시작 시간은 필수입니다.")
+    protected LocalTime scheduleStartTime;
+    @NotNull(message = "일정 끝 시간은 필수입니다.")
+    protected LocalTime scheduleEndTime;
+    @Setter
+    protected Long placeId;
 }

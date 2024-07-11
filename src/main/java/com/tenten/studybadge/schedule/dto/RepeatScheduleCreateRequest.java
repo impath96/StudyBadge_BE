@@ -15,23 +15,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RepeatScheduleCreateRequest extends ScheduleCreateRequest {
-  private RepeatCycle repeatCycle;
-  @JsonDeserialize(using = RepeatSituationNumberDeserializer.class)
-  private RepeatSituation repeatSituation;
-  private LocalDate repeatEndDate;
+    private RepeatCycle repeatCycle;
+    @JsonDeserialize(using = RepeatSituationNumberDeserializer.class)
+    private RepeatSituation repeatSituation;
+    private LocalDate repeatEndDate;
 
-  public RepeatScheduleCreateRequest(String scheduleName, String scheduleContent,
-      LocalDate startDate, LocalTime startTime, LocalTime endTime,
-      RepeatCycle repeatCycle, RepeatSituation repeatSituation, LocalDate repeatEndDate,
-      Long placeId) {
-    this.scheduleName = scheduleName;
-    this.scheduleContent = scheduleContent;
-    this.scheduleDate = startDate;
-    this.scheduleStartTime = startTime;
-    this.scheduleEndTime = endTime;
-    this.placeId = placeId;
-    this.repeatCycle = repeatCycle;
-    this.repeatSituation = repeatSituation;
-    this.repeatEndDate = repeatEndDate;
-  }
+    public RepeatScheduleCreateRequest(String scheduleName, String scheduleContent,
+        LocalDate startDate, LocalTime startTime, LocalTime endTime,
+        RepeatCycle repeatCycle, RepeatSituation repeatSituation, LocalDate repeatEndDate,
+        Long placeId) {
+        this.scheduleName = scheduleName;
+        this.scheduleContent = scheduleContent;
+        this.scheduleDate = startDate;
+        this.scheduleStartTime = startTime;
+        this.scheduleEndTime = endTime;
+        this.placeId = placeId;
+        this.repeatCycle = repeatCycle;
+        this.repeatSituation = repeatSituation;
+        this.repeatEndDate = repeatEndDate;
+    }
 }

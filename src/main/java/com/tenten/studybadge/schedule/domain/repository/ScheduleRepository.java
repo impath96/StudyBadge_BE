@@ -8,8 +8,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
 public interface ScheduleRepository<T extends Schedule> extends JpaRepository<T, Long> {
-
-  @Query("SELECT s FROM #{#entityName} s WHERE s.studyChannel.id = :studyChannelId")
-  List<T> findAllByStudyChannelId(Long studyChannelId);
+    @Query("SELECT s FROM #{#entityName} s WHERE s.studyChannel.id = :studyChannelId")
+    List<T> findAllByStudyChannelId(Long studyChannelId);
 
 }
