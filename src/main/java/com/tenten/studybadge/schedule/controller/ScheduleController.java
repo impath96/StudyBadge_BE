@@ -74,6 +74,7 @@ public class ScheduleController {
     @PutMapping("/study-channels/{studyChannelId}/schedules/isAfterEvent")
     @Operation(summary = "반복 일정 -> 단일 일정으로 수정", description = "특정 스터디 채널의 일정을 수정할 때 반복 일정에서 단일 일정으로 수정할 경우 수정하는 api" ,security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "studyChannelId", description = "일정이 존재하는 study channel의 id 값", required = true)
+    @Parameter(name = "Same", description = "이후 반복 일정도 동일하게 수정할 건지 Boolean 값", required = true)
     @Parameter(name = "ScheduleEditRequest", description = "일정 등록 request, type의 값이 single, repeat에 따라 단일 일정 / 반복 일정 등록으로 나뉜다.", required = true )
     public ResponseEntity<Void> putRepeatScheduleWithAfterEventSame(
         @PathVariable Long studyChannelId,
@@ -91,6 +92,19 @@ public class ScheduleController {
         @PathVariable Long studyChannelId,
         @Valid @RequestBody ScheduleDeleteRequest scheduleDeleteRequest) {
         scheduleService.deleteSingleSchedule(studyChannelId, scheduleDeleteRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/study-channels/{studyChannelId}/schedules/isAfterEvent")
+    @Operation(summary = "반복 일정 삭제", description = "단일 일정 삭제 api" ,security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "일정이 존재하는 study channel의 id 값", required = true)
+    @Parameter(name = "Same", description = "이후 반복 일정도 동일하게 수정할 건지 Boolean 값", required = true)
+    @Parameter(name = "ScheduleDeleteRequest", description = "일정 삭제 request. 단일/반복 일정에 따라 api경로 자체를 변경했기 때문에 type필드는 없다", required = true )
+    public ResponseEntity<Void> deleteSingleSchedule(
+        @PathVariable Long studyChannelId,
+        @RequestParam("Same") Boolean isAfterEventSame,
+        @Valid @RequestBody ScheduleDeleteRequest scheduleDeleteRequest) {
+        scheduleService.deleteRepeatSchedule(studyChannelId, isAfterEventSame, scheduleDeleteRequest);
         return ResponseEntity.ok().build();
     }
 }
