@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/members/logout", "api/study-channels/*/places",
                     "/api/study-channels/*/schedules", "/api/token/re-issue").hasRole("USER"))
 
-
+                .cors(cors -> new CorsConfig())
                 .headers(headers -> headers // h2-console 페이지 접속을 위한 설정
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                         .contentSecurityPolicy(csp -> csp
