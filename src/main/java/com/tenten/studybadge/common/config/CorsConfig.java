@@ -21,10 +21,11 @@ public class CorsConfig {
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowCredentials(true);
     config.setAllowedOrigins(Arrays.asList(domain));
-    config.setAllowedHeaders(Collections.singletonList("*"));
+    config.setAllowedHeaders(Arrays.asList("*"));
     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE"));
-    source.registerCorsConfiguration("/**", config);
     config.addExposedHeader("Authorization");
+
+    source.registerCorsConfiguration("/**", config);
     return new CorsFilter(source);
   }
 }
