@@ -34,7 +34,8 @@ public class SecurityConfig {
 
         return http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests( requests -> requests
-                        .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/members/login/**").permitAll()
+                        .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**",
+                            "/api/members/login/**", "/health-check").permitAll()
                         .requestMatchers("/api/study-channels/**", "/error", "/api/participation/**").permitAll()
                 .requestMatchers("/api/members/logout", "api/study-channels/*/places",
                     "/api/study-channels/*/schedules", "/api/token/re-issue").hasRole("USER"))
