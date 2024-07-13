@@ -6,12 +6,14 @@ import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelE
 import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
+import com.tenten.studybadge.participation.ParticipantResponse;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
+import com.tenten.studybadge.type.member.BadgeLevel;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
 import com.tenten.studybadge.type.study.channel.RecruitmentStatus;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
@@ -25,6 +27,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -512,6 +515,60 @@ class StudyChannelParticipationServiceTest {
             assertThatThrownBy(() -> studyChannelParticipationService.reject(1L, 1L, 2L))
                     .isExactlyInstanceOf(InvalidApprovalStatusException.class);
 
+        }
+
+    }
+
+    @DisplayName("[스터디 채널 참가 신청자 조회 테스트]")
+    @Nested
+    class GetStudyChannelParticipantsTest {
+
+        @DisplayName("스터디 채널 참가 신청자 조회")
+        @Test
+        void success_getStudyChannelParticipants() {
+            //given
+            Member member = Member.builder()
+                    .id(1L)
+                    .name("회원1")
+                    .banCnt(2)
+                    .imgUrl("imageUrl")
+                    .badgeLevel(BadgeLevel.SILVER)
+                    .build();
+            Member leader = Member.builder().id(2L).build();
+
+            StudyChannel studyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .build();
+
+            StudyMember studyMember = StudyMember.builder()
+                    .id(1L)
+                    .studyMemberRole(StudyMemberRole.LEADER)
+                    .member(leader)
+                    .build();
+            studyChannel.getStudyMembers().add(studyMember);
+
+            Participation participation = Participation.builder()
+                    .id(1L)
+                    .member(member)
+                    .studyChannel(studyChannel)
+                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .build();
+
+            given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
+            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+            given(participationRepository.findByStudyChannelIdWithMember(1L)).willReturn(List.of(participation));
+
+            //when
+            List<ParticipantResponse> participants = studyChannelParticipationService.getParticipants(1L, 2L);
+
+            //then
+            assertThat(participants).hasSize(1);
+            assertThat(participants.get(0).getMemberId()).isEqualTo(1L);
+            assertThat(participants.get(0).getParticipationId()).isEqualTo(1L);
+            assertThat(participants.get(0).getName()).isEqualTo("회원1");
+            assertThat(participants.get(0).getBanCnt()).isEqualTo(2);
+            assertThat(participants.get(0).getImageUrl()).isEqualTo("imageUrl");
+            assertThat(participants.get(0).getBadgeLevel()).isEqualTo(BadgeLevel.SILVER);
         }
 
     }

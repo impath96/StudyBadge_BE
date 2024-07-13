@@ -4,9 +4,11 @@ import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
 import com.tenten.studybadge.common.exception.participation.*;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberException;
+import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
+import com.tenten.studybadge.participation.ParticipantResponse;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
@@ -15,6 +17,8 @@ import com.tenten.studybadge.type.participation.ParticipationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -102,4 +106,16 @@ public class StudyChannelParticipationService {
         participationRepository.save(participation);
     }
 
+    public List<ParticipantResponse> getParticipants(Long studyChannelId, Long memberId) {
+
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
+        if (!studyChannel.isLeader(member)) {
+            throw new NotStudyLeaderException();
+        }
+        List<Participation> participationList = participationRepository.findByStudyChannelIdWithMember(studyChannelId);
+        return participationList.stream()
+                .map(Participation::toResponse)
+                .toList();
+    }
 }
