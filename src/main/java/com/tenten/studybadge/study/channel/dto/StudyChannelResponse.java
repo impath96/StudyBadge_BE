@@ -20,7 +20,7 @@ public class StudyChannelResponse {
     private String name;
     private Category category;
     private String description;
-    private RecruitmentStatus recruitmentStatus;;
+    private RecruitmentStatus recruitmentStatus;
     private MeetingType meetingType;
     private LocalDate startDate;
     private LocalDate endDate;
