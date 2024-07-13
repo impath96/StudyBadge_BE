@@ -1,6 +1,7 @@
 package com.tenten.studybadge.study.channel.controller;
 
 import com.tenten.studybadge.common.security.CustomUserDetails;
+import com.tenten.studybadge.common.utils.PagingUtils;
 import com.tenten.studybadge.study.channel.dto.SearchCondition;
 import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
 import com.tenten.studybadge.study.channel.dto.StudyChannelListResponse;
@@ -8,15 +9,13 @@ import com.tenten.studybadge.study.channel.service.StudyChannelService;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
 import com.tenten.studybadge.type.study.channel.RecruitmentStatus;
+import com.tenten.studybadge.type.study.channel.SortOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -55,26 +54,12 @@ public class StudyChannelController {
     public ResponseEntity<StudyChannelListResponse> getStudyChannels(
         @RequestParam(name = "page", required = false, defaultValue = "1") int page,
         @RequestParam(name = "size", required = false, defaultValue = "6") int size,
-        @RequestParam(name = "sort", required = false, defaultValue = "RECENT") String sort,
+        @RequestParam(name = "sort", required = false, defaultValue = "RECENT") SortOrder sortOrder,
         @RequestParam(name = "type", required = false) MeetingType type,
         @RequestParam(name = "status", required = false) RecruitmentStatus status,
         @RequestParam(name = "category", required = false) Category category
     ) {
-        Pageable pageable = createPageable(page, size, sort);
-        return ResponseEntity.ok( studyChannelService.getStudyChannels(pageable, new SearchCondition(type, status, category)));
-    }
-
-    private Pageable createPageable(int page, int size, String sort) {
-        page = (page <= 0) ? 0 : (page - 1);
-        return PageRequest.of(page, size,  createSort(sort));
-    }
-
-    // TODO 정렬 기준 추가되면 어떻게 할지 고민
-    private Sort createSort(String sort) {
-        if (sort.equals("POPULAR")) {
-            return Sort.by(Sort.Direction.DESC, "viewCnt");
-        }
-        return Sort.by(Sort.Direction.DESC, "createdAt");
+        return ResponseEntity.ok(studyChannelService.getStudyChannels(PagingUtils.createPageable(page, size, sortOrder), new SearchCondition(type, status, category)));
     }
 
 }
