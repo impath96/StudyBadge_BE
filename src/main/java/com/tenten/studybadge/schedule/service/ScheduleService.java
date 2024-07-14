@@ -1,6 +1,7 @@
 package com.tenten.studybadge.schedule.service;
 
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatScheduleEditRequestException;
+import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatSituationException;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForScheduleRequestException;
 import com.tenten.studybadge.common.exception.schedule.NotEqualSingleScheduleDate;
 import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleException;
@@ -22,7 +23,9 @@ import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
+import com.tenten.studybadge.type.schedule.RepeatSituation;
 import com.tenten.studybadge.type.schedule.ScheduleOriginType;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +60,26 @@ public class ScheduleService {
     public void postRepeatSchedule(RepeatScheduleCreateRequest repeatScheduleCreateRequest, Long studyChannelId) {
         StudyChannel studyChannel =  studyChannelRepository.findById(studyChannelId)
             .orElseThrow(NotFoundStudyChannelException::new);
+
+        RepeatCycle repeatCycle = repeatScheduleCreateRequest.getRepeatCycle();
+        LocalDate scheduleDate = repeatScheduleCreateRequest.getScheduleDate();
+        RepeatSituation repeatSituation = repeatScheduleCreateRequest.getRepeatSituation();
+        switch (repeatCycle) {
+            case DAILY -> {
+                // DAILY 주기에서는 특별한 검증이 필요하지 않으므로 통과
+            }
+            case WEEKLY -> {
+                if (!repeatSituation.equals(scheduleDate.getDayOfWeek())) {
+                    throw new IllegalArgumentForRepeatSituationException();
+                }
+            }
+            case MONTHLY -> {
+                if (!repeatSituation.equals(scheduleDate.getDayOfMonth())) {
+                    throw new IllegalArgumentForRepeatSituationException();
+                }
+            }
+            default -> throw new IllegalArgumentForScheduleRequestException();
+        }
 
         repeatScheduleRepository.save(RepeatSchedule.withoutIdBuilder()
             .scheduleName(repeatScheduleCreateRequest.getScheduleName())
