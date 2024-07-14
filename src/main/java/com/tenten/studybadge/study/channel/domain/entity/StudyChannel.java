@@ -63,10 +63,7 @@ public class StudyChannel extends BaseEntity {
 
     public boolean isLeader(Member member) {
         return studyMembers.stream()
-                .filter(studyMember -> studyMember.getMember().equals(member))
-                .findFirst()
-                .map(StudyMember::isLeader)
-                .orElse(false);
+                .anyMatch(studyMember -> studyMember.getMember().getId().equals(member.getId()) && studyMember.isLeader());
     }
 
     public void addMember(Member member) {
