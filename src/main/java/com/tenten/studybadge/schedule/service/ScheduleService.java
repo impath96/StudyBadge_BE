@@ -13,7 +13,6 @@ import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository
 import com.tenten.studybadge.schedule.domain.repository.SingleScheduleRepository;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleEditRequest;
-import com.tenten.studybadge.schedule.dto.ScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleDeleteRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
@@ -21,9 +20,9 @@ import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.SingleScheduleEditRequest;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
+import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
 import com.tenten.studybadge.type.schedule.ScheduleOriginType;
-import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,45 +37,40 @@ public class ScheduleService {
     private final RepeatScheduleRepository repeatScheduleRepository;
     private final StudyChannelRepository studyChannelRepository;
 
-    public void postSchedule(ScheduleCreateRequest scheduleCreateRequest, Long studyChannelId) {
+    public void postSingleSchedule(SingleScheduleCreateRequest singleScheduleCreateRequest, Long studyChannelId) {
         StudyChannel studyChannel =  studyChannelRepository.findById(studyChannelId)
             .orElseThrow(NotFoundStudyChannelException::new);
 
-        // type: repeat
-        if (scheduleCreateRequest instanceof RepeatScheduleCreateRequest) {
-            RepeatScheduleCreateRequest repeatRequest = (RepeatScheduleCreateRequest) scheduleCreateRequest;
-
-            repeatScheduleRepository.save(RepeatSchedule.withoutIdBuilder()
-                    .scheduleName(repeatRequest.getScheduleName())
-                    .scheduleContent(repeatRequest.getScheduleContent())
-                    .scheduleDate(repeatRequest.getScheduleDate())
-                    .scheduleStartTime(repeatRequest.getScheduleStartTime())
-                    .scheduleEndTime(repeatRequest.getScheduleEndTime())
-                    .isRepeated(true)
-                    .repeatCycle(repeatRequest.getRepeatCycle())
-                    .repeatSituation(repeatRequest.getRepeatSituation())
-                    .repeatEndDate(repeatRequest.getRepeatEndDate())
-                    .studyChannel(studyChannel)
-                    .placeId(repeatRequest.getPlaceId())
-                .build());
-        }
-        // type: single
-        else if (scheduleCreateRequest instanceof SingleScheduleCreateRequest) {
-            SingleScheduleCreateRequest singleRequest = (SingleScheduleCreateRequest) scheduleCreateRequest;
-
-            singleScheduleRepository.save(SingleSchedule.withoutIdBuilder()
-                .scheduleName(singleRequest.getScheduleName())
-                .scheduleContent(singleRequest.getScheduleContent())
-                .scheduleDate(singleRequest.getScheduleDate())
-                .scheduleStartTime(singleRequest.getScheduleStartTime())
-                .scheduleEndTime(singleRequest.getScheduleEndTime())
+        singleScheduleRepository.save(SingleSchedule.withoutIdBuilder()
+                .scheduleName(singleScheduleCreateRequest.getScheduleName())
+                .scheduleContent(singleScheduleCreateRequest.getScheduleContent())
+                .scheduleDate(singleScheduleCreateRequest.getScheduleDate())
+                .scheduleStartTime(singleScheduleCreateRequest.getScheduleStartTime())
+                .scheduleEndTime(singleScheduleCreateRequest.getScheduleEndTime())
                 .isRepeated(false)
                 .studyChannel(studyChannel)
-                .placeId(singleRequest.getPlaceId())
+                .placeId(singleScheduleCreateRequest.getPlaceId())
                 .build());
-        } else {
-            throw new IllegalArgumentForScheduleRequestException();
-        }
+
+    }
+
+    public void postRepeatSchedule(RepeatScheduleCreateRequest repeatScheduleCreateRequest, Long studyChannelId) {
+        StudyChannel studyChannel =  studyChannelRepository.findById(studyChannelId)
+            .orElseThrow(NotFoundStudyChannelException::new);
+
+        repeatScheduleRepository.save(RepeatSchedule.withoutIdBuilder()
+            .scheduleName(repeatScheduleCreateRequest.getScheduleName())
+            .scheduleContent(repeatScheduleCreateRequest.getScheduleContent())
+            .scheduleDate(repeatScheduleCreateRequest.getScheduleDate())
+            .scheduleStartTime(repeatScheduleCreateRequest.getScheduleStartTime())
+            .scheduleEndTime(repeatScheduleCreateRequest.getScheduleEndTime())
+            .isRepeated(true)
+            .repeatCycle(repeatScheduleCreateRequest.getRepeatCycle())
+            .repeatSituation(repeatScheduleCreateRequest.getRepeatSituation())
+            .repeatEndDate(repeatScheduleCreateRequest.getRepeatEndDate())
+            .studyChannel(studyChannel)
+            .placeId(repeatScheduleCreateRequest.getPlaceId())
+            .build());
     }
 
     public List<ScheduleResponse> getSchedulesInStudyChannel(Long studyChannelId) {
