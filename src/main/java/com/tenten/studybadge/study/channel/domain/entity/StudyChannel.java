@@ -2,6 +2,7 @@ package com.tenten.studybadge.study.channel.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
 import com.tenten.studybadge.member.domain.entity.Member;
+import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
@@ -11,6 +12,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Entity
@@ -70,6 +72,44 @@ public class StudyChannel extends BaseEntity {
     public void addMember(Member member) {
         StudyMember studyMember = StudyMember.member(member, this);
         studyMembers.add(studyMember);
+    }
+
+    private StudyMember getLeader() {
+        return studyMembers.stream()
+                .filter(StudyMember::isLeader)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private StudyMember getSubLeader() {
+        return studyMembers.stream()
+                .filter(StudyMember::isSubLeader)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public StudyChannelDetailsResponse toResponse(Member member) {
+        StudyMember leader = getLeader();
+        StudyMember subLeader = getSubLeader();
+        StudyChannelDetailsResponse.StudyChannelDetailsResponseBuilder builder = StudyChannelDetailsResponse.builder()
+                .studyChannelId(this.id)
+                .studyChannelName(this.name)
+                .studyChannelDescription(this.description)
+                .deposit(this.deposit)
+                .category(this.category)
+                .meetingType(this.meetingType)
+                .region(this.region)
+                .startDate(this.studyDuration.getStudyStartDate())
+                .endDate(this.studyDuration.getStudyEndDate())
+                .capacity(this.recruitment.getRecruitmentNumber())
+                .leaderName(leader.getMember().getName())
+                .subLeaderName(Objects.requireNonNullElse(subLeader, leader).getMember().getName());
+
+        if (isStudyMember(member.getId())) {
+            builder.chattingUrl(this.chattingUrl);
+        }
+
+        return builder.build();
     }
 
 }

@@ -4,6 +4,7 @@ import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.common.utils.PagingUtils;
 import com.tenten.studybadge.study.channel.dto.SearchCondition;
 import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
+import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
 import com.tenten.studybadge.study.channel.dto.StudyChannelListResponse;
 import com.tenten.studybadge.study.channel.service.StudyChannelService;
 import com.tenten.studybadge.type.study.channel.Category;
@@ -60,6 +61,17 @@ public class StudyChannelController {
         @RequestParam(name = "category", required = false) Category category
     ) {
         return ResponseEntity.ok(studyChannelService.getStudyChannels(PagingUtils.createPageable(page, size, sortOrder), new SearchCondition(type, status, category)));
+    }
+
+    // 회원이 아닌 사람의 경우 로그인하라고 유도
+    @GetMapping("/study-channels/{studyChannelId}")
+    @Operation(summary = "특정 스터디 채널 조회", description = "특정 스터디 채널을 조회하기 위한 API")
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    public ResponseEntity<StudyChannelDetailsResponse> getStudyChannel(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable Long studyChannelId
+    ) {
+        return ResponseEntity.ok(studyChannelService.getStudyChannel(studyChannelId, principal.getId()));
     }
 
 }
