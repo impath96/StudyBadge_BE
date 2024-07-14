@@ -144,7 +144,7 @@ class ScheduleServiceTest {
                 .willReturn(singleScheduleWithoutPlace);
 
             // when
-            scheduleService.postSchedule(
+            scheduleService.postSingleSchedule(
                 singleScheduleRequestWithoutPlace, 1L);
 
             // then
@@ -165,10 +165,10 @@ class ScheduleServiceTest {
                 LocalDate.of(2024, 7, 5),
                 LocalTime.of(10, 0),
                 LocalTime.of( 11, 0),
+                null,
                 RepeatCycle.WEEKLY,
                 RepeatSituation.MONDAY,
-                LocalDate.of(2024, 12, 31),
-                null
+                LocalDate.of(2024, 12, 31)
             );
 
             given(studyChannelRepository.findById(1L))
@@ -177,7 +177,7 @@ class ScheduleServiceTest {
                 .willReturn(repeatScheduleWithoutPlace);
 
             // when
-            scheduleService.postSchedule(
+            scheduleService.postRepeatSchedule(
                 repeatScheduleRequestWithoutPlace, 1L);
 
             // then
@@ -207,7 +207,7 @@ class ScheduleServiceTest {
                 .willReturn(singleScheduleWithPlace);
 
             // when
-            scheduleService.postSchedule(
+            scheduleService.postSingleSchedule(
                 singleScheduleRequestWithPlace, 1L);
 
             // then
@@ -228,10 +228,10 @@ class ScheduleServiceTest {
                 LocalDate.of(2024, 7, 5),
                 LocalTime.of(10, 0),
                 LocalTime.of( 11, 0),
+                null,
                 RepeatCycle.WEEKLY,
                 RepeatSituation.MONDAY,
-                LocalDate.of(2024, 12, 31),
-                1L
+                LocalDate.of(2024, 12, 31)
             );
 
             given(studyChannelRepository.findById(1L))
@@ -240,7 +240,7 @@ class ScheduleServiceTest {
                 .willReturn(repeatScheduleWithPlace);
 
             // when
-            scheduleService.postSchedule(
+            scheduleService.postRepeatSchedule(
                 repeatScheduleRequestWithPlace, 1L);
 
             // then
