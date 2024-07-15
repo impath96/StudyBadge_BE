@@ -6,9 +6,9 @@ import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelE
 import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
-import com.tenten.studybadge.participation.ParticipantResponse;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
+import com.tenten.studybadge.participation.dto.StudyChannelParticipationStatusResponse;
 import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
@@ -379,7 +379,7 @@ class StudyChannelParticipationServiceTest {
 
     @DisplayName("[스터디 채널 참가 신청 거절 테스트]")
     @Nested
-    class  rejectStudyChannelParticipationTest {
+    class rejectStudyChannelParticipationTest {
 
         @DisplayName("정상적으로 스터디 채널 신청을 거절한다.")
         @Test
@@ -523,54 +523,93 @@ class StudyChannelParticipationServiceTest {
     @Nested
     class GetStudyChannelParticipantsTest {
 
-        @DisplayName("스터디 채널 참가 신청자 조회")
+        @DisplayName("현재 스터디 채널이 모집 마감 상태일 경우 모집 마감 상태와 빈 참가자 목록이 반환된다.")
         @Test
-        void success_getStudyChannelParticipants() {
+        void success_getRecruitmentCompletedStudyChannelParticipation() {
             //given
-            Member member = Member.builder()
+            Member member1 = Member.builder().id(1L).build();
+
+            StudyChannel studyChannel = StudyChannel.builder()
                     .id(1L)
+                    .recruitment(Recruitment.builder()
+                            .recruitmentStatus(RecruitmentStatus.RECRUIT_COMPLETED)
+                            .recruitmentNumber(7)
+                            .build())
+                    .build();
+
+            StudyMember leader = StudyMember.builder()
+                    .id(1L)
+                    .studyMemberRole(StudyMemberRole.LEADER)
+                    .member(member1)
+                    .build();
+            studyChannel.getStudyMembers().add(leader);
+
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+
+            //when
+            StudyChannelParticipationStatusResponse response = studyChannelParticipationService.getParticipationStatus(1L, 1L);
+
+            //then
+            assertThat(response.getStudyChannelId()).isEqualTo(1L);
+            assertThat(response.getRecruitmentStatus()).isEqualTo(RecruitmentStatus.RECRUIT_COMPLETED);
+            assertThat(response.getParticipants().size()).isEqualTo(0);
+        }
+
+        @DisplayName("현재 스터디 채널이 모집 중일 경우 신청자 정보와 모집 중 상태를 반환한다.")
+        @Test
+        void success_getRecruitingStudyChannelParticipation() {
+            //given
+            Member member1 = Member.builder().id(1L).build();
+            Member member2 = Member.builder()
+                    .id(2L)
                     .name("회원1")
                     .banCnt(2)
                     .imgUrl("imageUrl")
                     .badgeLevel(BadgeLevel.SILVER)
                     .build();
-            Member leader = Member.builder().id(2L).build();
 
             StudyChannel studyChannel = StudyChannel.builder()
                     .id(1L)
+                    .recruitment(Recruitment.builder()
+                            .recruitmentStatus(RecruitmentStatus.RECRUITING)
+                            .recruitmentNumber(7)
+                            .build())
                     .build();
 
-            StudyMember studyMember = StudyMember.builder()
+            StudyMember leader = StudyMember.builder()
                     .id(1L)
                     .studyMemberRole(StudyMemberRole.LEADER)
-                    .member(leader)
+                    .member(member1)
                     .build();
-            studyChannel.getStudyMembers().add(studyMember);
+
+            studyChannel.getStudyMembers().add(leader);
 
             Participation participation = Participation.builder()
                     .id(1L)
-                    .member(member)
-                    .studyChannel(studyChannel)
                     .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .studyChannel(studyChannel)
+                    .member(member2)
                     .build();
 
-            given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
             given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
             given(participationRepository.findByStudyChannelIdWithMember(1L)).willReturn(List.of(participation));
 
             //when
-            List<ParticipantResponse> participants = studyChannelParticipationService.getParticipants(1L, 2L);
+            StudyChannelParticipationStatusResponse response = studyChannelParticipationService.getParticipationStatus(1L, 1L);
 
             //then
-            assertThat(participants).hasSize(1);
-            assertThat(participants.get(0).getMemberId()).isEqualTo(1L);
-            assertThat(participants.get(0).getParticipationId()).isEqualTo(1L);
-            assertThat(participants.get(0).getName()).isEqualTo("회원1");
-            assertThat(participants.get(0).getBanCnt()).isEqualTo(2);
-            assertThat(participants.get(0).getImageUrl()).isEqualTo("imageUrl");
-            assertThat(participants.get(0).getBadgeLevel()).isEqualTo(BadgeLevel.SILVER);
+            assertThat(response.getStudyChannelId()).isEqualTo(1L);
+            assertThat(response.getRecruitmentStatus()).isEqualTo(RecruitmentStatus.RECRUITING);
+            assertThat(response.getParticipants().size()).isEqualTo(1);
+            assertThat(response.getParticipants().get(0).getParticipationId()).isEqualTo(1L);
+            assertThat(response.getParticipants().get(0).getMemberId()).isEqualTo(2L);
+            assertThat(response.getParticipants().get(0).getName()).isEqualTo("회원1");
+            assertThat(response.getParticipants().get(0).getBanCnt()).isEqualTo(2);
+            assertThat(response.getParticipants().get(0).getImageUrl()).isEqualTo("imageUrl");
+            assertThat(response.getParticipants().get(0).getBadgeLevel()).isEqualTo(BadgeLevel.SILVER);
         }
-
     }
 
 }

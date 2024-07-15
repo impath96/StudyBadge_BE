@@ -2,7 +2,7 @@ package com.tenten.studybadge.participation.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
 import com.tenten.studybadge.member.domain.entity.Member;
-import com.tenten.studybadge.participation.ParticipantResponse;
+import com.tenten.studybadge.participation.dto.ParticipantResponse;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
 import jakarta.persistence.*;
@@ -64,6 +64,7 @@ public class Participation extends BaseEntity {
                 .imageUrl(this.member.getImgUrl())
                 .name(this.member.getName())
                 .badgeLevel(this.member.getBadgeLevel())
+                .participationStatus(this.participationStatus)
                 .build();
     }
 }
