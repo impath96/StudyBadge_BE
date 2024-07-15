@@ -3,6 +3,7 @@ package com.tenten.studybadge.study.channel.service;
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
 import com.tenten.studybadge.common.exception.studychannel.InvalidStudyStartDateException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
+import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
@@ -90,6 +91,22 @@ public class StudyChannelService {
             member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
         }
         return studyChannel.toResponse(member);
+    }
+
+    public void startRecruitment(Long studyChannelId, Long memberId) {
+        StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+
+        checkLeader(studyChannel, member);
+        studyChannel.startRecruitment();
+
+        studyChannelRepository.save(studyChannel);
+    }
+
+    private void checkLeader(StudyChannel studyChannel, Member member) {
+        if (!studyChannel.isLeader(member)) {
+            throw new NotStudyLeaderException();
+        }
     }
 
     public static class StudyChannelSpecification {

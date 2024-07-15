@@ -43,6 +43,13 @@ public class StudyChannelController {
                 .build();
     }
 
+    @PostMapping("/study-channels/{studyChannelId}/recruitment/start")
+    @Operation(summary = "스터디 채널 모집 시작", description = "스터디 채널 모집을 시작하기 위한 API", security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    public void startRecruitment(@AuthenticationPrincipal CustomUserDetails principal, @PathVariable Long studyChannelId) {
+        studyChannelService.startRecruitment(studyChannelId, principal.getId());
+    }
+
     // [ Query ]
     @GetMapping("/study-channels")
     @Operation(summary = "스터디 채널 목록 조회", description = "스터디 채널 목록을 조회하기 위한 API")
