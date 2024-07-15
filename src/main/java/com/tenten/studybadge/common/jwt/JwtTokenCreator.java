@@ -28,9 +28,9 @@ public class JwtTokenCreator {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public TokenDto createToken(String username, MemberRole role, Platform platform) {
+    public TokenDto createToken(String memberId, MemberRole role, Platform platform) {
 
-        Claims commonClaims = Jwts.claims().setSubject(username);
+        Claims commonClaims = Jwts.claims().setSubject(memberId);
         commonClaims.put(PLATFORM, platform);
 
 
@@ -49,7 +49,7 @@ public class JwtTokenCreator {
         String accessToken = Jwts.builder()
                 .setClaims(accessTokenClaims)
                 .setIssuedAt(Date.from(now))
-                .setSubject(username)
+                .setSubject(memberId)
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -66,9 +66,9 @@ public class JwtTokenCreator {
                 .build();
     }
 
-    public String reissue(String email, MemberRole role, Platform platform) {
+    public String reissue(String memberId, MemberRole role, Platform platform) {
 
-        Claims claims = Jwts.claims().setSubject(email);
+        Claims claims = Jwts.claims().setSubject(memberId);
         claims.put(PLATFORM, platform);
         List<String> roles = Arrays.asList(ROLE_PREFIX + role.name());
         claims.put(ROLE, roles);
