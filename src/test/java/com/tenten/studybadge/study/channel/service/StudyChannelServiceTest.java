@@ -10,6 +10,7 @@ import com.tenten.studybadge.study.channel.domain.entity.StudyDuration;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.study.channel.dto.SearchCondition;
 import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
+import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
 import com.tenten.studybadge.study.channel.dto.StudyChannelListResponse;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
@@ -17,6 +18,7 @@ import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
 import com.tenten.studybadge.type.study.channel.RecruitmentStatus;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -248,6 +250,143 @@ class StudyChannelServiceTest {
             assertThat(response.getStudyChannels().get(0).getStudyChannelId()).isEqualTo(studyChannel1.getId());
             assertThat(response.getStudyChannels().get(0).getMemberId()).isEqualTo(leader1.getMember().getId());
             assertThat(response.getStudyChannels().get(0).getMemberName()).isEqualTo(leader1.getMember().getName());
+        }
+
+    }
+
+    @DisplayName("[특정 스터디 채널 조회 테스트]")
+    @Nested
+    class getStudyChannelTest {
+
+        Member member1;
+        Member member2;
+        Member member3;
+
+        StudyChannel studyChannel;
+
+        @BeforeEach
+        void setUp() {
+            member1 = Member.builder().id(1L).name("회원 1").build();
+            member2 = Member.builder().id(2L).name("회원 2").build();
+            member3 = Member.builder().id(3L).name("회원 3").build();
+
+            LocalDate now = LocalDate.now();
+            studyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .name("스터디명")
+                    .description("스터디 설명")
+                    .studyDuration(StudyDuration.builder()
+                            .studyStartDate(now.plusDays(2))
+                            .studyEndDate(now.plusMonths(4))
+                            .build())
+                    .recruitment(Recruitment.builder()
+                            .recruitmentNumber(6)
+                            .recruitmentStatus(RecruitmentStatus.RECRUITING)
+                            .build())
+                    .category(Category.IT)
+                    .region(null)
+                    .meetingType(MeetingType.ONLINE)
+                    .chattingUrl("오픈채팅방 URL")
+                    .deposit(10_000)
+                    .viewCnt(4)
+                    .build();
+        }
+
+        @DisplayName("특정 스터디 채널 조회 - 스터디 멤버가 조회했을 경우")
+        @Test
+        void getStudyChannel_studyMember() {
+
+            StudyMember leader = StudyMember.leader(member1, studyChannel);
+            StudyMember studyMember1 = StudyMember.member(member2, studyChannel);
+            StudyMember studyMember2 = StudyMember.member(member3, studyChannel);
+
+            studyChannel.getStudyMembers().add(leader);
+            studyChannel.getStudyMembers().add(studyMember1);
+            studyChannel.getStudyMembers().add(studyMember2);
+
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+
+            StudyChannelDetailsResponse response = studyChannelService.getStudyChannel(1L, 1L);
+
+            assertThat(response.getStudyChannelId()).isEqualTo(1L);
+            assertThat(response.getChattingUrl()).isNotNull();
+            assertThat(response.getChattingUrl()).isEqualTo("오픈채팅방 URL");
+            assertThat(response.getStudyChannelName()).isEqualTo("스터디명");
+            assertThat(response.getStudyChannelDescription()).isEqualTo("스터디 설명");
+            assertThat(response.getCapacity()).isEqualTo(6);
+            assertThat(response.getCategory()).isEqualTo(Category.IT);
+            assertThat(response.getMeetingType()).isEqualTo(MeetingType.ONLINE);
+            assertThat(response.getRegion()).isNull();
+            assertThat(response.getDeposit()).isEqualTo(10_000);
+            assertThat(response.getLeaderName()).isEqualTo("회원 1");
+            assertThat(response.getSubLeaderName()).isEqualTo("회원 1");
+
+        }
+
+        @DisplayName("특정 스터디 채널 조회 - 스터디 멤버가 아닌 회원이 조회 했을 경우 채팅 URL을 볼 수 없다.")
+        @Test
+        void getStudyChannel_notStudyMember() {
+
+            StudyMember leader = StudyMember.leader(member1, studyChannel);
+            StudyMember studyMember = StudyMember.member(member2, studyChannel);
+
+            studyChannel.getStudyMembers().add(leader);
+            studyChannel.getStudyMembers().add(studyMember);
+
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
+            given(memberRepository.findById(3L)).willReturn(Optional.of(member3));
+
+            StudyChannelDetailsResponse response = studyChannelService.getStudyChannel(1L, 3L);
+
+            assertThat(response.getStudyChannelId()).isEqualTo(1L);
+            assertThat(response.getChattingUrl()).isNull();
+            assertThat(response.getStudyChannelName()).isEqualTo("스터디명");
+            assertThat(response.getStudyChannelDescription()).isEqualTo("스터디 설명");
+            assertThat(response.getCapacity()).isEqualTo(6);
+            assertThat(response.getCategory()).isEqualTo(Category.IT);
+            assertThat(response.getMeetingType()).isEqualTo(MeetingType.ONLINE);
+            assertThat(response.getRegion()).isNull();
+            assertThat(response.getDeposit()).isEqualTo(10_000);
+            assertThat(response.getLeaderName()).isEqualTo("회원 1");
+            assertThat(response.getSubLeaderName()).isEqualTo("회원 1");
+
+        }
+
+        @DisplayName("특정 스터디 채널 조회 - 부 리더가 있을 경우")
+        @Test
+        void getStudyChannel_withSubLeader() {
+
+            StudyMember leader = StudyMember.leader(member1, studyChannel);
+            StudyMember subLeader = StudyMember.builder()
+                    .member(member2)
+                    .studyChannel(studyChannel)
+                    .studyMemberRole(StudyMemberRole.SUB_LEADER)
+                    .build();
+            StudyMember studyMember = StudyMember.member(member3, studyChannel);
+
+            studyChannel.getStudyMembers().add(leader);
+            studyChannel.getStudyMembers().add(subLeader);
+            studyChannel.getStudyMembers().add(studyMember);
+
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+
+            StudyChannelDetailsResponse response = studyChannelService.getStudyChannel(1L, 1L);
+
+            assertThat(response.getStudyChannelId()).isEqualTo(1L);
+            assertThat(response.getChattingUrl()).isNotNull();
+            assertThat(response.getChattingUrl()).isEqualTo("오픈채팅방 URL");
+            assertThat(response.getStudyChannelName()).isEqualTo("스터디명");
+            assertThat(response.getStudyChannelDescription()).isEqualTo("스터디 설명");
+            assertThat(response.getCapacity()).isEqualTo(6);
+            assertThat(response.getCategory()).isEqualTo(Category.IT);
+            assertThat(response.getMeetingType()).isEqualTo(MeetingType.ONLINE);
+            assertThat(response.getRegion()).isNull();
+            assertThat(response.getDeposit()).isEqualTo(10_000);
+            assertThat(response.getLeaderName()).isEqualTo("회원 1");
+            assertThat(response.getSubLeaderName()).isEqualTo("회원 2");
+
         }
 
     }

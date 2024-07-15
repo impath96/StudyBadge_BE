@@ -7,8 +7,7 @@ import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import jakarta.persistence.*;
 import lombok.*;
 
-import static com.tenten.studybadge.type.study.member.StudyMemberRole.LEADER;
-import static com.tenten.studybadge.type.study.member.StudyMemberRole.STUDY_MEMBER;
+import static com.tenten.studybadge.type.study.member.StudyMemberRole.*;
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
@@ -55,6 +54,10 @@ public class StudyMember extends BaseEntity {
 
     public boolean isLeader() {
         return this.studyMemberRole.equals(LEADER);
+    }
+
+    public boolean isSubLeader() {
+        return this.studyMemberRole.equals(SUB_LEADER);
     }
 
 }

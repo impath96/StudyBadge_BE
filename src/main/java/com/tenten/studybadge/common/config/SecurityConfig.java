@@ -35,12 +35,9 @@ public class SecurityConfig {
 
         return http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests( requests -> requests
-                        .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**",
-                            "/api/members/login/**", "/health-check").permitAll()
-                        .requestMatchers("/api/study-channels/**", "/error", "/api/participation/**").permitAll()
-                .requestMatchers("/api/members/logout", "api/study-channels/*/places",
-                    "/api/study-channels/*/schedules", "/api/token/re-issue").hasRole("USER"))
-
+                        .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/members/login/**", "/error", "/health-check").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/study-channels", "/api/study-channels/{studyChannelId:\\d+}").permitAll()
+                        .requestMatchers("/api/members/logout", "api/study-channels/*/places", "/api/study-channels/**", "/api/token/re-issue").hasRole("USER"))
 
                 .cors(cors -> new CorsConfig())
                 .headers(headers -> headers // h2-console 페이지 접속을 위한 설정
