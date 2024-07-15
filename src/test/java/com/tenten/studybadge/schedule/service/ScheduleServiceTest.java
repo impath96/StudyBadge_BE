@@ -251,7 +251,6 @@ class ScheduleServiceTest {
                 .save(any(SingleSchedule.class));
         }
 
-
         @Test
         @DisplayName("반복 일정 등록 성공 - 월간 반복")
         public void testPostRepeatSchedule_Monthly() {
@@ -635,7 +634,6 @@ class ScheduleServiceTest {
             assertEquals("반복 일정 처음에 단일 일정으로 수정", savedSingleSchedule.getScheduleName());
             assertEquals("반복 일정 처음에 단일 일정으로 수정 내용", savedSingleSchedule.getScheduleContent());
             assertEquals(LocalDate.of(2024, 7, 1), savedSingleSchedule.getScheduleDate());
-
             verify(repeatScheduleRepository, times(1)).deleteById(2L);
         }
 
