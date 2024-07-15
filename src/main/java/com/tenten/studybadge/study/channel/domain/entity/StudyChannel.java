@@ -1,6 +1,8 @@
 package com.tenten.studybadge.study.channel.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
+import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberFullException;
+import com.tenten.studybadge.common.exception.studychannel.NotChangeRecruitmentStatusException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
@@ -83,6 +85,16 @@ public class StudyChannel extends BaseEntity {
                 .filter(StudyMember::isSubLeader)
                 .findFirst()
                 .orElse(null);
+    }
+
+    public void startRecruitment() {
+        if (!recruitment.isCompleted()) {
+            throw new NotChangeRecruitmentStatusException();
+        }
+        if (recruitment.getRecruitmentNumber() == studyMembers.size()) {
+            throw new AlreadyStudyMemberFullException();
+        }
+        recruitment.start();
     }
 
     public StudyChannelDetailsResponse toResponse(Member member) {

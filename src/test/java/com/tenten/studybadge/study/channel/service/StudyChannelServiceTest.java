@@ -1,7 +1,9 @@
 package com.tenten.studybadge.study.channel.service;
 
+import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberFullException;
 import com.tenten.studybadge.common.exception.studychannel.InvalidStudyDurationException;
 import com.tenten.studybadge.common.exception.studychannel.InvalidStudyStartDateException;
+import com.tenten.studybadge.common.exception.studychannel.NotChangeRecruitmentStatusException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
@@ -386,6 +388,146 @@ class StudyChannelServiceTest {
             assertThat(response.getDeposit()).isEqualTo(10_000);
             assertThat(response.getLeaderName()).isEqualTo("회원 1");
             assertThat(response.getSubLeaderName()).isEqualTo("회원 2");
+
+        }
+
+    }
+
+    @DisplayName("[스터디 채널 모집 시작 테스트]")
+    @Nested
+    class StartRecruitmentTest {
+
+        Member member1;
+        Member member2;
+        Member member3;
+
+        StudyChannel recruitmentCompletedstudyChannel;
+        StudyChannel recruitingStudyChannel;
+        StudyChannel fullMemberStudyChannel;
+
+        @BeforeEach
+        void setUp() {
+            member1 = Member.builder().id(1L).name("회원 1").build();
+            member2 = Member.builder().id(2L).name("회원 2").build();
+            member3 = Member.builder().id(3L).name("회원 3").build();
+
+            LocalDate now = LocalDate.now();
+            recruitingStudyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .name("스터디명")
+                    .description("스터디 설명")
+                    .studyDuration(StudyDuration.builder()
+                            .studyStartDate(now.plusDays(2))
+                            .studyEndDate(now.plusMonths(4))
+                            .build())
+                    .recruitment(Recruitment.builder()
+                            .recruitmentNumber(6)
+                            .recruitmentStatus(RecruitmentStatus.RECRUITING)
+                            .build())
+                    .category(Category.IT)
+                    .region(null)
+                    .meetingType(MeetingType.ONLINE)
+                    .chattingUrl("오픈채팅방 URL")
+                    .deposit(10_000)
+                    .viewCnt(4)
+                    .build();
+            recruitmentCompletedstudyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .name("스터디명")
+                    .description("스터디 설명")
+                    .studyDuration(StudyDuration.builder()
+                            .studyStartDate(now.plusDays(2))
+                            .studyEndDate(now.plusMonths(4))
+                            .build())
+                    .recruitment(Recruitment.builder()
+                            .recruitmentNumber(6)
+                            .recruitmentStatus(RecruitmentStatus.RECRUIT_COMPLETED)
+                            .build())
+                    .category(Category.IT)
+                    .region(null)
+                    .meetingType(MeetingType.ONLINE)
+                    .chattingUrl("오픈채팅방 URL")
+                    .deposit(10_000)
+                    .viewCnt(4)
+                    .build();
+            fullMemberStudyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .name("스터디명")
+                    .description("스터디 설명")
+                    .studyDuration(StudyDuration.builder()
+                            .studyStartDate(now.plusDays(2))
+                            .studyEndDate(now.plusMonths(4))
+                            .build())
+                    .recruitment(Recruitment.builder()
+                            .recruitmentNumber(3)
+                            .recruitmentStatus(RecruitmentStatus.RECRUIT_COMPLETED)
+                            .build())
+                    .category(Category.IT)
+                    .region(null)
+                    .meetingType(MeetingType.ONLINE)
+                    .chattingUrl("오픈채팅방 URL")
+                    .deposit(10_000)
+                    .viewCnt(4)
+                    .build();
+        }
+
+        @DisplayName("정상적으로 스터디 채널 모집을 시작한다.")
+        @Test
+        void success_startRecruitment() {
+            StudyMember leader = StudyMember.leader(member1, recruitmentCompletedstudyChannel);
+            StudyMember studyMember1 = StudyMember.member(member2, recruitmentCompletedstudyChannel);
+            StudyMember studyMember2 = StudyMember.member(member3, recruitmentCompletedstudyChannel);
+
+            recruitmentCompletedstudyChannel.getStudyMembers().add(leader);
+            recruitmentCompletedstudyChannel.getStudyMembers().add(studyMember1);
+            recruitmentCompletedstudyChannel.getStudyMembers().add(studyMember2);
+
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(recruitmentCompletedstudyChannel));
+
+            studyChannelService.startRecruitment(1L, 1L);
+
+            assertThat(recruitmentCompletedstudyChannel.getRecruitment().getRecruitmentStatus()).isEqualTo(RecruitmentStatus.RECRUITING);
+
+        }
+
+        @DisplayName("모집 상태가 모집 중일 때 모집을 시작하려고 할 경우 예외가 발생한다.")
+        @Test
+        void fail_recruitingStudyChannel() {
+            StudyMember leader = StudyMember.leader(member1, recruitingStudyChannel);
+            StudyMember studyMember1 = StudyMember.member(member2, recruitingStudyChannel);
+            StudyMember studyMember2 = StudyMember.member(member3, recruitingStudyChannel);
+
+            recruitingStudyChannel.getStudyMembers().add(leader);
+            recruitingStudyChannel.getStudyMembers().add(studyMember1);
+            recruitingStudyChannel.getStudyMembers().add(studyMember2);
+
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(recruitingStudyChannel));
+
+            assertThatThrownBy(
+                    () -> studyChannelService.startRecruitment(1L, 1L)
+            ).isExactlyInstanceOf(NotChangeRecruitmentStatusException.class);
+
+        }
+
+        @DisplayName("이미 스터디 멤버가 꽉 찼을 경우 예외가 발생한다.")
+        @Test
+        void fail_alreadyFullStudyChannel() {
+            StudyMember leader = StudyMember.leader(member1, fullMemberStudyChannel);
+            StudyMember studyMember1 = StudyMember.member(member2, fullMemberStudyChannel);
+            StudyMember studyMember2 = StudyMember.member(member3, fullMemberStudyChannel);
+
+            fullMemberStudyChannel.getStudyMembers().add(leader);
+            fullMemberStudyChannel.getStudyMembers().add(studyMember1);
+            fullMemberStudyChannel.getStudyMembers().add(studyMember2);
+
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(fullMemberStudyChannel));
+
+            assertThatThrownBy(
+                    () -> studyChannelService.startRecruitment(1L, 1L)
+            ).isExactlyInstanceOf(AlreadyStudyMemberFullException.class);
 
         }
 
