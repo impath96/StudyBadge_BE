@@ -71,7 +71,7 @@ public class StudyChannelController {
             @AuthenticationPrincipal CustomUserDetails principal,
             @PathVariable Long studyChannelId
     ) {
-        return ResponseEntity.ok(studyChannelService.getStudyChannel(studyChannelId, principal.getId()));
+        return ResponseEntity.ok(studyChannelService.getStudyChannel(studyChannelId, principal == null ? null : principal.getId()));
     }
 
 }

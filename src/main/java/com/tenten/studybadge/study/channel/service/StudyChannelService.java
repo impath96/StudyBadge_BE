@@ -14,6 +14,7 @@ import com.tenten.studybadge.study.channel.dto.StudyChannelListResponse;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -82,9 +83,12 @@ public class StudyChannelService {
         return StudyChannelListResponse.from(studyChannels, leaderMap);
     }
 
-    public StudyChannelDetailsResponse getStudyChannel(Long studyChannelId, Long memberId) {
+    public StudyChannelDetailsResponse getStudyChannel(Long studyChannelId, @Nullable Long memberId) {
         StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        Member member = null;
+        if (memberId != null) {
+            member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        }
         return studyChannel.toResponse(member);
     }
 

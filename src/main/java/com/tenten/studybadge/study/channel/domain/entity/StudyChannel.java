@@ -102,7 +102,7 @@ public class StudyChannel extends BaseEntity {
                 .leaderName(leader.getMember().getName())
                 .subLeaderName(Objects.requireNonNullElse(subLeader, leader).getMember().getName());
 
-        if (isStudyMember(member.getId())) {
+        if (member != null && isStudyMember(member.getId())) {
             builder.chattingUrl(this.chattingUrl);
         }
 
