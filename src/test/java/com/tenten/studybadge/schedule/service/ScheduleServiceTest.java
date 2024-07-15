@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatSituationException;
 import com.tenten.studybadge.common.exception.schedule.NotEqualSingleScheduleDate;
 import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
@@ -144,7 +145,7 @@ class ScheduleServiceTest {
                 .willReturn(singleScheduleWithoutPlace);
 
             // when
-            scheduleService.postSchedule(
+            scheduleService.postSingleSchedule(
                 singleScheduleRequestWithoutPlace, 1L);
 
             // then
@@ -165,10 +166,10 @@ class ScheduleServiceTest {
                 LocalDate.of(2024, 7, 5),
                 LocalTime.of(10, 0),
                 LocalTime.of( 11, 0),
+                null,
                 RepeatCycle.WEEKLY,
                 RepeatSituation.MONDAY,
-                LocalDate.of(2024, 12, 31),
-                null
+                LocalDate.of(2024, 12, 31)
             );
 
             given(studyChannelRepository.findById(1L))
@@ -177,7 +178,7 @@ class ScheduleServiceTest {
                 .willReturn(repeatScheduleWithoutPlace);
 
             // when
-            scheduleService.postSchedule(
+            scheduleService.postRepeatSchedule(
                 repeatScheduleRequestWithoutPlace, 1L);
 
             // then
@@ -207,7 +208,7 @@ class ScheduleServiceTest {
                 .willReturn(singleScheduleWithPlace);
 
             // when
-            scheduleService.postSchedule(
+            scheduleService.postSingleSchedule(
                 singleScheduleRequestWithPlace, 1L);
 
             // then
@@ -228,10 +229,10 @@ class ScheduleServiceTest {
                 LocalDate.of(2024, 7, 5),
                 LocalTime.of(10, 0),
                 LocalTime.of( 11, 0),
+                null,
                 RepeatCycle.WEEKLY,
                 RepeatSituation.MONDAY,
-                LocalDate.of(2024, 12, 31),
-                1L
+                LocalDate.of(2024, 12, 31)
             );
 
             given(studyChannelRepository.findById(1L))
@@ -240,7 +241,7 @@ class ScheduleServiceTest {
                 .willReturn(repeatScheduleWithPlace);
 
             // when
-            scheduleService.postSchedule(
+            scheduleService.postRepeatSchedule(
                 repeatScheduleRequestWithPlace, 1L);
 
             // then
@@ -248,6 +249,54 @@ class ScheduleServiceTest {
                 .save(any(RepeatSchedule.class));
             verify(singleScheduleRepository, times(0))
                 .save(any(SingleSchedule.class));
+        }
+
+        @Test
+        @DisplayName("반복 일정 등록 실패 - 주간 반복 상황 요일과 해당 날짜의 요일이 다를 경우")
+        public void testPostRepeatSchedule_ThrowsIllegalArgumentForRepeatSituationException() {
+            // given
+
+            RepeatScheduleCreateRequest wrongRequest =
+                RepeatScheduleCreateRequest.builder()
+                    .scheduleName("잘못된 요일의 반복 일정 요청")
+                    .scheduleContent("7월 14일은 일요일인데 반복 상황을 수요일이라고 하겠음")
+                    .scheduleDate(LocalDate.of(2024, 7, 14))
+                    .scheduleStartTime(LocalTime.of(10, 0))
+                    .scheduleEndTime(LocalTime.of(11, 0))
+                    .repeatCycle(RepeatCycle.WEEKLY)
+                    .repeatSituation(RepeatSituation.WEDNESDAY)
+                    .build();
+
+            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+
+            // when & then
+            assertThrows(IllegalArgumentForRepeatSituationException.class, () -> {
+                scheduleService.postRepeatSchedule(wrongRequest, 1L);
+            });
+        }
+
+        @Test
+        @DisplayName("반복 일정 등록 실패 - 월간 반복 상황 날짜와 해당 날짜가 다를 경우")
+        public void testPostRepeatSchedule_ThrowsIllegalArgumentForRepeatSituationException_Monthly() {
+            // given
+
+            RepeatScheduleCreateRequest wrongRequest =
+                RepeatScheduleCreateRequest.builder()
+                    .scheduleName("잘못된 날짜의 반복 일정 요청")
+                    .scheduleContent("7월 14일인데 반복 상황을 15일이라고 하겠음")
+                    .scheduleDate(LocalDate.of(2024, 7, 14))
+                    .scheduleStartTime(LocalTime.of(10, 0))
+                    .scheduleEndTime(LocalTime.of(11, 0))
+                    .repeatCycle(RepeatCycle.MONTHLY)
+                    .repeatSituation(RepeatSituation.MONTHLY_FIFTEEN)
+                    .build();
+
+            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+
+            // when & then
+            assertThrows(IllegalArgumentForRepeatSituationException.class, () -> {
+                scheduleService.postRepeatSchedule(wrongRequest, 1L);
+            });
         }
     }
 

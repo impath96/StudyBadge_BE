@@ -3,10 +3,12 @@ package com.tenten.studybadge.schedule.dto;
 import com.tenten.studybadge.type.schedule.ScheduleOriginType;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@Builder
 @NoArgsConstructor
 public class SingleScheduleEditRequest extends ScheduleEditRequest{
 
