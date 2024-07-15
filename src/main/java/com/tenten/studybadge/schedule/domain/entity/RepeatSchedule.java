@@ -55,6 +55,19 @@ public class RepeatSchedule extends Schedule {
     public void setRepeatStartDate(LocalDate startDate) {
       this.scheduleDate = startDate;
     }
+
+    public void updateRepeatSchedule(RepeatScheduleEditRequest scheduleEditRequest) {
+        this.scheduleName = scheduleEditRequest.getScheduleName();
+        this.scheduleContent = scheduleEditRequest.getScheduleContent();
+        this.scheduleStartTime = scheduleEditRequest.getScheduleStartTime();
+        this.scheduleEndTime = scheduleEditRequest.getScheduleEndTime();
+        this.isRepeated = true;
+        this.repeatCycle = scheduleEditRequest.getRepeatCycle();
+        this.repeatSituation = scheduleEditRequest.getRepeatSituation();
+        this.repeatEndDate = scheduleEditRequest.getRepeatEndDate();
+        this.placeId = scheduleEditRequest.getPlaceId();
+    }
+
     @Builder(builderMethodName = "withoutIdBuilder")
     public RepeatSchedule(String scheduleName, String scheduleContent, LocalDate scheduleDate, LocalTime scheduleStartTime,
         LocalTime scheduleEndTime, boolean isRepeated, RepeatCycle repeatCycle, RepeatSituation repeatSituation,
@@ -70,19 +83,6 @@ public class RepeatSchedule extends Schedule {
         this.repeatEndDate = repeatEndDate;
         this.placeId = placeId;
         this.studyChannel = studyChannel;
-    }
-
-    public void updateRepeatSchedule(RepeatScheduleEditRequest scheduleEditRequest) {
-        this.scheduleName = scheduleEditRequest.getScheduleName();
-        this.scheduleContent = scheduleEditRequest.getScheduleContent();
-        this.scheduleDate = scheduleEditRequest.getSelectedDate();
-        this.scheduleStartTime = scheduleEditRequest.getScheduleStartTime();
-        this.scheduleEndTime = scheduleEditRequest.getScheduleEndTime();
-        this.isRepeated = true;
-        this.repeatCycle = scheduleEditRequest.getRepeatCycle();
-        this.repeatSituation = scheduleEditRequest.getRepeatSituation();
-        this.repeatEndDate = scheduleEditRequest.getRepeatEndDate();
-        this.placeId = scheduleEditRequest.getPlaceId();
     }
 
     public ScheduleResponse toResponse() {

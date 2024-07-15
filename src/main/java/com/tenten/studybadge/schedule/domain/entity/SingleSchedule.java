@@ -62,7 +62,6 @@ public class SingleSchedule extends Schedule {
     public void updateSingleSchedule(SingleScheduleEditRequest scheduleEditRequest) {
         this.scheduleName = scheduleEditRequest.getScheduleName();
         this.scheduleContent = scheduleEditRequest.getScheduleContent();
-        this.scheduleDate = scheduleEditRequest.getSelectedDate();
         this.scheduleStartTime = scheduleEditRequest.getScheduleStartTime();
         this.scheduleEndTime = scheduleEditRequest.getScheduleEndTime();
         this.isRepeated = false;
