@@ -14,4 +14,11 @@ public interface StudyMemberRepository extends JpaRepository<StudyMember, Long> 
             "WHERE sm.studyChannel.id IN (:studyChannelIds) " +
             "AND sm.studyMemberRole = :studyMemberRole")
     List<StudyMember> findAllWithLeader(List<Long> studyChannelIds, StudyMemberRole studyMemberRole);
+
+    boolean existsByStudyChannelIdAndMemberId(Long studyChannelId, Long memberId);
+
+    @Query("SELECT sm FROM StudyMember sm " +
+            "JOIN FETCH sm.member " +
+            "WHERE sm.studyChannel.id = :studyChannelId")
+    List<StudyMember> findAllByStudyChannelIdWithMember(Long studyChannelId);
 }
