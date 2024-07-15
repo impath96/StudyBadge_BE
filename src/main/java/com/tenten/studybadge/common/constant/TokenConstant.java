@@ -24,6 +24,8 @@ public class TokenConstant {
 
     public static final String REFRESH_TOKEN = "refreshToken";
 
+    public static final String ACCESS_TOKEN = "accessToken";
+
     public static final long ACCESS_TOKEN_EXPIRES_IN = TimeUnit.HOURS.toMillis(1);
 
     public static final long REFRESH_TOKEN_EXPIRES_IN = TimeUnit.DAYS.toMillis(14);
