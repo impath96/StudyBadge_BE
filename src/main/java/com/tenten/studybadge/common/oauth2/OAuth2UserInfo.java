@@ -1,6 +1,7 @@
 package com.tenten.studybadge.common.oauth2;
 
 import com.tenten.studybadge.common.exception.InvalidTokenException;
+import com.tenten.studybadge.common.exception.oauth2.UnsupportedProviderException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.type.MemberRole;
 import com.tenten.studybadge.type.member.BadgeLevel;
@@ -27,7 +28,7 @@ public record OAuth2UserInfo(
         return switch (registrationId) {
             case NAVER -> ofNaver(attributes);
             case KAKAO -> ofKakao(attributes);
-            default -> throw new InvalidTokenException();
+            default -> throw new UnsupportedProviderException();
         };
     }
 
