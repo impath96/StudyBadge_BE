@@ -28,13 +28,13 @@ public class TokenService {
     private final MemberRepository memberRepository;
 
 
-    public TokenDto create(String email, MemberRole role, Platform platform) {
+    public TokenDto create(String memberId, MemberRole role, Platform platform) {
 
 
-        TokenDto token = jwtTokenCreator.createToken(email, role, platform);
+        TokenDto token = jwtTokenCreator.createToken(memberId, role, platform);
 
         String refreshToken = token.getRefreshToken();
-        String key = String.format(REFRESH_TOKEN_FORMAT, email, platform);
+        String key = String.format(REFRESH_TOKEN_FORMAT, memberId, platform);
 
         redisTemplate.opsForValue().set(
                 key,
@@ -52,10 +52,10 @@ public class TokenService {
         }
 
         Claims refreshTokenClaims = jwtTokenProvider.parseClaims(refreshToken);
-        String email = refreshTokenClaims.getSubject();
+        String memberId = refreshTokenClaims.getSubject();
         Platform platform = jwtTokenProvider.getPlatform(refreshToken);
 
-        String storedRefreshToken = (String) redisTemplate.opsForValue().get(String.format(REFRESH_TOKEN_FORMAT, email, platform));
+        String storedRefreshToken = (String) redisTemplate.opsForValue().get(String.format(REFRESH_TOKEN_FORMAT, memberId, platform));
         if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
             throw new InvalidTokenException();
         }
@@ -65,8 +65,8 @@ public class TokenService {
             throw new InvalidTokenException();
         }
 
-        Member member = memberRepository.findByEmailAndPlatform(email, platform).orElseThrow(NotFoundMemberException::new);
+        Member member = memberRepository.findById(Long.valueOf(memberId)).orElseThrow(NotFoundMemberException::new);
 
-        return jwtTokenCreator.reissue(member.getEmail(), member.getRole(), platform);
+        return jwtTokenCreator.reissue(String.valueOf(member.getId()), member.getRole(), platform);
     }
 }
