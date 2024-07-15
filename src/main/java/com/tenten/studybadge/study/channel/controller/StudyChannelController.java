@@ -46,8 +46,9 @@ public class StudyChannelController {
     @PostMapping("/study-channels/{studyChannelId}/recruitment/start")
     @Operation(summary = "스터디 채널 모집 시작", description = "스터디 채널 모집을 시작하기 위한 API", security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
-    public void startRecruitment(@AuthenticationPrincipal CustomUserDetails principal, @PathVariable Long studyChannelId) {
+    public ResponseEntity<Void> startRecruitment(@AuthenticationPrincipal CustomUserDetails principal, @PathVariable Long studyChannelId) {
         studyChannelService.startRecruitment(studyChannelId, principal.getId());
+        return ResponseEntity.ok().build();
     }
 
     // [ Query ]
