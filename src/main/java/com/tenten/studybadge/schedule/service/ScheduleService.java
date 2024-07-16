@@ -1,5 +1,6 @@
 package com.tenten.studybadge.schedule.service;
 
+import com.tenten.studybadge.common.exception.schedule.CanNotDeleteForBeforeDateException;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatScheduleEditRequestException;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatSituationException;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForScheduleEditRequestException;
@@ -290,22 +291,30 @@ public class ScheduleService {
     }
 
     public void deleteSingleSchedule(Long studyChannelId, ScheduleDeleteRequest scheduleDeleteRequest) {
-        StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId)
+        LocalDate currentDate =LocalDate.now();
+
+        studyChannelRepository.findById(studyChannelId)
             .orElseThrow(NotFoundStudyChannelException::new);
 
         SingleSchedule singleSchedule = singleScheduleRepository.findById(
                 scheduleDeleteRequest.getScheduleId())
             .orElseThrow(NotFoundSingleScheduleException::new);
 
-        if (!scheduleDeleteRequest.getSelectedDate().equals(singleSchedule.getScheduleDate())) {
+        if (!scheduleDeleteRequest.getSelectedDate().isEqual(singleSchedule.getScheduleDate())) {
             throw new NotEqualSingleScheduleDate();
+        }
+
+        if (currentDate.isAfter(singleSchedule.getScheduleDate())) {
+            throw new CanNotDeleteForBeforeDateException();
         }
 
         singleScheduleRepository.deleteById(scheduleDeleteRequest.getScheduleId());
     }
 
     public void deleteRepeatSchedule(Long studyChannelId, Boolean isAfterEventSame, ScheduleDeleteRequest scheduleDeleteRequest) {
-        StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId)
+        LocalDate currentDate =LocalDate.now();
+
+        studyChannelRepository.findById(studyChannelId)
             .orElseThrow(NotFoundStudyChannelException::new);
 
         RepeatSchedule repeatSchedule = repeatScheduleRepository.findById(
@@ -316,6 +325,10 @@ public class ScheduleService {
 
         if (isNotIncluded(selectedDate, repeatSchedule.getScheduleDate(), repeatSchedule.getRepeatEndDate())) {
             throw new OutRangeScheduleException();
+        }
+
+        if (currentDate.isAfter(repeatSchedule.getScheduleDate())) {
+            throw new CanNotDeleteForBeforeDateException();
         }
 
         if (isAfterEventSame) {
@@ -344,7 +357,7 @@ public class ScheduleService {
     }
 
     public void deleteRepeatScheduleAfterEventSameNo(LocalDate selectedDate, RepeatSchedule repeatSchedule) {
-        if (selectedDate.equals(repeatSchedule.getScheduleDate())) {
+        if (selectedDate.isEqual(repeatSchedule.getScheduleDate())) {
             // 기존 반복 일정: scheduleDate = scheduleDate + (주기 1)으로 변경
             changeRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
         } else if (selectedDate.equals(repeatSchedule.getRepeatEndDate())) {
@@ -371,7 +384,7 @@ public class ScheduleService {
         }
 
         // 만일 변경한 기존 반복 일정이 반복 시작 날짜와 끝나는 날짜가 같을 경우 단일 일정으로 변경한다.
-        if (repeatSchedule.getScheduleDate().equals(repeatSchedule.getRepeatEndDate())) {
+        if (repeatSchedule.getScheduleDate().isEqual(repeatSchedule.getRepeatEndDate())) {
             singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
             repeatScheduleRepository.deleteById(repeatSchedule.getId());
         }
