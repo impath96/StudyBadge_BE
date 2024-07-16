@@ -10,10 +10,7 @@ import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
-import com.tenten.studybadge.study.channel.dto.SearchCondition;
-import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
-import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
-import com.tenten.studybadge.study.channel.dto.StudyChannelListResponse;
+import com.tenten.studybadge.study.channel.dto.*;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
@@ -128,6 +125,16 @@ public class StudyChannelService {
         if (!studyChannel.isLeader(member)) {
             throw new NotStudyLeaderException();
         }
+    }
+
+    public void editStudyChannel(Long studyChannelId, Long memberId, StudyChannelEditRequest studyChannelEditRequest) {
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
+        if (!studyChannel.isLeader(member)) {
+            throw new NotStudyLeaderException();
+        }
+        studyChannel.edit(studyChannelEditRequest);
+        studyChannelRepository.save(studyChannel);
     }
 
     public static class StudyChannelSpecification {
