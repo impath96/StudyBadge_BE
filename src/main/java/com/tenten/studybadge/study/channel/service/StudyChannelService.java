@@ -1,7 +1,6 @@
 package com.tenten.studybadge.study.channel.service;
 
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
-import com.tenten.studybadge.common.exception.participation.RemainingApprovalWaitingParticipationException;
 import com.tenten.studybadge.common.exception.studychannel.InvalidStudyStartDateException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
@@ -116,13 +115,13 @@ public class StudyChannelService {
         studyChannel.closeRecruitment();
 
         List<Participation> participationList = participationRepository.findByStudyChannelId(studyChannelId);
-        long count = participationList.stream()
+        List<Participation> approveWaitingParticipationList = participationList.stream()
                 .filter(participation -> participation.getParticipationStatus().equals(ParticipationStatus.APPROVE_WAITING))
-                .count();
-        if (count > 0) {
-            throw new RemainingApprovalWaitingParticipationException();
-        }
+                .toList();
+        approveWaitingParticipationList.forEach(Participation::reject);
+
         studyChannelRepository.save(studyChannel);
+        participationRepository.saveAll(approveWaitingParticipationList);
     }
 
     private void checkLeader(StudyChannel studyChannel, Member member) {
