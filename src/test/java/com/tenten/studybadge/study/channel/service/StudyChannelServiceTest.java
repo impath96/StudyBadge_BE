@@ -1,6 +1,5 @@
 package com.tenten.studybadge.study.channel.service;
 
-import com.tenten.studybadge.common.exception.participation.RemainingApprovalWaitingParticipationException;
 import com.tenten.studybadge.common.exception.studychannel.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
@@ -544,6 +543,8 @@ class StudyChannelServiceTest {
         Member member1;
         Member member2;
         Member member3;
+        Member member4;
+        Member member5;
 
         StudyChannel recruitmentCompletedstudyChannel;
         StudyChannel recruitingStudyChannel;
@@ -553,6 +554,8 @@ class StudyChannelServiceTest {
             member1 = Member.builder().id(1L).name("회원 1").build();
             member2 = Member.builder().id(2L).name("회원 2").build();
             member3 = Member.builder().id(3L).name("회원 3").build();
+            member4 = Member.builder().id(4L).name("회원 4").build();
+            member5 = Member.builder().id(5L).name("회원 5").build();
 
             LocalDate now = LocalDate.now();
             recruitingStudyChannel = StudyChannel.builder()
@@ -667,8 +670,7 @@ class StudyChannelServiceTest {
 
         }
 
-
-        @DisplayName("참가 신청 내역 중 승인 대기중인 신청이 아직 남아있을 경우 예외가 발생한다.")
+        @DisplayName("참가 신청 내역 중 승인 대기중인 신청이 아직 남아있을 경우 모두 거절 상태로 변경한다.")
         @Test
         void fail_remainingApprovalWaitingParticipation() {
             StudyMember leader = StudyMember.leader(member1, recruitingStudyChannel);
@@ -684,7 +686,7 @@ class StudyChannelServiceTest {
                     .id(1L)
                     .member(member2)
                     .studyChannel(recruitingStudyChannel)
-                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .participationStatus(ParticipationStatus.APPROVED)
                     .build();
             Participation participation2 = Participation.builder()
                     .id(1L)
@@ -692,16 +694,29 @@ class StudyChannelServiceTest {
                     .studyChannel(recruitingStudyChannel)
                     .participationStatus(ParticipationStatus.APPROVED)
                     .build();
+            Participation participation3 = Participation.builder()
+                    .id(1L)
+                    .member(member4)
+                    .studyChannel(recruitingStudyChannel)
+                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .build();
+            Participation participation4 = Participation.builder()
+                    .id(1L)
+                    .member(member5)
+                    .studyChannel(recruitingStudyChannel)
+                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .build();
 
-            List<Participation> participationList = List.of(participation1, participation2);
+            List<Participation> participationList = List.of(participation1, participation2, participation3, participation4);
 
             given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
             given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(recruitingStudyChannel));
             given(participationRepository.findByStudyChannelId(1L)).willReturn(participationList);
 
-            assertThatThrownBy(
-                    () -> studyChannelService.closeRecruitment(1L, 1L)
-            ).isExactlyInstanceOf(RemainingApprovalWaitingParticipationException.class);
+            studyChannelService.closeRecruitment(1L, 1L);
+
+            assertThat(participation3.getParticipationStatus()).isEqualTo(ParticipationStatus.REJECTED);
+            assertThat(participation4.getParticipationStatus()).isEqualTo(ParticipationStatus.REJECTED);
 
         }
 
