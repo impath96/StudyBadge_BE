@@ -11,6 +11,8 @@ import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleExc
 import com.tenten.studybadge.common.exception.schedule.NotFoundSingleScheduleException;
 import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
+import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyMemberException;
+import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
@@ -24,6 +26,8 @@ import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.SingleScheduleEditRequest;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
+import com.tenten.studybadge.study.member.domain.entity.StudyMember;
+import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
 import com.tenten.studybadge.type.schedule.RepeatSituation;
 import com.tenten.studybadge.type.schedule.ScheduleType;
@@ -41,10 +45,13 @@ public class ScheduleService {
     private final SingleScheduleRepository singleScheduleRepository;
     private final RepeatScheduleRepository repeatScheduleRepository;
     private final StudyChannelRepository studyChannelRepository;
+    private final StudyMemberRepository studyMemberRepository;
 
     public void postSingleSchedule(SingleScheduleCreateRequest singleScheduleCreateRequest, Long studyChannelId) {
         StudyChannel studyChannel =  studyChannelRepository.findById(studyChannelId)
             .orElseThrow(NotFoundStudyChannelException::new);
+
+        validateStudyLeader(singleScheduleCreateRequest.getMemberId(), studyChannelId);
 
         singleScheduleRepository.save(createSingleScheduleFromRequest(
             singleScheduleCreateRequest, studyChannel));
@@ -58,6 +65,8 @@ public class ScheduleService {
         LocalDate scheduleDate = repeatScheduleCreateRequest.getScheduleDate();
         RepeatSituation repeatSituation = repeatScheduleCreateRequest.getRepeatSituation();
         validateRepeatSituation(scheduleDate, repeatCycle, repeatSituation);
+
+        validateStudyLeader(repeatScheduleCreateRequest.getMemberId(), studyChannelId);
 
         repeatScheduleRepository.save(createRepeatScheduleFromRequest(repeatScheduleCreateRequest, studyChannel));
     }
@@ -121,11 +130,13 @@ public class ScheduleService {
             if(editRequestToSingleSchedule.getOriginType() != ScheduleType.SINGLE) {
                 throw new IllegalArgumentForScheduleEditRequestException();
             }
+            validateStudyLeader(editRequestToSingleSchedule.getMemberId(), studyChannelId);
             putScheduleSingleToSingle(editRequestToSingleSchedule);
 
         } else if (scheduleEditRequest instanceof RepeatScheduleEditRequest) {
             RepeatScheduleEditRequest editRequestToRepeatSchedule =
                 (RepeatScheduleEditRequest) scheduleEditRequest;
+            validateStudyLeader(editRequestToRepeatSchedule.getMemberId(), studyChannelId);
 
             if (editRequestToRepeatSchedule.getOriginType() == ScheduleType.SINGLE) {
                 putScheduleSingleToRepeat(editRequestToRepeatSchedule);
@@ -307,7 +318,7 @@ public class ScheduleService {
         if (currentDate.isAfter(singleSchedule.getScheduleDate())) {
             throw new CanNotDeleteForBeforeDateException();
         }
-
+        validateStudyLeader(scheduleDeleteRequest.getMemberId(), studyChannelId);
         singleScheduleRepository.deleteById(scheduleDeleteRequest.getScheduleId());
     }
 
@@ -330,6 +341,8 @@ public class ScheduleService {
         if (currentDate.isAfter(repeatSchedule.getScheduleDate())) {
             throw new CanNotDeleteForBeforeDateException();
         }
+
+        validateStudyLeader(scheduleDeleteRequest.getMemberId(), studyChannelId);
 
         if (isAfterEventSame) {
             deleteRepeatScheduleAfterEventSameYes(selectedDate, repeatSchedule);
@@ -387,6 +400,16 @@ public class ScheduleService {
         if (repeatSchedule.getScheduleDate().isEqual(repeatSchedule.getRepeatEndDate())) {
             singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
             repeatScheduleRepository.deleteById(repeatSchedule.getId());
+        }
+    }
+
+    private void validateStudyLeader(Long memberId, Long studyChannelId) {
+        StudyMember studyMember = studyMemberRepository.findByMemberIdAndStudyChannelId(memberId,
+                studyChannelId)
+            .orElseThrow(NotFoundStudyMemberException::new);
+
+        if (!studyMember.isLeader()) {
+            throw new NotStudyLeaderException();
         }
     }
     private boolean isNotIncluded(LocalDate selectedDate, LocalDate repeatStartDate
