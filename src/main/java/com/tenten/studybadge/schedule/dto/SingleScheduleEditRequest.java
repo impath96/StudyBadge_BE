@@ -18,6 +18,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SingleScheduleEditRequest implements ScheduleEditRequest{
+    @NotNull(message = "회원 id는 필수입니다.")
+    private Long memberId;
     @NotNull(message = "수정할 일정 id는 필수입니다.")
     private long scheduleId;
     @NotNull(message = "기존 일정 타입은 필수입니다.")

@@ -20,6 +20,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RepeatScheduleCreateRequest {
+    @NotNull(message = "회원 id는 필수입니다.")
+    private Long memberId;
     @NotBlank(message = "일정 이름은 필수입니다.")
     private String scheduleName;
     @NotBlank(message = "일정 내용은 필수입니다.")
