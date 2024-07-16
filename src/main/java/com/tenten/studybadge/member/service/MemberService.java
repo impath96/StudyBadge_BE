@@ -123,6 +123,7 @@ public class MemberService {
         }
 
         return TokenCreateDto.builder()
+                .id(String.valueOf(member.getId()))
                 .email(member.getEmail())
                 .role(member.getRole())
                 .build();

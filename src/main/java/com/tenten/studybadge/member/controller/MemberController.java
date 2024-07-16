@@ -57,7 +57,7 @@ public class MemberController {
     public ResponseEntity<TokenDto> login(@Valid @RequestBody MemberLoginRequest loginRequest) {
 
         TokenCreateDto createDto = memberService.login(loginRequest, LOCAL);
-        TokenDto tokenDto = tokenService.create(createDto.getEmail(), createDto.getRole(), LOCAL);
+        TokenDto tokenDto = tokenService.create(createDto.getId(), createDto.getRole(), LOCAL);
         ResponseCookie addCookie = CookieUtils.addCookie(tokenDto.getRefreshToken());
 
         return ResponseEntity.status(HttpStatus.OK)
