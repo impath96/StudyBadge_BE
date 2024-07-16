@@ -3,7 +3,7 @@ package com.tenten.studybadge.common.exception.payment;
 import com.tenten.studybadge.common.exception.basic.AbstractException;
 import org.springframework.http.HttpStatus;
 
-public class AlreadyApprovedException extends AbstractException {
+public class AlreadyApprovedPaymentException extends AbstractException {
 
     @Override
     public HttpStatus getHttpStatus() {

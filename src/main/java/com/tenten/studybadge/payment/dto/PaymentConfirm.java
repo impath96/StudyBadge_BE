@@ -2,6 +2,8 @@ package com.tenten.studybadge.payment.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,9 +19,9 @@ public class PaymentConfirm {
 
     private String method;
 
-    private String totalAmount;
+    private int totalAmount;
 
-    private String requestedAt;
+    private LocalDateTime requestedAt;
 
-    private String approvedAt;
+    private LocalDateTime approvedAt;
 }

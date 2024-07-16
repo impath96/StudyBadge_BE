@@ -33,7 +33,7 @@ public class PaymentController {
     @Operation(summary = "결제 성공", description = "토스페이먼츠에서 결제 승인되어 성공 정보를 저장하는 API", security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "confirmRequest", description = "결제 승인을 위한 요청 값(paymentKey, orderId, amount)")
     @PostMapping("/success")
-    public ResponseEntity<PaymentConfirm> paymentConfirm(@Valid @RequestBody PaymentConfirmRequest confirmRequest) {
+    public ResponseEntity<PaymentConfirm> confirmPayment(@Valid @RequestBody PaymentConfirmRequest confirmRequest) {
 
         PaymentConfirm confirm = paymentService.paymentConfirm(confirmRequest);
 
