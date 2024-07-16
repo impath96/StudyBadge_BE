@@ -3,6 +3,7 @@ package com.tenten.studybadge.study.member.domain.entity;
 import com.tenten.studybadge.common.BaseEntity;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
+import com.tenten.studybadge.study.member.dto.StudyMemberInfoResponse;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -58,6 +59,16 @@ public class StudyMember extends BaseEntity {
 
     public boolean isSubLeader() {
         return this.studyMemberRole.equals(SUB_LEADER);
+    }
+
+    public StudyMemberInfoResponse toResponse() {
+        return StudyMemberInfoResponse.builder()
+                .memberId(this.member.getId())
+                .name(this.member.getName())
+                .imageUrl(this.member.getImgUrl())
+                .badgeLevel(this.member.getBadgeLevel())
+                .role(this.studyMemberRole)
+                .build();
     }
 
 }
