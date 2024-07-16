@@ -1,6 +1,6 @@
 package com.tenten.studybadge.type.schedule;
 
-public enum ScheduleOriginType {
+public enum ScheduleType {
   SINGLE,
   REPEAT
 }

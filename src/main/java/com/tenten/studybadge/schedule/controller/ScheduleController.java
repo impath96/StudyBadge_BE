@@ -5,6 +5,7 @@ import com.tenten.studybadge.schedule.dto.ScheduleDeleteRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
 import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.SingleScheduleEditRequest;
 import com.tenten.studybadge.schedule.service.ScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -93,8 +94,8 @@ public class ScheduleController {
     public ResponseEntity<Void> putRepeatScheduleWithAfterEventSame(
         @PathVariable Long studyChannelId,
         @RequestParam("Same") Boolean isAfterEventSame,
-        @Valid @RequestBody ScheduleEditRequest scheduleEditRequest)  {
-        scheduleService.putRepeatScheduleWithAfterEventSame(studyChannelId, isAfterEventSame, scheduleEditRequest);
+        @Valid @RequestBody SingleScheduleEditRequest singleScheduleEditRequest)  {
+        scheduleService.putScheduleRepeatToSingle(studyChannelId, isAfterEventSame, singleScheduleEditRequest);
         return ResponseEntity.ok().build();
     }
 
