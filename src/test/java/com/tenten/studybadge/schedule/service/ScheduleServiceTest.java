@@ -77,9 +77,6 @@ class ScheduleServiceTest {
     private StudyMember studyMemberNotLeader;
     @BeforeEach
     public void setUp() {
-        scheduleService = new ScheduleService(
-            singleScheduleRepository, repeatScheduleRepository,
-            studyChannelRepository, studyMemberRepository);
         studyChannel = StudyChannel.builder()
             .id(1L)
             .name("test study channel1")
