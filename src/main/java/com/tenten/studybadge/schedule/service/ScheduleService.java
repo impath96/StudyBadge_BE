@@ -11,8 +11,8 @@ import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleExc
 import com.tenten.studybadge.common.exception.schedule.NotFoundSingleScheduleException;
 import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
-import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyMemberException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
+import com.tenten.studybadge.common.exception.studychannel.NotStudyMemberException;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
@@ -408,7 +408,7 @@ public class ScheduleService {
     private void validateStudyLeader(Long memberId, Long studyChannelId) {
         StudyMember studyMember = studyMemberRepository.findByMemberIdAndStudyChannelId(memberId,
                 studyChannelId)
-            .orElseThrow(NotFoundStudyMemberException::new);
+            .orElseThrow(NotStudyMemberException::new);
 
         if (!studyMember.isLeader()) {
             throw new NotStudyLeaderException();
