@@ -2,6 +2,7 @@ package com.tenten.studybadge.study.channel.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
 import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberFullException;
+import com.tenten.studybadge.common.exception.studychannel.InSufficientMinMemberException;
 import com.tenten.studybadge.common.exception.studychannel.NotChangeRecruitmentStatusException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
@@ -95,6 +96,16 @@ public class StudyChannel extends BaseEntity {
             throw new AlreadyStudyMemberFullException();
         }
         recruitment.start();
+    }
+
+    public void closeRecruitment() {
+        if (isRecruitmentCompleted()) {
+            throw new NotChangeRecruitmentStatusException();
+        }
+        if (studyMembers.size() < 3) {
+            throw new InSufficientMinMemberException();
+        }
+        recruitment.close();
     }
 
     public StudyChannelDetailsResponse toResponse(Member member) {

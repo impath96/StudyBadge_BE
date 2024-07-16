@@ -51,6 +51,14 @@ public class StudyChannelController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/study-channels/{studyChannelId}/recruitment/close")
+    @Operation(summary = "스터디 채널 모집 마감", description = "스터디 채널 모집을 마감하기 위한 API", security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    public ResponseEntity<Void> closeRecruitment(@AuthenticationPrincipal CustomUserDetails principal, @PathVariable Long studyChannelId) {
+        studyChannelService.closeRecruitment(studyChannelId, principal.getId());
+        return ResponseEntity.ok().build();
+    }
+
     // [ Query ]
     @GetMapping("/study-channels")
     @Operation(summary = "스터디 채널 목록 조회", description = "스터디 채널 목록을 조회하기 위한 API")

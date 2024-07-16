@@ -6,6 +6,8 @@ import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelE
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
+import com.tenten.studybadge.participation.domain.entity.Participation;
+import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.study.channel.dto.SearchCondition;
@@ -14,6 +16,7 @@ import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
 import com.tenten.studybadge.study.channel.dto.StudyChannelListResponse;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
+import com.tenten.studybadge.type.participation.ParticipationStatus;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +40,7 @@ public class StudyChannelService {
     private final StudyChannelRepository studyChannelRepository;
     private final StudyMemberRepository studyMemberRepository;
     private final MemberRepository memberRepository;
+    private final ParticipationRepository participationRepository;
 
     @Transactional
     public Long create(StudyChannelCreateRequest request, Long memberId) {
@@ -101,6 +105,23 @@ public class StudyChannelService {
         studyChannel.startRecruitment();
 
         studyChannelRepository.save(studyChannel);
+    }
+
+    public void closeRecruitment(Long studyChannelId, Long memberId) {
+        StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+
+        checkLeader(studyChannel, member);
+        studyChannel.closeRecruitment();
+
+        List<Participation> participationList = participationRepository.findByStudyChannelId(studyChannelId);
+        List<Participation> approveWaitingParticipationList = participationList.stream()
+                .filter(participation -> participation.getParticipationStatus().equals(ParticipationStatus.APPROVE_WAITING))
+                .toList();
+        approveWaitingParticipationList.forEach(Participation::reject);
+
+        studyChannelRepository.save(studyChannel);
+        participationRepository.saveAll(approveWaitingParticipationList);
     }
 
     private void checkLeader(StudyChannel studyChannel, Member member) {
