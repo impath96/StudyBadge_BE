@@ -1,11 +1,11 @@
 package com.tenten.studybadge.study.channel.service;
 
-import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberFullException;
-import com.tenten.studybadge.common.exception.studychannel.InvalidStudyDurationException;
-import com.tenten.studybadge.common.exception.studychannel.InvalidStudyStartDateException;
-import com.tenten.studybadge.common.exception.studychannel.NotChangeRecruitmentStatusException;
+import com.tenten.studybadge.common.exception.participation.RemainingApprovalWaitingParticipationException;
+import com.tenten.studybadge.common.exception.studychannel.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
+import com.tenten.studybadge.participation.domain.entity.Participation;
+import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.entity.StudyDuration;
@@ -16,6 +16,7 @@ import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
 import com.tenten.studybadge.study.channel.dto.StudyChannelListResponse;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
+import com.tenten.studybadge.type.participation.ParticipationStatus;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
 import com.tenten.studybadge.type.study.channel.RecruitmentStatus;
@@ -56,6 +57,9 @@ class StudyChannelServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private ParticipationRepository participationRepository;
 
     @DisplayName("[스터디 채널 생성 테스트]")
     @Nested
@@ -528,6 +532,176 @@ class StudyChannelServiceTest {
             assertThatThrownBy(
                     () -> studyChannelService.startRecruitment(1L, 1L)
             ).isExactlyInstanceOf(AlreadyStudyMemberFullException.class);
+
+        }
+
+    }
+
+    @DisplayName("[스터디 채널 모집 마감 테스트]")
+    @Nested
+    class CloseRecruitmentTest {
+
+        Member member1;
+        Member member2;
+        Member member3;
+
+        StudyChannel recruitmentCompletedstudyChannel;
+        StudyChannel recruitingStudyChannel;
+
+        @BeforeEach
+        void setUp() {
+            member1 = Member.builder().id(1L).name("회원 1").build();
+            member2 = Member.builder().id(2L).name("회원 2").build();
+            member3 = Member.builder().id(3L).name("회원 3").build();
+
+            LocalDate now = LocalDate.now();
+            recruitingStudyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .name("스터디명")
+                    .description("스터디 설명")
+                    .studyDuration(StudyDuration.builder()
+                            .studyStartDate(now.plusDays(2))
+                            .studyEndDate(now.plusMonths(4))
+                            .build())
+                    .recruitment(Recruitment.builder()
+                            .recruitmentNumber(6)
+                            .recruitmentStatus(RecruitmentStatus.RECRUITING)
+                            .build())
+                    .category(Category.IT)
+                    .region(null)
+                    .meetingType(MeetingType.ONLINE)
+                    .chattingUrl("오픈채팅방 URL")
+                    .deposit(10_000)
+                    .viewCnt(4)
+                    .build();
+            recruitmentCompletedstudyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .name("스터디명")
+                    .description("스터디 설명")
+                    .studyDuration(StudyDuration.builder()
+                            .studyStartDate(now.plusDays(2))
+                            .studyEndDate(now.plusMonths(4))
+                            .build())
+                    .recruitment(Recruitment.builder()
+                            .recruitmentNumber(6)
+                            .recruitmentStatus(RecruitmentStatus.RECRUIT_COMPLETED)
+                            .build())
+                    .category(Category.IT)
+                    .region(null)
+                    .meetingType(MeetingType.ONLINE)
+                    .chattingUrl("오픈채팅방 URL")
+                    .deposit(10_000)
+                    .viewCnt(4)
+                    .build();
+
+        }
+
+        @DisplayName("정상적으로 스터디 채널 모집을 마감.")
+        @Test
+        void success_closeRecruitment() {
+            StudyMember leader = StudyMember.leader(member1, recruitingStudyChannel);
+            StudyMember studyMember1 = StudyMember.member(member2, recruitingStudyChannel);
+            StudyMember studyMember2 = StudyMember.member(member3, recruitingStudyChannel);
+
+            recruitingStudyChannel.getStudyMembers().add(leader);
+            recruitingStudyChannel.getStudyMembers().add(studyMember1);
+            recruitingStudyChannel.getStudyMembers().add(studyMember2);
+
+            Participation participation1 = Participation.builder()
+                    .id(1L)
+                    .member(member2)
+                    .studyChannel(recruitingStudyChannel)
+                    .participationStatus(ParticipationStatus.APPROVED)
+                    .build();
+            Participation participation2 = Participation.builder()
+                    .id(1L)
+                    .member(member3)
+                    .studyChannel(recruitingStudyChannel)
+                    .participationStatus(ParticipationStatus.APPROVED)
+                    .build();
+            List<Participation> participationList = List.of(participation1, participation2);
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(recruitingStudyChannel));
+            given(participationRepository.findByStudyChannelId(1L)).willReturn(participationList);
+
+            studyChannelService.closeRecruitment(1L, 1L);
+
+            assertThat(recruitingStudyChannel.getRecruitment().getRecruitmentStatus()).isEqualTo(RecruitmentStatus.RECRUIT_COMPLETED);
+
+        }
+
+        @DisplayName("모집 상태가 모집 마감일 때 모집을 마감하려고 할 경우 예외가 발생한다.")
+        @Test
+        void fail_recruitmentCompletedStudyChannel() {
+            StudyMember leader = StudyMember.leader(member1, recruitmentCompletedstudyChannel);
+            StudyMember studyMember1 = StudyMember.member(member2, recruitmentCompletedstudyChannel);
+            StudyMember studyMember2 = StudyMember.member(member3, recruitmentCompletedstudyChannel);
+
+            recruitmentCompletedstudyChannel.getStudyMembers().add(leader);
+            recruitmentCompletedstudyChannel.getStudyMembers().add(studyMember1);
+            recruitmentCompletedstudyChannel.getStudyMembers().add(studyMember2);
+
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(recruitmentCompletedstudyChannel));
+
+            assertThatThrownBy(() -> studyChannelService.closeRecruitment(1L, 1L))
+                    .isExactlyInstanceOf(NotChangeRecruitmentStatusException.class);
+
+        }
+
+        @DisplayName("최소 모집인원 3명보다 스터디 멤버가 적을 경우 예외가 발생한다.")
+        @Test
+        void fail_alreadyFullStudyChannel() {
+            StudyMember leader = StudyMember.leader(member1, recruitingStudyChannel);
+            StudyMember studyMember1 = StudyMember.member(member2, recruitingStudyChannel);
+
+            recruitingStudyChannel.getStudyMembers().add(leader);
+            recruitingStudyChannel.getStudyMembers().add(studyMember1);
+
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(recruitingStudyChannel));
+
+            assertThatThrownBy(
+                    () -> studyChannelService.closeRecruitment(1L, 1L)
+            ).isExactlyInstanceOf(InSufficientMinMemberException.class);
+
+        }
+
+
+        @DisplayName("참가 신청 내역 중 승인 대기중인 신청이 아직 남아있을 경우 예외가 발생한다.")
+        @Test
+        void fail_remainingApprovalWaitingParticipation() {
+            StudyMember leader = StudyMember.leader(member1, recruitingStudyChannel);
+            StudyMember studyMember1 = StudyMember.member(member2, recruitingStudyChannel);
+            StudyMember studyMember2 = StudyMember.member(member3, recruitingStudyChannel);
+
+            recruitingStudyChannel.getStudyMembers().add(leader);
+            recruitingStudyChannel.getStudyMembers().add(studyMember1);
+            recruitingStudyChannel.getStudyMembers().add(studyMember2);
+
+
+            Participation participation1 = Participation.builder()
+                    .id(1L)
+                    .member(member2)
+                    .studyChannel(recruitingStudyChannel)
+                    .participationStatus(ParticipationStatus.APPROVE_WAITING)
+                    .build();
+            Participation participation2 = Participation.builder()
+                    .id(1L)
+                    .member(member3)
+                    .studyChannel(recruitingStudyChannel)
+                    .participationStatus(ParticipationStatus.APPROVED)
+                    .build();
+
+            List<Participation> participationList = List.of(participation1, participation2);
+
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(recruitingStudyChannel));
+            given(participationRepository.findByStudyChannelId(1L)).willReturn(participationList);
+
+            assertThatThrownBy(
+                    () -> studyChannelService.closeRecruitment(1L, 1L)
+            ).isExactlyInstanceOf(RemainingApprovalWaitingParticipationException.class);
 
         }
 
