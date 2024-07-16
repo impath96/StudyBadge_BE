@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ScheduleDeleteRequest {
+  @NotNull(message = "회원 id는 필수입니다.")
+  private Long memberId;
   @NotNull(message = "삭제할 일정의 id는 필수입니다.")
   private Long scheduleId;
 

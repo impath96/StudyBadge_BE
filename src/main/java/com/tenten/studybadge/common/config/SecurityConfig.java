@@ -2,6 +2,8 @@ package com.tenten.studybadge.common.config;
 
 import com.tenten.studybadge.common.jwt.JwtTokenFilter;
 import com.tenten.studybadge.common.jwt.JwtTokenProvider;
+import com.tenten.studybadge.common.oauth2.CustomOAuth2UserService;
+import com.tenten.studybadge.common.oauth2.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +28,8 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate redisTemplate;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -35,18 +39,28 @@ public class SecurityConfig {
 
         return http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests( requests -> requests
-                        .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**",
-                            "/api/members/login/**", "/health-check").permitAll()
-                        .requestMatchers("/api/study-channels/**", "/error", "/api/participation/**").permitAll()
-                .requestMatchers("/api/members/logout", "api/study-channels/*/places",
-                    "/api/study-channels/*/schedules", "/api/token/re-issue").hasRole("USER"))
-
+                        .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/members/login/**", "/error", "/health-check").permitAll()
+                        .requestMatchers("/api/token/oauth2/**", "/favicon.ico", "/oauth2/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/study-channels", "/api/study-channels/{studyChannelId:\\d+}").permitAll()
+                        .requestMatchers("/api/members/logout", "api/study-channels/*/places", "/api/study-channels/**", "/api/token/re-issue"
+                                , "/api/members/my-info", "/api/members/my-info/update", "/api/payments/**").hasRole("USER"))
 
                 .cors(cors -> new CorsConfig())
                 .headers(headers -> headers // h2-console 페이지 접속을 위한 설정
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives("frame-ancestors 'self'")))
+
+                .oauth2Login(oauth2Login ->
+                        oauth2Login
+
+                                .failureUrl("/login")
+                                .redirectionEndpoint( endpoint -> endpoint.baseUri("/oauth2/callback/*"))
+                                .userInfoEndpoint(userInfoEndpoint ->
+                                        userInfoEndpoint.userService(customOAuth2UserService)
+                                )
+                                .successHandler(oAuth2SuccessHandler)
+                )
 
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
                         SessionCreationPolicy.STATELESS))

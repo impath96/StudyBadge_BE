@@ -1,7 +1,7 @@
 package com.tenten.studybadge.participation.controller;
 
 import com.tenten.studybadge.common.security.CustomUserDetails;
-import com.tenten.studybadge.participation.ParticipantResponse;
+import com.tenten.studybadge.participation.dto.StudyChannelParticipationStatusResponse;
 import com.tenten.studybadge.participation.service.StudyChannelParticipationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -11,8 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -66,12 +64,12 @@ public class StudyChannelParticipationController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/study-channels/{studyChannelId}/participants")
-    @Operation(summary = "참가 신청자 조회", description = "특정 스터디 채널의 참가 신청자를 조회하는 기능", security = @SecurityRequirement(name = "BearerToken"))
+    @GetMapping("/study-channels/{studyChannelId}/participation-status")
+    @Operation(summary = "참가 신청 현황 조회", description = "특정 스터디 채널의 모집 상태에 따라 참가 신청 현황을 조회하는 기능", security = @SecurityRequirement(name = "BearerToken"))
     @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
-    public ResponseEntity<List<ParticipantResponse>> getParticipants(
+    public ResponseEntity<StudyChannelParticipationStatusResponse> getStudyChannelParticipationStatus(
             @AuthenticationPrincipal CustomUserDetails principal,
             @PathVariable Long studyChannelId) {
-        return ResponseEntity.ok(studyChannelParticipationService.getParticipants(studyChannelId, principal.getId()));
+        return ResponseEntity.ok(studyChannelParticipationService.getParticipationStatus(studyChannelId, principal.getId()));
     }
 }

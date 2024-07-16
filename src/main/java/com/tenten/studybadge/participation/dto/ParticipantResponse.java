@@ -1,6 +1,7 @@
-package com.tenten.studybadge.participation;
+package com.tenten.studybadge.participation.dto;
 
 import com.tenten.studybadge.type.member.BadgeLevel;
+import com.tenten.studybadge.type.participation.ParticipationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,4 +16,5 @@ public class ParticipantResponse {
     private int banCnt;
     private BadgeLevel badgeLevel;
     private Long participationId;
+    private ParticipationStatus participationStatus;
 }

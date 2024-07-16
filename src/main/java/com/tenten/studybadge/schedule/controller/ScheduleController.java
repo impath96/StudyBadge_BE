@@ -1,9 +1,11 @@
 package com.tenten.studybadge.schedule.controller;
 
-import com.tenten.studybadge.schedule.dto.ScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.RepeatScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleDeleteRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleEditRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleResponse;
+import com.tenten.studybadge.schedule.dto.SingleScheduleCreateRequest;
+import com.tenten.studybadge.schedule.dto.SingleScheduleEditRequest;
 import com.tenten.studybadge.schedule.service.ScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,15 +33,28 @@ import org.springframework.web.bind.annotation.RestController;
 public class ScheduleController {
     private final ScheduleService scheduleService;
 
-    @PostMapping("/study-channels/{studyChannelId}/schedules")
-    @Operation(summary = "일정 저장", description = "특정 스터디 채널의 일정을 저장하는 api" ,security = @SecurityRequirement(name = "bearerToken"))
+    @PostMapping("/study-channels/{studyChannelId}/single-schedules")
+    @Operation(summary = "단일 일정 저장", description = "특정 스터디 채널의 단일 일정을 저장하는 api" ,security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
-    @Parameter(name = "ScheduleRequest", description = "일정 등록 request, type의 값이 single, repeat에 따라 단일 일정 / 반복 일정 등록으로 나뉜다.", required = true )
-    public ResponseEntity<Void> postSchedule(
+    @Parameter(name = "type")
+    @Parameter(name = "ScheduleRequest", description = "단일 일정 등록 request", required = true )
+    public ResponseEntity<Void> postSingleSchedule(
         @PathVariable Long studyChannelId,
-        @Valid @RequestBody ScheduleCreateRequest scheduleCreateRequest)  {
-        scheduleService.postSchedule(scheduleCreateRequest, studyChannelId);
+        @Valid @RequestBody SingleScheduleCreateRequest singleScheduleCreateRequest)  {
+        scheduleService.postSingleSchedule(singleScheduleCreateRequest, studyChannelId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/study-channels/{studyChannelId}/repeat-schedules")
+    @Operation(summary = "반복 일정 저장", description = "특정 스터디 채널의 반복 일정을 저장하는 api" ,security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
+    @Parameter(name = "type")
+    @Parameter(name = "ScheduleRequest", description = "반복 일정 등록 request", required = true )
+    public ResponseEntity<Void> postSingleSchedule(
+        @PathVariable Long studyChannelId,
+        @Valid @RequestBody RepeatScheduleCreateRequest repeatScheduleCreateRequest)  {
+      scheduleService.postRepeatSchedule(repeatScheduleCreateRequest, studyChannelId);
+      return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/study-channels/{studyChannelId}/schedules")
@@ -79,8 +94,8 @@ public class ScheduleController {
     public ResponseEntity<Void> putRepeatScheduleWithAfterEventSame(
         @PathVariable Long studyChannelId,
         @RequestParam("Same") Boolean isAfterEventSame,
-        @Valid @RequestBody ScheduleEditRequest scheduleEditRequest)  {
-        scheduleService.putRepeatScheduleWithAfterEventSame(studyChannelId, isAfterEventSame, scheduleEditRequest);
+        @Valid @RequestBody SingleScheduleEditRequest singleScheduleEditRequest)  {
+        scheduleService.putScheduleRepeatToSingle(studyChannelId, isAfterEventSame, singleScheduleEditRequest);
         return ResponseEntity.ok().build();
     }
 

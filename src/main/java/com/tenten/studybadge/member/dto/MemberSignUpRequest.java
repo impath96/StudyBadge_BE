@@ -36,6 +36,8 @@ public class MemberSignUpRequest {
     @NotBlank(message = "계좌번호를 입력해주세요.")
     private String account;
 
+    private String accountBank;
+
     @NotBlank(message = "비밀번호를 입력해주세요.")
     private String password;
 
@@ -59,6 +61,7 @@ public class MemberSignUpRequest {
                 .point(0)
                 .banCnt(0)
                 .account(signUpRequest.getAccount())
+                .accountBank(signUpRequest.getAccountBank())
                 .status(MemberStatus.WAIT_FOR_APPROVAL)
                 .badgeLevel(BadgeLevel.NONE)
                 .build();

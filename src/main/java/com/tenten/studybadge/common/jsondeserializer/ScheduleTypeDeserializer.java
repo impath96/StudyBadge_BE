@@ -5,14 +5,14 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.tenten.studybadge.type.schedule.ScheduleOriginType;
+import com.tenten.studybadge.type.schedule.ScheduleType;
 import java.io.IOException;
 
-public class ScheduleOriginTypeDeserializer extends JsonDeserializer<ScheduleOriginType> {
+public class ScheduleTypeDeserializer extends JsonDeserializer<ScheduleType> {
   @Override
-  public ScheduleOriginType deserialize(JsonParser p, DeserializationContext ctxt)
+  public ScheduleType deserialize(JsonParser p, DeserializationContext ctxt)
       throws IOException, JsonProcessingException {
     String value = p.getText().toUpperCase();
-    return ScheduleOriginType.valueOf(value);
+    return ScheduleType.valueOf(value);
   }
 }

@@ -1,7 +1,11 @@
 package com.tenten.studybadge.study.channel.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
+import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberFullException;
+import com.tenten.studybadge.common.exception.studychannel.InSufficientMinMemberException;
+import com.tenten.studybadge.common.exception.studychannel.NotChangeRecruitmentStatusException;
 import com.tenten.studybadge.member.domain.entity.Member;
+import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
@@ -11,6 +15,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Entity
@@ -61,15 +66,70 @@ public class StudyChannel extends BaseEntity {
 
     public boolean isLeader(Member member) {
         return studyMembers.stream()
-                .filter(studyMember -> studyMember.getMember().equals(member))
-                .findFirst()
-                .map(StudyMember::isLeader)
-                .orElse(false);
+                .anyMatch(studyMember -> studyMember.getMember().getId().equals(member.getId()) && studyMember.isLeader());
     }
 
     public void addMember(Member member) {
         StudyMember studyMember = StudyMember.member(member, this);
         studyMembers.add(studyMember);
+    }
+
+    private StudyMember getLeader() {
+        return studyMembers.stream()
+                .filter(StudyMember::isLeader)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private StudyMember getSubLeader() {
+        return studyMembers.stream()
+                .filter(StudyMember::isSubLeader)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void startRecruitment() {
+        if (!recruitment.isCompleted()) {
+            throw new NotChangeRecruitmentStatusException();
+        }
+        if (recruitment.getRecruitmentNumber() == studyMembers.size()) {
+            throw new AlreadyStudyMemberFullException();
+        }
+        recruitment.start();
+    }
+
+    public void closeRecruitment() {
+        if (isRecruitmentCompleted()) {
+            throw new NotChangeRecruitmentStatusException();
+        }
+        if (studyMembers.size() < 3) {
+            throw new InSufficientMinMemberException();
+        }
+        recruitment.close();
+    }
+
+    public StudyChannelDetailsResponse toResponse(Member member) {
+        StudyMember leader = getLeader();
+        StudyMember subLeader = getSubLeader();
+        StudyChannelDetailsResponse.StudyChannelDetailsResponseBuilder builder = StudyChannelDetailsResponse.builder()
+                .studyChannelId(this.id)
+                .studyChannelName(this.name)
+                .studyChannelDescription(this.description)
+                .deposit(this.deposit)
+                .category(this.category)
+                .meetingType(this.meetingType)
+                .region(this.region)
+                .startDate(this.studyDuration.getStudyStartDate())
+                .endDate(this.studyDuration.getStudyEndDate())
+                .capacity(this.recruitment.getRecruitmentNumber())
+                .leaderName(leader.getMember().getName())
+                .subLeaderName(Objects.requireNonNullElse(subLeader, leader).getMember().getName());
+
+        if (member != null && isStudyMember(member.getId())) {
+            builder.chattingUrl(this.chattingUrl);
+        }
+
+        return builder.build();
     }
 
 }

@@ -1,21 +1,30 @@
 package com.tenten.studybadge.schedule.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Builder
 @AllArgsConstructor
-public class SingleScheduleCreateRequest extends ScheduleCreateRequest {
-    public SingleScheduleCreateRequest(String scheduleName, String scheduleContent,
-        LocalDate startDate, LocalTime startTime, LocalTime endTime,
-        Long placeId) {
-        this.scheduleName = scheduleName;
-        this.scheduleContent = scheduleContent;
-        this.scheduleDate = startDate;
-        this.scheduleStartTime = startTime;
-        this.scheduleEndTime = endTime;
-        this.placeId = placeId;
-    }
+public class SingleScheduleCreateRequest {
+    @NotNull(message = "회원 id는 필수입니다.")
+    private Long memberId;
+    @NotBlank(message = "일정 이름은 필수입니다.")
+    private String scheduleName;
+    @NotBlank(message = "일정 내용은 필수입니다.")
+    private String scheduleContent;
+    @NotNull(message = "일정 날짜는 필수입니다.")
+    private LocalDate scheduleDate;
+    @NotNull(message = "일정 시작 시간은 필수입니다.")
+    private LocalTime scheduleStartTime;
+    @NotNull(message = "일정 끝 시간은 필수입니다.")
+    private LocalTime scheduleEndTime;
+    @Setter
+    private Long placeId;
 }

@@ -24,4 +24,11 @@ public class Recruitment {
         return Objects.equals(recruitmentStatus, RecruitmentStatus.RECRUIT_COMPLETED);
     }
 
+    public void start() {
+        this.recruitmentStatus = RecruitmentStatus.RECRUITING;
+    }
+
+    public void close() {
+        this.recruitmentStatus = RecruitmentStatus.RECRUIT_COMPLETED;
+    }
 }

@@ -15,4 +15,6 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "JOIN p.studyChannel " +
             "WHERE p.studyChannel.id = :studyChannelId")
     List<Participation> findByStudyChannelIdWithMember(Long studyChannelId);
+
+    List<Participation> findByStudyChannelId(Long studyChannelId);
 }
