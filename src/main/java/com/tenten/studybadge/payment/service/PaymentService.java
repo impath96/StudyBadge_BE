@@ -33,7 +33,7 @@ public class PaymentService {
     private final MemberRepository memberRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentConfig paymentConfig;
-    @Transactional
+
     public PaymentResponse requestPayment(Long memberId, PaymentRequest paymentRequest) {
 
         Member member = memberRepository.findById(memberId)
@@ -84,7 +84,6 @@ public class PaymentService {
         return payment;
     }
 
-    @Transactional
     public PaymentConfirm requestPaymentAccept(PaymentConfirmRequest confirmRequest) {
 
         WebClient webClient = WebClient.builder()
