@@ -28,4 +28,7 @@ public class Recruitment {
         this.recruitmentStatus = RecruitmentStatus.RECRUITING;
     }
 
+    public void close() {
+        this.recruitmentStatus = RecruitmentStatus.RECRUIT_COMPLETED;
+    }
 }
