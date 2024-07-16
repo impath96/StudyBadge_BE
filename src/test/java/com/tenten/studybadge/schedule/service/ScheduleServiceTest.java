@@ -59,8 +59,6 @@ class ScheduleServiceTest {
     private StudyChannel studyChannel;
     private SingleSchedule singleScheduleWithoutPlace;
     private RepeatSchedule repeatScheduleWithoutPlace;
-    private SingleSchedule singleScheduleWithPlace;
-    private RepeatSchedule repeatScheduleWithPlace;
 
     @BeforeEach
     public void setUp() {
@@ -94,31 +92,6 @@ class ScheduleServiceTest {
             .isRepeated(true)
             .studyChannel(studyChannel)
             .placeId(null)
-            .build();
-
-        singleScheduleWithPlace = SingleSchedule.withoutIdBuilder()
-            .scheduleName("Single Meeting")
-            .scheduleContent("Content for single meeting")
-            .scheduleDate(LocalDate.of(2024, 7, 5))
-            .scheduleStartTime(LocalTime.of(10, 0))
-            .scheduleEndTime(LocalTime.of(11, 0))
-            .isRepeated(false)
-            .studyChannel(studyChannel)
-            .placeId(1L)
-            .build();
-
-        repeatScheduleWithPlace =  RepeatSchedule.withoutIdBuilder()
-            .scheduleName("Repeat Meeting")
-            .scheduleContent("Content for repeat meeting")
-            .scheduleDate(LocalDate.of(2024, 7, 5))
-            .scheduleStartTime(LocalTime.of(10, 0))
-            .scheduleEndTime(LocalTime.of(11, 0))
-            .repeatCycle(RepeatCycle.WEEKLY)
-            .repeatSituation(RepeatSituation.FRIDAY)
-            .repeatEndDate(LocalDate.of(2024, 8, 9))
-            .isRepeated(true)
-            .studyChannel(studyChannel)
-            .placeId(1L)
             .build();
     }
 
@@ -192,6 +165,17 @@ class ScheduleServiceTest {
         @DisplayName("단순 일정 등록 성공 - 장소 정보가 있을 때")
         public void testPostSingleSchedule_WithPlace() {
             // given
+            SingleSchedule singleScheduleWithPlace = SingleSchedule.withoutIdBuilder()
+                .scheduleName("Single Meeting")
+                .scheduleContent("Content for single meeting")
+                .scheduleDate(LocalDate.of(2024, 7, 5))
+                .scheduleStartTime(LocalTime.of(10, 0))
+                .scheduleEndTime(LocalTime.of(11, 0))
+                .isRepeated(false)
+                .studyChannel(studyChannel)
+                .placeId(1L)
+                .build();
+
             SingleScheduleCreateRequest singleScheduleRequestWithPlace =
                 new SingleScheduleCreateRequest(
                 "Single Meeting",
@@ -222,6 +206,20 @@ class ScheduleServiceTest {
         @DisplayName("반복 일정 등록 성공 - 장소 정보가 있을 때")
         public void testPostRepeatSchedule_WithPlace() {
             // given
+            RepeatSchedule repeatScheduleWithPlace =  RepeatSchedule.withoutIdBuilder()
+                .scheduleName("Repeat Meeting")
+                .scheduleContent("Content for repeat meeting")
+                .scheduleDate(LocalDate.of(2024, 7, 5))
+                .scheduleStartTime(LocalTime.of(10, 0))
+                .scheduleEndTime(LocalTime.of(11, 0))
+                .repeatCycle(RepeatCycle.WEEKLY)
+                .repeatSituation(RepeatSituation.FRIDAY)
+                .repeatEndDate(LocalDate.of(2024, 8, 9))
+                .isRepeated(true)
+                .studyChannel(studyChannel)
+                .placeId(1L)
+                .build();
+
             RepeatScheduleCreateRequest repeatScheduleRequestWithPlace =
                 new RepeatScheduleCreateRequest(
                 "Weekly Meeting",
@@ -271,7 +269,7 @@ class ScheduleServiceTest {
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
             given(repeatScheduleRepository.save(any(RepeatSchedule.class)))
-                .willReturn(repeatScheduleWithPlace);
+                .willReturn(repeatScheduleWithoutPlace);
 
             // when
             scheduleService.postRepeatSchedule(
@@ -436,7 +434,7 @@ class ScheduleServiceTest {
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
             given(singleScheduleRepository.findById(2L))
-                .willReturn(Optional.of(singleScheduleWithPlace));
+                .willReturn(Optional.of(singleScheduleWithoutPlace));
 
             // when
             scheduleService.putSchedule(
@@ -453,7 +451,7 @@ class ScheduleServiceTest {
             assertEquals(LocalDate.of(2024, 7, 5), savedSchedule.getScheduleDate());
             assertEquals(LocalTime.of(12, 0), savedSchedule.getScheduleStartTime());
             assertEquals(LocalTime.of(13, 0), savedSchedule.getScheduleEndTime());
-            assertNull(singleScheduleWithPlace.getPlaceId());
+            assertNull(singleScheduleEditRequest.getPlaceId());
         }
 
         @Test
@@ -522,7 +520,7 @@ class ScheduleServiceTest {
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
             given(repeatScheduleRepository.findById(2L))
-                .willReturn(Optional.of(repeatScheduleWithPlace));
+                .willReturn(Optional.of(repeatScheduleWithoutPlace));
 
             // when
             scheduleService.putSchedule(
@@ -842,9 +840,10 @@ class ScheduleServiceTest {
                 new ScheduleDeleteRequest(
                     1L, LocalDate.of(2024, 9, 30));
 
-            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.findById(1L))
+                .willReturn(Optional.of(studyChannel));
             given(singleScheduleRepository.findById(1L)).willReturn(
-                Optional.of(singleScheduleWithPlace));
+                Optional.of(singleScheduleWithoutPlace));
 
             // when & then
             assertThrows(NotEqualSingleScheduleDate.class, () -> {
@@ -862,7 +861,7 @@ class ScheduleServiceTest {
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
             given(repeatScheduleRepository.findById(2L))
-                .willReturn(Optional.of(repeatScheduleWithPlace));
+                .willReturn(Optional.of(repeatScheduleWithoutPlace));
 
             // when
             scheduleService.deleteRepeatSchedule(1L, true, deleteRequest);
@@ -883,7 +882,7 @@ class ScheduleServiceTest {
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
             given(repeatScheduleRepository.findById(2L))
-                .willReturn(Optional.of(repeatScheduleWithPlace));
+                .willReturn(Optional.of(repeatScheduleWithoutPlace));
 
             // when
             scheduleService.deleteRepeatSchedule(1L, true, deleteRequest);
@@ -908,7 +907,7 @@ class ScheduleServiceTest {
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
             given(repeatScheduleRepository.findById(2L))
-                .willReturn(Optional.of(repeatScheduleWithPlace));
+                .willReturn(Optional.of(repeatScheduleWithoutPlace));
 
             // when
             scheduleService.deleteRepeatSchedule(1L, true, deleteRequest);
@@ -930,8 +929,10 @@ class ScheduleServiceTest {
             ScheduleDeleteRequest deleteRequest = new ScheduleDeleteRequest(
                 2L, LocalDate.of(2024, 7, 5));
 
-            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
-            given(repeatScheduleRepository.findById(2L)).willReturn(Optional.of(repeatScheduleWithPlace));
+            given(studyChannelRepository.findById(1L))
+                .willReturn(Optional.of(studyChannel));
+            given(repeatScheduleRepository.findById(2L))
+                .willReturn(Optional.of(repeatScheduleWithoutPlace));
 
             // when
             scheduleService.deleteRepeatSchedule(1L, false, deleteRequest);
@@ -952,8 +953,10 @@ class ScheduleServiceTest {
             ScheduleDeleteRequest deleteRequest = new ScheduleDeleteRequest(
                 2L, LocalDate.of(2024, 8, 9));
 
-            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
-            given(repeatScheduleRepository.findById(2L)).willReturn(Optional.of(repeatScheduleWithPlace));
+            given(studyChannelRepository.findById(1L))
+                .willReturn(Optional.of(studyChannel));
+            given(repeatScheduleRepository.findById(2L))
+                .willReturn(Optional.of(repeatScheduleWithoutPlace));
 
             // when
             scheduleService.deleteRepeatSchedule(1L, false, deleteRequest);
@@ -974,8 +977,10 @@ class ScheduleServiceTest {
             ScheduleDeleteRequest deleteRequest = new ScheduleDeleteRequest(
                 2L, LocalDate.of(2024, 7, 19));
 
-            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
-            given(repeatScheduleRepository.findById(2L)).willReturn(Optional.of(repeatScheduleWithPlace));
+            given(studyChannelRepository.findById(1L))
+                .willReturn(Optional.of(studyChannel));
+            given(repeatScheduleRepository.findById(2L))
+                .willReturn(Optional.of(repeatScheduleWithoutPlace));
 
             // when
             scheduleService.deleteRepeatSchedule(1L, false, deleteRequest);
@@ -999,7 +1004,8 @@ class ScheduleServiceTest {
             ScheduleDeleteRequest deleteRequest = new ScheduleDeleteRequest(2L,
                 LocalDate.of(2025, 1, 1));
 
-            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.findById(1L))
+                .willReturn(Optional.of(studyChannel));
             given(repeatScheduleRepository.findById(2L)).willReturn(
                 Optional.of(repeatScheduleWithoutPlace));
 
