@@ -231,6 +231,8 @@ public class ScheduleService {
             validateNotPastTime(editRequestToSingleSchedule.getScheduleStartTime(), currentTime);
         }
 
+        validateStudyLeader(editRequestToSingleSchedule.getMemberId(), studyChannelId);
+
         if (!isAfterEventSame) {
             putScheduleRepeatToSingleAfterEventNo(repeatSchedule, editRequestToSingleSchedule);
 

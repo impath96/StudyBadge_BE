@@ -14,6 +14,8 @@ public enum RepeatSituation {
   WEDNESDAY("수요일"),
   THURSDAY("목요일"),
   FRIDAY("금요일"),
+  SATURDAY("토요일"),
+  SUNDAY("일요일"),
 
   // Monthly
   MONTHLY_ONE(1), MONTHLY_TWO(2), MONTHLY_THREE(3), MONTHLY_FOUR(4), MONTHLY_FIVE(5),
