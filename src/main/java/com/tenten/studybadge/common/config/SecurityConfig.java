@@ -42,7 +42,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/members/login/**", "/error", "/health-check").permitAll()
                         .requestMatchers("/api/token/oauth2/**", "/favicon.ico", "/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/study-channels", "/api/study-channels/{studyChannelId:\\d+}").permitAll()
-                        .requestMatchers("/api/members/logout", "api/study-channels/*/places", "/api/study-channels/**", "/api/token/re-issue", "/api/members/my-info", "/api/members/my-info/update").hasRole("USER"))
+                        .requestMatchers("/api/members/logout", "api/study-channels/*/places", "/api/study-channels/**", "/api/token/re-issue"
+                                , "/api/members/my-info", "/api/members/my-info/update", "/api/payments/**").hasRole("USER"))
 
                 .cors(cors -> new CorsConfig())
                 .headers(headers -> headers // h2-console 페이지 접속을 위한 설정
