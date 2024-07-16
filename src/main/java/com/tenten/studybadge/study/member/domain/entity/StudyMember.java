@@ -3,12 +3,12 @@ package com.tenten.studybadge.study.member.domain.entity;
 import com.tenten.studybadge.common.BaseEntity;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
+import com.tenten.studybadge.study.member.dto.StudyMemberInfoResponse;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import jakarta.persistence.*;
 import lombok.*;
 
-import static com.tenten.studybadge.type.study.member.StudyMemberRole.LEADER;
-import static com.tenten.studybadge.type.study.member.StudyMemberRole.STUDY_MEMBER;
+import static com.tenten.studybadge.type.study.member.StudyMemberRole.*;
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
@@ -55,6 +55,20 @@ public class StudyMember extends BaseEntity {
 
     public boolean isLeader() {
         return this.studyMemberRole.equals(LEADER);
+    }
+
+    public boolean isSubLeader() {
+        return this.studyMemberRole.equals(SUB_LEADER);
+    }
+
+    public StudyMemberInfoResponse toResponse() {
+        return StudyMemberInfoResponse.builder()
+                .memberId(this.member.getId())
+                .name(this.member.getName())
+                .imageUrl(this.member.getImgUrl())
+                .badgeLevel(this.member.getBadgeLevel())
+                .role(this.studyMemberRole)
+                .build();
     }
 
 }

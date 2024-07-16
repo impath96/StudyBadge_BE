@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TokenCreateDto {
 
+    private String id;
+
     private String email;
 
     private MemberRole role;

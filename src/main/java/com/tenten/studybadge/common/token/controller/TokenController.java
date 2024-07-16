@@ -1,5 +1,6 @@
 package com.tenten.studybadge.common.token.controller;
 
+import com.tenten.studybadge.common.token.dto.SocialLoginResponse;
 import com.tenten.studybadge.common.token.service.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -26,5 +27,12 @@ public class TokenController {
         return ResponseEntity.status(HttpStatus.OK)
                 .header("Authorization", "Bearer " + newAccessToken)
                 .body(newAccessToken);
+    }
+    @Operation(summary = "Oauth2 토큰발급", description = "Oauth2 로그인 토큰 발급")
+    @GetMapping("/oauth2")
+    public ResponseEntity<SocialLoginResponse> SocialLogin(SocialLoginResponse socialLoginResponse) {
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(socialLoginResponse);
     }
 }
