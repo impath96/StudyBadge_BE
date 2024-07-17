@@ -22,6 +22,7 @@ public class StudyMember extends BaseEntity {
     @Column(name = "study_member_id")
     private Long id;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private StudyMemberRole studyMemberRole;
 
