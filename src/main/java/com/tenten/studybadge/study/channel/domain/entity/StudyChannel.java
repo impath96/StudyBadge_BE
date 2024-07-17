@@ -75,14 +75,14 @@ public class StudyChannel extends BaseEntity {
         studyMembers.add(studyMember);
     }
 
-    private StudyMember getLeader() {
+    public StudyMember getLeader() {
         return studyMembers.stream()
                 .filter(StudyMember::isLeader)
                 .findFirst()
                 .orElse(null);
     }
 
-    private StudyMember getSubLeader() {
+    public StudyMember getSubLeader() {
         return studyMembers.stream()
                 .filter(StudyMember::isSubLeader)
                 .findFirst()
