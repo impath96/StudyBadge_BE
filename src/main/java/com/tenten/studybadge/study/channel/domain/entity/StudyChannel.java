@@ -6,6 +6,7 @@ import com.tenten.studybadge.common.exception.studychannel.InSufficientMinMember
 import com.tenten.studybadge.common.exception.studychannel.NotChangeRecruitmentStatusException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
+import com.tenten.studybadge.study.channel.dto.StudyChannelEditRequest;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
@@ -74,14 +75,14 @@ public class StudyChannel extends BaseEntity {
         studyMembers.add(studyMember);
     }
 
-    private StudyMember getLeader() {
+    public StudyMember getLeader() {
         return studyMembers.stream()
                 .filter(StudyMember::isLeader)
                 .findFirst()
                 .orElse(null);
     }
 
-    private StudyMember getSubLeader() {
+    public StudyMember getSubLeader() {
         return studyMembers.stream()
                 .filter(StudyMember::isSubLeader)
                 .findFirst()
@@ -132,4 +133,9 @@ public class StudyChannel extends BaseEntity {
         return builder.build();
     }
 
+    public void edit(StudyChannelEditRequest studyChannelEditRequest) {
+        this.name = studyChannelEditRequest.getName();
+        this.description = studyChannelEditRequest.getDescription();
+        this.chattingUrl = studyChannelEditRequest.getChattingUrl();
+    }
 }

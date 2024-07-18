@@ -445,6 +445,7 @@ class ScheduleServiceTest {
     @DisplayName("일정 조회")
     @Nested
     class ScheduleGetTest {
+
         @Test
         @DisplayName("스터디 채널 내의 일정 전체 조회 성공")
         public void success_testGetSchedulesInStudyChannel() {
@@ -475,12 +476,13 @@ class ScheduleServiceTest {
             // given
             RepeatSchedule repeatSchedule2 =
                 RepeatSchedule.withoutIdBuilder()
-                .scheduleDate(LocalDate.of(2024, 5, 15))
-                .repeatEndDate(LocalDate.of(2024, 9, 15))
-                .studyChannel(studyChannel)
-                .build();
+                    .scheduleDate(LocalDate.of(2024, 5, 15))
+                    .repeatEndDate(LocalDate.of(2024, 9, 15))
+                    .studyChannel(studyChannel)
+                    .build();
             LocalDate selectMonthFirstDate = LocalDate.of(2024, 7, 1);
-            LocalDate selectMonthLastDate = selectMonthFirstDate.withDayOfMonth(selectMonthFirstDate.lengthOfMonth());
+            LocalDate selectMonthLastDate = selectMonthFirstDate.withDayOfMonth(
+                selectMonthFirstDate.lengthOfMonth());
 
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
@@ -505,10 +507,10 @@ class ScheduleServiceTest {
             verify(studyChannelRepository, times(1)).findById(1L);
             verify(singleScheduleRepository, times(1))
                 .findAllByStudyChannelIdAndDateRange(
-                1L, selectMonthFirstDate, selectMonthLastDate);
+                    1L, selectMonthFirstDate, selectMonthLastDate);
             verify(repeatScheduleRepository, times(1))
                 .findAllByStudyChannelIdAndDate(
-                1L, selectMonthFirstDate);
+                    1L, selectMonthFirstDate);
         }
 
         @Test
@@ -527,6 +529,40 @@ class ScheduleServiceTest {
             verify(studyChannelRepository, times(1)).findById(1L);
             verify(singleScheduleRepository, times(0)).findAllByStudyChannelId(1L);
             verify(repeatScheduleRepository, times(0)).findAllByStudyChannelId(1L);
+        }
+
+        @DisplayName("단일 일정 자세히 조회")
+        @Test
+        public void success_testGetSingleScheduleDetailInStudyChannel() {
+            // given
+            given(studyMemberRepository.findByMemberIdAndStudyChannelId(1L, 1L))
+                .willReturn(Optional.of(studyMemberNotLeader));
+            given(singleScheduleRepository.findById(1L))
+                .willReturn(Optional.of(singleScheduleWithoutPlace));
+
+            // when
+            SingleSchedule singleSchedule =
+                scheduleService.getSingleSchedule(1L, 1L, 1L);
+
+            // then
+            assertEquals(singleScheduleWithoutPlace, singleSchedule);
+        }
+
+        @DisplayName("반복 일정 자세히 조회")
+        @Test
+        public void success_testGetRepeatScheduleDetailInStudyChannel() {
+            // given
+            given(studyMemberRepository.findByMemberIdAndStudyChannelId(1L, 1L))
+                .willReturn(Optional.of(studyMemberNotLeader));
+            given(repeatScheduleRepository.findById(1L))
+                .willReturn(Optional.of(repeatScheduleWithoutPlace));
+
+            // when
+            RepeatSchedule repeatSchedule =
+                scheduleService.getRepeatSchedule(1L, 1L, 1L);
+
+            // then
+            assertEquals(repeatScheduleWithoutPlace, repeatSchedule);
         }
     }
 

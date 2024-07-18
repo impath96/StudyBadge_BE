@@ -9,10 +9,7 @@ import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.entity.StudyDuration;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
-import com.tenten.studybadge.study.channel.dto.SearchCondition;
-import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
-import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
-import com.tenten.studybadge.study.channel.dto.StudyChannelListResponse;
+import com.tenten.studybadge.study.channel.dto.*;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
@@ -720,6 +717,88 @@ class StudyChannelServiceTest {
 
         }
 
+    }
+
+    @DisplayName("[스터디 채널 정보 수정 테스트]")
+    @Nested
+    class EditStudyChannelTest {
+        Member member1;
+        Member member2;
+
+        StudyChannel studyChannel;
+
+        @BeforeEach
+        void setUp() {
+            member1 = Member.builder().id(1L).name("회원 1").build();
+            member2 = Member.builder().id(2L).name("회원 2").build();
+
+            LocalDate now = LocalDate.now();
+            studyChannel = StudyChannel.builder()
+                    .id(1L)
+                    .name("스터디명")
+                    .description("스터디 설명")
+                    .studyDuration(StudyDuration.builder()
+                            .studyStartDate(now.plusDays(2))
+                            .studyEndDate(now.plusMonths(4))
+                            .build())
+                    .recruitment(Recruitment.builder()
+                            .recruitmentNumber(6)
+                            .recruitmentStatus(RecruitmentStatus.RECRUITING)
+                            .build())
+                    .category(Category.IT)
+                    .region(null)
+                    .meetingType(MeetingType.ONLINE)
+                    .chattingUrl("오픈채팅방 URL")
+                    .deposit(10_000)
+                    .viewCnt(4)
+                    .build();
+        }
+
+        @DisplayName("성공적으로 스터디 채널 정보를 수정한다.")
+        @Test
+        void success_editStudyChannel() {
+
+            StudyMember leader = StudyMember.leader(member1, studyChannel);
+            studyChannel.getStudyMembers().add(leader);
+
+            StudyChannelEditRequest request = StudyChannelEditRequest.builder()
+                    .name("새로운 스터디명")
+                    .description("새로운 스터디 소개글")
+                    .chattingUrl("새로운 채팅 URL")
+                    .build();
+
+            given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
+
+            studyChannelService.editStudyChannel(1L, 1L, request);
+
+            assertThat(studyChannel.getName()).isEqualTo("새로운 스터디명");
+            assertThat(studyChannel.getDescription()).isEqualTo("새로운 스터디 소개글");
+            assertThat(studyChannel.getChattingUrl()).isEqualTo("새로운 채팅 URL");
+        }
+
+        @DisplayName("스터디 리더가 아닌 사람이 수정을 하려고 할 경우 예외가 발생한다.")
+        @Test
+        void fail_notStudyLeader() {
+
+            StudyMember leader = StudyMember.leader(member1, studyChannel);
+            StudyMember studyMember = StudyMember.member(member2, studyChannel);
+            studyChannel.getStudyMembers().add(leader);
+            studyChannel.getStudyMembers().add(studyMember);
+
+            StudyChannelEditRequest request = StudyChannelEditRequest.builder()
+                    .name("새로운 스터디명")
+                    .description("새로운 스터디 소개글")
+                    .chattingUrl("새로운 채팅 URL")
+                    .build();
+
+            given(memberRepository.findById(2L)).willReturn(Optional.of(member2));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
+
+            assertThatThrownBy(() -> studyChannelService.editStudyChannel(1L, 2L, request))
+                    .isExactlyInstanceOf(NotStudyLeaderException.class);
+
+        }
     }
 
 }

@@ -13,6 +13,8 @@ import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyMemberException;
+import com.tenten.studybadge.notification.service.NotificationService;
+import com.tenten.studybadge.schedule.domain.Schedule;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
@@ -28,6 +30,7 @@ import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
+import com.tenten.studybadge.type.notification.NotificationType;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
 import com.tenten.studybadge.type.schedule.RepeatSituation;
 import com.tenten.studybadge.type.schedule.ScheduleType;
@@ -37,8 +40,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ScheduleService {
@@ -47,13 +52,19 @@ public class ScheduleService {
     private final StudyChannelRepository studyChannelRepository;
     private final StudyMemberRepository studyMemberRepository;
 
+    private final NotificationService notificationService;
+
     public void postSingleSchedule(SingleScheduleCreateRequest singleScheduleCreateRequest, Long studyChannelId) {
         StudyChannel studyChannel = validateStudyChannel(studyChannelId);
 
         validateStudyLeader(singleScheduleCreateRequest.getMemberId(), studyChannelId);
 
-        singleScheduleRepository.save(createSingleScheduleFromRequest(
+        SingleSchedule saveSingleSchedule = singleScheduleRepository.save(createSingleScheduleFromRequest(
             singleScheduleCreateRequest, studyChannel));
+        log.info("단일 일정이 생성 되었습니다. studyChannelId: {}", studyChannelId);
+        String url = String.format("/api/study-channels/%d/repeat-schedules/%d", studyChannelId, saveSingleSchedule.getId());
+        notificationService.sendNotificationToStudyChannel(studyChannelId,
+            NotificationType.SCHEDULE_CREATE, "새로운 단일 일정이 등록되었습니다.", url);
     }
 
     public void postRepeatSchedule(RepeatScheduleCreateRequest repeatScheduleCreateRequest, Long studyChannelId) {
@@ -66,7 +77,12 @@ public class ScheduleService {
 
         validateStudyLeader(repeatScheduleCreateRequest.getMemberId(), studyChannelId);
 
-        repeatScheduleRepository.save(createRepeatScheduleFromRequest(repeatScheduleCreateRequest, studyChannel));
+        RepeatSchedule saveRepeatSchedule = repeatScheduleRepository.save(
+            createRepeatScheduleFromRequest(repeatScheduleCreateRequest, studyChannel));
+        String url = String.format("/api/study-channels/%d/repeat-schedules/%d", studyChannelId, saveRepeatSchedule.getId());
+        log.info("반복 일정이 생성 되었습니다. studyChannelId: {}", studyChannelId);
+        notificationService.sendNotificationToStudyChannel(studyChannelId,
+            NotificationType.SCHEDULE_CREATE, "새로운 반복 일정이 등록되었습니다.", url);
     }
 
     public List<ScheduleResponse> getSchedulesInStudyChannel(
@@ -117,6 +133,24 @@ public class ScheduleService {
         scheduleResponses.addAll(singleScheduleResponses);
         scheduleResponses.addAll(repeatScheduleResponses);
         return scheduleResponses;
+    }
+
+    public SingleSchedule getSingleSchedule(Long memberId, Long studyChannelId, Long scheduleId) {
+
+        studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId)
+            .orElseThrow(NotStudyMemberException::new);
+
+        return singleScheduleRepository.findById(scheduleId)
+            .orElseThrow(NotFoundSingleScheduleException::new);
+    }
+
+    public RepeatSchedule getRepeatSchedule(Long memberId, Long studyChannelId, Long scheduleId) {
+
+        studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId)
+            .orElseThrow(NotStudyMemberException::new);
+
+        return repeatScheduleRepository.findById(scheduleId)
+            .orElseThrow(NotFoundSingleScheduleException::new);
     }
 
     public void putSchedule(Long studyChannelId, ScheduleEditRequest scheduleEditRequest) {

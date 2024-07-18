@@ -1,6 +1,9 @@
 package com.tenten.studybadge.schedule.controller;
 
 import com.tenten.studybadge.common.security.CustomUserDetails;
+import com.tenten.studybadge.schedule.domain.Schedule;
+import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
+import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleDeleteRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleEditRequest;
@@ -82,6 +85,30 @@ public class ScheduleController {
             memberDetails.getId(), studyChannelId, year, month));
     }
 
+    @GetMapping("/study-channels/{studyChannelId}/single-schedules/{scheduleId}")
+    @Operation(summary = "스터디 채널에 존재하는 단일 일정 자세히 조회", description = "스터디 채널에 존재하는 단일 일정 자세히 조회 api, 일정 등록 알림의 relate URL 관련" ,security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "일정이 있는 study channel의 id 값", required = true)
+    @Parameter(name = "scheduleId", description = "단일 일정 schedule id 값", required = true)
+    public ResponseEntity<ScheduleResponse> getSingleScheduleDetail(
+        @AuthenticationPrincipal CustomUserDetails memberDetails,
+        @PathVariable Long studyChannelId, @PathVariable Long scheduleId) {
+        SingleSchedule singleSchedule = scheduleService.getSingleSchedule(memberDetails.getId(),
+            studyChannelId, scheduleId);
+        return ResponseEntity.ok(singleSchedule.toResponse());
+    }
+
+    @GetMapping("/study-channels/{studyChannelId}/repeat-schedules/{scheduleId}")
+    @Operation(summary = "스터디 채널에 존재하는 반복 일정 자세히 조회", description = "스터디 채널에 존재하는 반복 일정 자세히 조회 api, 일정 등록 알림의 relate URL 관련" ,security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "일정이 있는 study channel의 id 값", required = true)
+    @Parameter(name = "scheduleId", description = "반복 일정 schedule id 값", required = true)
+    public ResponseEntity<ScheduleResponse> getRepeatScheduleDetail(
+        @AuthenticationPrincipal CustomUserDetails memberDetails,
+        @PathVariable Long studyChannelId, @PathVariable Long scheduleId) {
+        RepeatSchedule repeatSchedule = scheduleService.getRepeatSchedule(memberDetails.getId(),
+            studyChannelId, scheduleId);
+        return ResponseEntity.ok(repeatSchedule.toResponse());
+    }
+  
     @PutMapping("/study-channels/{studyChannelId}/schedules")
     @Operation(summary = "단일 일정 -> any 일정 | 반복 일정 -> 반복 일정으로 수정", description = "특정 스터디 채널의 일정을 수정할 때 [단일 -> any | 반복 -> 반복]일정으로 수정할 경우 수정 api" ,security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "studyChannelId", description = "일정이 존재하는 study channel의 id 값", required = true)
