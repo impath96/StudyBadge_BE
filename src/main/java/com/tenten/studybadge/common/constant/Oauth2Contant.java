@@ -27,4 +27,10 @@ public class Oauth2Contant {
     public static final String LOGIN_REDIRECT_URI = "/api/token/oauth2";
 
     public static final String SIGN_UP_REDIRECT_URI = "/oauth2/sign-up";
+
+    public static final String OAUTH2_ERROR_MESSAGE = "OAuth2 인증에 실패하였습니다: ";
+
+    public static final String OAUTH2_ERROR_MESSAGE_NAME = "errorMessage";
+
+    public static final String OAUTH2_REDIRECT_PATH = "/login";
 }
