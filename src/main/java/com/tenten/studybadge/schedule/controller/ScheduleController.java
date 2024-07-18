@@ -1,5 +1,6 @@
 package com.tenten.studybadge.schedule.controller;
 
+import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.schedule.dto.RepeatScheduleCreateRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleDeleteRequest;
 import com.tenten.studybadge.schedule.dto.ScheduleEditRequest;
@@ -16,6 +17,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,8 +62,11 @@ public class ScheduleController {
     @GetMapping("/study-channels/{studyChannelId}/schedules")
     @Operation(summary = "스터디 채널에 존재하는 일정 전체 조회", description = "특정 스터디 채널에 존재하는 일정 전체 조회 api" ,security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
-    public ResponseEntity<List<ScheduleResponse>> getSchedules(@PathVariable Long studyChannelId) {
-        return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannel(studyChannelId));
+    public ResponseEntity<List<ScheduleResponse>> getSchedules(
+        @AuthenticationPrincipal CustomUserDetails memberDetails,
+        @PathVariable Long studyChannelId) {;
+        return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannel(
+            memberDetails.getId(), studyChannelId));
     }
 
     @GetMapping("/study-channels/{studyChannelId}/schedules/date")
@@ -69,10 +74,12 @@ public class ScheduleController {
     @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
     @Parameter(name = "year", description = "일정의 year 값", required = true)
     @Parameter(name = "month", description = "일정의 month 값", required = true)
-    public ResponseEntity<List<ScheduleResponse>> getSchedulesWithFormula(
+    public ResponseEntity<List<ScheduleResponse>> getSchedulesInStudyChannelForYearAndMonth(
+        @AuthenticationPrincipal CustomUserDetails memberDetails,
         @PathVariable Long studyChannelId,
         @RequestParam int year, @RequestParam int month) {
-        return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannelForYearAndMonth( studyChannelId, year, month));
+        return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannelForYearAndMonth(
+            memberDetails.getId(), studyChannelId, year, month));
     }
 
     @PutMapping("/study-channels/{studyChannelId}/schedules")
