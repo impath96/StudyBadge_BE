@@ -65,8 +65,24 @@ public class ScheduleController {
     @GetMapping("/study-channels/{studyChannelId}/schedules")
     @Operation(summary = "스터디 채널에 존재하는 일정 전체 조회", description = "특정 스터디 채널에 존재하는 일정 전체 조회 api" ,security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
-    public ResponseEntity<List<ScheduleResponse>> getSchedules(@PathVariable Long studyChannelId) {
-        return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannel(studyChannelId));
+    public ResponseEntity<List<ScheduleResponse>> getSchedules(
+        @AuthenticationPrincipal CustomUserDetails memberDetails,
+        @PathVariable Long studyChannelId) {;
+        return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannel(
+            memberDetails.getId(), studyChannelId));
+    }
+
+    @GetMapping("/study-channels/{studyChannelId}/schedules/date")
+    @Operation(summary = "스터디 채널에 존재하는 일정 year, month 기준 전체 조회", description = "특정 스터디 채널에 존재하는 일정들을 year과 month 기준으로 전체 조회 api" ,security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
+    @Parameter(name = "year", description = "일정의 year 값", required = true)
+    @Parameter(name = "month", description = "일정의 month 값", required = true)
+    public ResponseEntity<List<ScheduleResponse>> getSchedulesInStudyChannelForYearAndMonth(
+        @AuthenticationPrincipal CustomUserDetails memberDetails,
+        @PathVariable Long studyChannelId,
+        @RequestParam int year, @RequestParam int month) {
+        return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannelForYearAndMonth(
+            memberDetails.getId(), studyChannelId, year, month));
     }
 
     @GetMapping("/study-channels/{studyChannelId}/single-schedules/{scheduleId}")
@@ -92,18 +108,7 @@ public class ScheduleController {
             studyChannelId, scheduleId);
         return ResponseEntity.ok(repeatSchedule.toResponse());
     }
-
-    @GetMapping("/study-channels/{studyChannelId}/schedules/date")
-    @Operation(summary = "스터디 채널에 존재하는 일정 year, month 기준 전체 조회", description = "특정 스터디 채널에 존재하는 일정들을 year과 month 기준으로 전체 조회 api" ,security = @SecurityRequirement(name = "bearerToken"))
-    @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
-    @Parameter(name = "year", description = "일정의 year 값", required = true)
-    @Parameter(name = "month", description = "일정의 month 값", required = true)
-    public ResponseEntity<List<ScheduleResponse>> getSchedulesWithFormula(
-        @PathVariable Long studyChannelId,
-        @RequestParam int year, @RequestParam int month) {
-        return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannelForYearAndMonth( studyChannelId, year, month));
-    }
-
+  
     @PutMapping("/study-channels/{studyChannelId}/schedules")
     @Operation(summary = "단일 일정 -> any 일정 | 반복 일정 -> 반복 일정으로 수정", description = "특정 스터디 채널의 일정을 수정할 때 [단일 -> any | 반복 -> 반복]일정으로 수정할 경우 수정 api" ,security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "studyChannelId", description = "일정이 존재하는 study channel의 id 값", required = true)

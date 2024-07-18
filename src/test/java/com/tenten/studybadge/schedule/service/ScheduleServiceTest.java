@@ -452,6 +452,8 @@ class ScheduleServiceTest {
             // given
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
+            given(studyMemberRepository.findByMemberIdAndStudyChannelId(1L, 1L))
+                .willReturn(Optional.of(studyMemberNotLeader));
             given(singleScheduleRepository.findAllByStudyChannelId(1L))
                 .willReturn(Arrays.asList(singleScheduleWithoutPlace));
             given(repeatScheduleRepository.findAllByStudyChannelId(1L))
@@ -459,7 +461,7 @@ class ScheduleServiceTest {
 
             // when
             List<ScheduleResponse> scheduleResponses =
-                scheduleService.getSchedulesInStudyChannel(1L);
+                scheduleService.getSchedulesInStudyChannel(1L,1L);
 
             // then
             assertEquals(2, scheduleResponses.size());
@@ -484,6 +486,8 @@ class ScheduleServiceTest {
 
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
+            given(studyMemberRepository.findByMemberIdAndStudyChannelId(1L, 1L))
+                .willReturn(Optional.of(studyMemberNotLeader));
             given(singleScheduleRepository.findAllByStudyChannelIdAndDateRange(
                 1L, selectMonthFirstDate, selectMonthLastDate))
                 .willReturn(Arrays.asList(singleScheduleWithoutPlace));
@@ -495,7 +499,8 @@ class ScheduleServiceTest {
             // when
             List<ScheduleResponse> scheduleResponses =
                 scheduleService.getSchedulesInStudyChannelForYearAndMonth(
-                    1L, 2024, 7);
+                    1L,
+                1L, 2024, 7);
 
             // then
             assertEquals(2, scheduleResponses.size());
@@ -517,7 +522,7 @@ class ScheduleServiceTest {
 
             // when & then
             assertThrows(NotFoundStudyChannelException.class, () -> {
-                scheduleService.getSchedulesInStudyChannel(1L);
+              scheduleService.getSchedulesInStudyChannel(1L,1L);
             });
 
             // then
@@ -559,7 +564,6 @@ class ScheduleServiceTest {
             // then
             assertEquals(repeatScheduleWithoutPlace, repeatSchedule);
         }
-
     }
 
     @DisplayName("일정 수정: 단일 -> any | 반복 -> 반복")

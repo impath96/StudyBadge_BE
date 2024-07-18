@@ -55,8 +55,7 @@ public class ScheduleService {
     private final NotificationService notificationService;
 
     public void postSingleSchedule(SingleScheduleCreateRequest singleScheduleCreateRequest, Long studyChannelId) {
-        StudyChannel studyChannel =  studyChannelRepository.findById(studyChannelId)
-            .orElseThrow(NotFoundStudyChannelException::new);
+        StudyChannel studyChannel = validateStudyChannel(studyChannelId);
 
         validateStudyLeader(singleScheduleCreateRequest.getMemberId(), studyChannelId);
 
@@ -69,8 +68,7 @@ public class ScheduleService {
     }
 
     public void postRepeatSchedule(RepeatScheduleCreateRequest repeatScheduleCreateRequest, Long studyChannelId) {
-        StudyChannel studyChannel =  studyChannelRepository.findById(studyChannelId)
-            .orElseThrow(NotFoundStudyChannelException::new);
+        StudyChannel studyChannel = validateStudyChannel(studyChannelId);
 
         RepeatCycle repeatCycle = repeatScheduleCreateRequest.getRepeatCycle();
         LocalDate scheduleDate = repeatScheduleCreateRequest.getScheduleDate();
@@ -87,9 +85,10 @@ public class ScheduleService {
             NotificationType.SCHEDULE_CREATE, "새로운 반복 일정이 등록되었습니다.", url);
     }
 
-    public List<ScheduleResponse> getSchedulesInStudyChannel(Long studyChannelId) {
-        StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId)
-            .orElseThrow(NotFoundStudyChannelException::new);
+    public List<ScheduleResponse> getSchedulesInStudyChannel(
+        Long memberId, Long studyChannelId) {
+        validateStudyChannel(studyChannelId);
+        validateStudyMember(memberId, studyChannelId);
 
         List<ScheduleResponse> scheduleResponses = new ArrayList<>();
         List<ScheduleResponse> singleScheduleResponses = singleScheduleRepository.findAllByStudyChannelId(
@@ -110,9 +109,10 @@ public class ScheduleService {
         return scheduleResponses;
     }
 
-    public List<ScheduleResponse> getSchedulesInStudyChannelForYearAndMonth(Long studyChannelId, int year, int month) {
-        StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId)
-            .orElseThrow(NotFoundStudyChannelException::new);
+    public List<ScheduleResponse> getSchedulesInStudyChannelForYearAndMonth(
+        Long memberId, Long studyChannelId, int year, int month) {
+        validateStudyChannel(studyChannelId);
+        validateStudyMember(memberId, studyChannelId);
 
         List<ScheduleResponse> scheduleResponses = new ArrayList<>();
 
@@ -154,8 +154,7 @@ public class ScheduleService {
     }
 
     public void putSchedule(Long studyChannelId, ScheduleEditRequest scheduleEditRequest) {
-        studyChannelRepository.findById(studyChannelId)
-            .orElseThrow(NotFoundStudyChannelException::new);
+        validateStudyChannel(studyChannelId);
 
         if (scheduleEditRequest instanceof SingleScheduleEditRequest) {
             SingleScheduleEditRequest editRequestToSingleSchedule =
@@ -246,8 +245,7 @@ public class ScheduleService {
         LocalDate currentDate = LocalDate.now();
         LocalTime currentTime = LocalTime.now();
 
-        studyChannelRepository.findById(studyChannelId)
-            .orElseThrow(NotFoundStudyChannelException::new);
+        validateStudyChannel(studyChannelId);
 
         RepeatSchedule repeatSchedule = repeatScheduleRepository.findById(
                 editRequestToSingleSchedule.getScheduleId())
@@ -340,8 +338,7 @@ public class ScheduleService {
     public void deleteSingleSchedule(Long studyChannelId, ScheduleDeleteRequest scheduleDeleteRequest) {
         LocalDate currentDate =LocalDate.now();
 
-        studyChannelRepository.findById(studyChannelId)
-            .orElseThrow(NotFoundStudyChannelException::new);
+        validateStudyChannel(studyChannelId);
 
         SingleSchedule singleSchedule = singleScheduleRepository.findById(
                 scheduleDeleteRequest.getScheduleId())
@@ -361,8 +358,7 @@ public class ScheduleService {
     public void deleteRepeatSchedule(Long studyChannelId, Boolean isAfterEventSame, ScheduleDeleteRequest scheduleDeleteRequest) {
         LocalDate currentDate =LocalDate.now();
 
-        studyChannelRepository.findById(studyChannelId)
-            .orElseThrow(NotFoundStudyChannelException::new);
+        validateStudyChannel(studyChannelId);
 
         RepeatSchedule repeatSchedule = repeatScheduleRepository.findById(
                 scheduleDeleteRequest.getScheduleId())
@@ -437,6 +433,16 @@ public class ScheduleService {
             singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
             repeatScheduleRepository.deleteById(repeatSchedule.getId());
         }
+    }
+
+    private StudyChannel validateStudyChannel(Long studyChannelId){
+        return studyChannelRepository.findById(studyChannelId)
+            .orElseThrow(NotFoundStudyChannelException::new);
+    }
+
+    private void validateStudyMember(Long memberId, Long studyChannelId){
+        studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId)
+            .orElseThrow(NotStudyMemberException::new);
     }
 
     private void validateStudyLeader(Long memberId, Long studyChannelId) {
