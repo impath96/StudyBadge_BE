@@ -87,7 +87,7 @@ public class PaymentService {
             paymentRepository.save(canceldPayment);
 
             Member updatedMember = payment.getCustomer().toBuilder()
-                    .point((int) (payment.getCustomer().getPoint() + payment.getAmount()))
+                    .point((int) (payment.getCustomer().getPoint() - payment.getAmount()))
                     .build();
             memberRepository.save(updatedMember);
 
@@ -99,7 +99,7 @@ public class PaymentService {
 
     public Map<String, Object> requestCancelPayment(PaymentCancelRequest cancelRequest) {
 
-        WebClient webClient = TossWebClient();
+        WebClient webClient = tossWebClient();
 
         return webClient.post()
                 .uri(uriBuilder -> uriBuilder.path(cancelRequest.getPaymentKey() + CANCEL_URL)
@@ -124,7 +124,7 @@ public class PaymentService {
 
     public PaymentConfirm requestAcceptPayment(PaymentConfirmRequest confirmRequest) {
 
-        WebClient webClient = TossWebClient();
+        WebClient webClient = tossWebClient();
 
         return webClient.post()
                 .uri(uriBuilder -> uriBuilder.path(confirmRequest.getPaymentKey())
@@ -143,7 +143,7 @@ public class PaymentService {
         return BASIC + encodedAuth;
     }
 
-    private WebClient TossWebClient() {
+    private WebClient tossWebClient() {
 
         return WebClient.builder()
                 .baseUrl(PaymentConfig.TOSS_URL)
