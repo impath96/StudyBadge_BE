@@ -4,6 +4,7 @@ import com.tenten.studybadge.attendance.domain.entity.Attendance;
 import com.tenten.studybadge.attendance.domain.repository.AttendanceRepository;
 import com.tenten.studybadge.attendance.dto.AttendanceCheckRequest;
 import com.tenten.studybadge.attendance.dto.AttendanceMember;
+import com.tenten.studybadge.common.exception.attendance.InvalidAttendanceCheckDateException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundSingleScheduleException;
 import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
@@ -53,7 +54,7 @@ public class AttendanceService {
         LocalDateTime currentTime = LocalDateTime.now();
 
         if (!singleSchedule.getScheduleDate().equals(attendanceCheckDate) || !currentTime.toLocalDate().isEqual(attendanceCheckDate)) {
-            throw new IllegalArgumentException("해당 일정 당일에만 출석 체크가 가능합니다.");
+            throw new InvalidAttendanceCheckDateException();
         }
 
         List<Attendance> attendanceList = attendanceRepository.findAllBySingleScheduleId(attendanceCheckRequest.getScheduleId());
@@ -75,7 +76,7 @@ public class AttendanceService {
         }
 
         if (!currentTime.toLocalDate().isEqual(attendanceCheckDate)) {
-            throw new IllegalArgumentException("해당 일정 당일에만 출석 체크가 가능합니다.");
+            throw new InvalidAttendanceCheckDateException();
         }
 
         LocalDateTime startDateTime = attendanceCheckDate.atStartOfDay();
