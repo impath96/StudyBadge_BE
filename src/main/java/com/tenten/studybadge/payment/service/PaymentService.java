@@ -110,6 +110,23 @@ public class PaymentService {
                 .block();
     }
 
+    public PaymentFail paymentFail(PaymentFailRequest paymentFailRequest) {
+
+        Payment payment = paymentRepository.findByOrderId(paymentFailRequest.getOrderId()).
+                orElseThrow(NotFoundOrderException::new);
+
+        Payment failedPayment = payment.toBuilder()
+                .failReason(paymentFailRequest.getMessage())
+                .successYN(false).build();
+        paymentRepository.save(failedPayment);
+
+        return PaymentFail.builder()
+                .errorCode(paymentFailRequest.getCode())
+                .errorMessage(paymentFailRequest.getMessage())
+                .orderId(paymentFailRequest.getOrderId())
+                .build();
+    }
+
     public Payment verifyPayment(String orderId, Long amount) {
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(NotFoundOrderException::new);

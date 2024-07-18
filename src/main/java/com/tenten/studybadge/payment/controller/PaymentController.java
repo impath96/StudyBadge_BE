@@ -38,8 +38,17 @@ public class PaymentController {
         PaymentConfirm confirm = paymentService.confirmPayment(confirmRequest);
 
         return ResponseEntity.ok(confirm);
-
     }
+    @Operation(summary = "결제 실패", description = "결제 실패 정보를 받는 API", security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "failRequest", description = "결제 실패 정보를 받기 위한 요청 값(code, message, orderId)")
+    @GetMapping("/fail")
+    public ResponseEntity<PaymentFail> paymentFail(@RequestBody PaymentFailRequest failRequest) {
+
+        PaymentFail fail = paymentService.paymentFail(failRequest);
+
+        return ResponseEntity.ok(fail);
+    }
+
     @Operation(summary = "결제 취소", description = "토스페이먼츠에 결제 취소 요청할 API", security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "cancelRequest", description = "결제 취소를 위한 요청 값(paymentKey, cancelReason)")
     @PostMapping("/cancel")
