@@ -64,6 +64,8 @@ public class AttendanceService {
 
         // 스터디 멤버 별 총 출석 일수
         Map<Long, Long> studyMemberAttendanceCountMap = new HashMap<>();
+
+        // 반복 일정
         for (RepeatSchedule repeatSchedule : repeatSchedules) {
             List<Attendance> repeatScheduleAttendances = attendanceRepository.findAllByRepeatScheduleId(repeatSchedule.getId());
             Map<Long, List<Attendance>> listMap = repeatScheduleAttendances.stream().collect(Collectors.groupingBy(Attendance::getStudyMemberId));
@@ -75,8 +77,20 @@ public class AttendanceService {
                 long count = attendances.stream().filter(attendance -> attendance.getAttendanceStatus().equals(AttendanceStatus.ATTENDANCE)).count();
                 studyMemberAttendanceCountMap.put(studyMemberId, studyMemberAttendanceCountMap.getOrDefault(studyMemberId, 0L) + count);
             }
-
         }
+
+        // 단일 일정
+        for (SingleSchedule singleSchedule : singleSchedules) {
+            List<Attendance> singleScheduleAttendances = attendanceRepository.findAllBySingleScheduleId(singleSchedule.getId());
+            singleScheduleAttendances.stream()
+                    .filter(attendance -> attendance.getAttendanceStatus().equals(AttendanceStatus.ATTENDANCE))
+                    .forEach(attendance -> {
+                        studyMemberAttendanceCountMap.put(
+                                attendance.getStudyMemberId(),
+                                studyMemberAttendanceCountMap.getOrDefault(attendance.getStudyMemberId(), 0L) + 1);
+                    });
+        }
+
         List<AttendanceInfoResponse> attendanceInfoResponses = new ArrayList<>();
 
         for (StudyMember studyMember : studyMembers) {
