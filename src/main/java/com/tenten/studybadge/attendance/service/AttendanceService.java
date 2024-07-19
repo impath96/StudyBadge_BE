@@ -60,7 +60,7 @@ public class AttendanceService {
         List<SingleSchedule> singleSchedules = singleScheduleRepository.findAllByStudyChannelId(studyChannelId);
         List<RepeatSchedule> repeatSchedules = repeatScheduleRepository.findAllByStudyChannelId(studyChannelId);
 
-        int total = countAllScheduleDays(singleSchedules, repeatSchedules);
+        int totalDays = countAllScheduleDays(singleSchedules, repeatSchedules);
 
         // 스터디 멤버 별 총 출석 일수
         Map<Long, Long> studyMemberAttendanceCountMap = new HashMap<>();
@@ -68,14 +68,14 @@ public class AttendanceService {
         // 반복 일정
         for (RepeatSchedule repeatSchedule : repeatSchedules) {
             List<Attendance> repeatScheduleAttendances = attendanceRepository.findAllByRepeatScheduleId(repeatSchedule.getId());
-            Map<Long, List<Attendance>> listMap = repeatScheduleAttendances.stream().collect(Collectors.groupingBy(Attendance::getStudyMemberId));
+            Map<Long, List<Attendance>> listMap = groupByStudyMember(repeatScheduleAttendances);
 
             for (Map.Entry<Long, List<Attendance>> entry : listMap.entrySet()) {
                 Long studyMemberId = entry.getKey();
                 List<Attendance> attendances = entry.getValue();
 
-                long count = attendances.stream().filter(attendance -> attendance.getAttendanceStatus().equals(AttendanceStatus.ATTENDANCE)).count();
-                studyMemberAttendanceCountMap.put(studyMemberId, studyMemberAttendanceCountMap.getOrDefault(studyMemberId, 0L) + count);
+                long attendanceDays = attendances.stream().filter(attendance -> attendance.getAttendanceStatus().equals(AttendanceStatus.ATTENDANCE)).count();
+                studyMemberAttendanceCountMap.put(studyMemberId, studyMemberAttendanceCountMap.getOrDefault(studyMemberId, 0L) + attendanceDays);
             }
         }
 
@@ -84,28 +84,30 @@ public class AttendanceService {
             List<Attendance> singleScheduleAttendances = attendanceRepository.findAllBySingleScheduleId(singleSchedule.getId());
             singleScheduleAttendances.stream()
                     .filter(attendance -> attendance.getAttendanceStatus().equals(AttendanceStatus.ATTENDANCE))
-                    .forEach(attendance -> {
-                        studyMemberAttendanceCountMap.put(
-                                attendance.getStudyMemberId(),
-                                studyMemberAttendanceCountMap.getOrDefault(attendance.getStudyMemberId(), 0L) + 1);
-                    });
+                    .forEach(attendance -> studyMemberAttendanceCountMap.put(
+                            attendance.getStudyMemberId(),
+                            studyMemberAttendanceCountMap.getOrDefault(attendance.getStudyMemberId(), 0L) + 1));
         }
 
         List<AttendanceInfoResponse> attendanceInfoResponses = new ArrayList<>();
 
         for (StudyMember studyMember : studyMembers) {
-            long count = studyMemberAttendanceCountMap.get(studyMember.getId());
-            double attendanceRatio = (double) count * 100 / total;
+            long attendanceDays = studyMemberAttendanceCountMap.get(studyMember.getId());
+            double attendanceRatio = (double) attendanceDays * 100 / totalDays;
             attendanceInfoResponses.add(AttendanceInfoResponse.builder()
                     .memberId(studyMember.getMember().getId())
                     .studyMemberId(studyMember.getId())
                     .name(studyMember.getMember().getName())
                     .imageUrl(studyMember.getMember().getImgUrl())
-                    .attendanceCount(count)
+                    .attendanceCount(attendanceDays)
                     .attendanceRatio(attendanceRatio)
                     .build());
         }
         return attendanceInfoResponses;
+    }
+
+    private Map<Long, List<Attendance>> groupByStudyMember(List<Attendance> repeatScheduleAttendances) {
+        return repeatScheduleAttendances.stream().collect(Collectors.groupingBy(Attendance::getStudyMemberId));
     }
 
     private void checkAttendanceForSingleSchedule(AttendanceCheckRequest attendanceCheckRequest) {
