@@ -38,6 +38,8 @@ public class AttendanceController {
     }
 
     @GetMapping("/api/study-channels/{studyChannelId}/attendances")
+    @Operation(summary = "출석 현황 조회", description = "스터디 채널 내 멤버별 출석 현황을 조회하는 API", security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
     public ResponseEntity<List<AttendanceInfoResponse>> getAttendanceRatio(@PathVariable Long studyChannelId, @AuthenticationPrincipal CustomUserDetails principal) {
         return ResponseEntity.ok(attendanceService.getAttendanceRatioForStudyChannel(studyChannelId, principal.getId()));
     }
