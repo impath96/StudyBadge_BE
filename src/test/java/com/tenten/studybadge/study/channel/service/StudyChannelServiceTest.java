@@ -321,6 +321,7 @@ class StudyChannelServiceTest {
             assertThat(response.getMeetingType()).isEqualTo(MeetingType.ONLINE);
             assertThat(response.getRegion()).isNull();
             assertThat(response.getDeposit()).isEqualTo(10_000);
+            assertThat(response.isLeader()).isTrue();
             assertThat(response.getLeaderName()).isEqualTo("회원 1");
             assertThat(response.getSubLeaderName()).isEqualTo("회원 1");
 
@@ -350,6 +351,7 @@ class StudyChannelServiceTest {
             assertThat(response.getMeetingType()).isEqualTo(MeetingType.ONLINE);
             assertThat(response.getRegion()).isNull();
             assertThat(response.getDeposit()).isEqualTo(10_000);
+            assertThat(response.isLeader()).isFalse();
             assertThat(response.getLeaderName()).isEqualTo("회원 1");
             assertThat(response.getSubLeaderName()).isEqualTo("회원 1");
 
@@ -386,6 +388,7 @@ class StudyChannelServiceTest {
             assertThat(response.getMeetingType()).isEqualTo(MeetingType.ONLINE);
             assertThat(response.getRegion()).isNull();
             assertThat(response.getDeposit()).isEqualTo(10_000);
+            assertThat(response.isLeader()).isTrue();
             assertThat(response.getLeaderName()).isEqualTo("회원 1");
             assertThat(response.getSubLeaderName()).isEqualTo("회원 2");
 
