@@ -39,7 +39,7 @@ public class AttendanceController {
 
     @GetMapping("/api/study-channels/{studyChannelId}/attendances")
     public ResponseEntity<List<AttendanceInfoResponse>> getAttendanceRatio(@PathVariable Long studyChannelId, @AuthenticationPrincipal CustomUserDetails principal) {
-        return ResponseEntity.ok(attendanceService.getAttendanceRatio(studyChannelId, principal.getId()));
+        return ResponseEntity.ok(attendanceService.getAttendanceRatioForStudyChannel(studyChannelId, principal.getId()));
     }
 
 }

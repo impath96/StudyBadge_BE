@@ -53,23 +53,14 @@ public class AttendanceService {
         }
     }
 
-    public List<AttendanceInfoResponse> getAttendanceRatio(Long studyChannelId, Long memberId) {
+    public List<AttendanceInfoResponse> getAttendanceRatioForStudyChannel(Long studyChannelId, Long memberId) {
 
         studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId).orElseThrow(NotStudyMemberException::new);
         List<StudyMember> studyMembers = studyMemberRepository.findAllByStudyChannelIdWithMember(studyChannelId);
         List<SingleSchedule> singleSchedules = singleScheduleRepository.findAllByStudyChannelId(studyChannelId);
         List<RepeatSchedule> repeatSchedules = repeatScheduleRepository.findAllByStudyChannelId(studyChannelId);
 
-        // 1) 단일 일정 수
-        int count0 = singleSchedules.size();
-
-        // 2) 반복 일정 수
-        int count1 = 0;
-        for (RepeatSchedule repeatSchedule : repeatSchedules) {
-            count1 += calculate(repeatSchedule.getScheduleDate(), repeatSchedule.getRepeatEndDate(), repeatSchedule.getRepeatCycle(), repeatSchedule.getRepeatSituation());
-        }
-
-        int total = count0 + count1;
+        int total = countAllScheduleDays(singleSchedules, repeatSchedules);
 
         // 스터디 멤버 별 총 출석 일수
         Map<Long, Long> studyMemberAttendanceCountMap = new HashMap<>();
@@ -182,7 +173,7 @@ public class AttendanceService {
         attendanceRepository.saveAll(attendances);
     }
 
-    public int calculate(LocalDate startDate, LocalDate endDate, RepeatCycle repeatCycle, RepeatSituation repeatSituation) {
+    private int calculate(LocalDate startDate, LocalDate endDate, RepeatCycle repeatCycle, RepeatSituation repeatSituation) {
         LocalDate currentDate = startDate;
         int count = 0;
         while (currentDate.isBefore(endDate) || currentDate.isEqual(endDate)) {
@@ -203,6 +194,18 @@ public class AttendanceService {
             }
         }
         return count;
+    }
+
+    private int countAllScheduleDays(List<SingleSchedule> singleSchedules, List<RepeatSchedule> repeatSchedules) {
+        // 1) 단일 일정 수
+        int count0 = singleSchedules.size();
+
+        // 2) 반복 일정 수
+        int count1 = 0;
+        for (RepeatSchedule repeatSchedule : repeatSchedules) {
+            count1 += calculate(repeatSchedule.getScheduleDate(), repeatSchedule.getRepeatEndDate(), repeatSchedule.getRepeatCycle(), repeatSchedule.getRepeatSituation());
+        }
+        return count0 + count1;
     }
 
     private void checkLeader(Long memberId, Long studyChannelId) {
