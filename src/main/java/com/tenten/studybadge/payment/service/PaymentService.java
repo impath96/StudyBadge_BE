@@ -2,10 +2,7 @@ package com.tenten.studybadge.payment.service;
 
 import com.tenten.studybadge.common.config.PaymentConfig;
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
-import com.tenten.studybadge.common.exception.payment.InvalidAmountException;
-import com.tenten.studybadge.common.exception.payment.NotEnoughPointException;
-import com.tenten.studybadge.common.exception.payment.NotFoundOrderException;
-import com.tenten.studybadge.common.exception.payment.NotMatchAmountException;
+import com.tenten.studybadge.common.exception.payment.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.payment.domain.entity.Payment;
@@ -135,7 +132,7 @@ public class PaymentService {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, CREATED_AT));
 
         List<Payment> payment = paymentRepository.findByCustomerId(memberId, pageRequest)
-                .orElseThrow(NotFoundMemberException::new);
+                .orElseThrow(NotFoundCustomerException::new);
 
         return  PaymentHistory.listToResponse(payment);
 
