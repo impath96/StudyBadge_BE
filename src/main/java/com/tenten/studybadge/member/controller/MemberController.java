@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import java.util.List;
+
 import static com.tenten.studybadge.common.constant.TokenConstant.AUTHORIZATION;
 import static com.tenten.studybadge.type.member.Platform.LOCAL;
 
@@ -84,6 +86,15 @@ public class MemberController {
 
         return ResponseEntity.ok(memberResponse);
     }
+    @Operation(summary = "내 스터디 정보", description = "회원이 참여 중인 스터디 목록", security = @SecurityRequirement(name = "bearerToken"))
+    @GetMapping("/my-study")
+    public ResponseEntity<List<MemberStudyList>> getMyStudy(@LoginUser Long memberId) {
+
+        List<MemberStudyList> studyList = memberService.getMyStudy(memberId);
+
+        return ResponseEntity.ok(studyList);
+    }
+
     @PutMapping("/my-info/update")
     public ResponseEntity<MemberResponse> memberUpdate(@LoginUser Long memberId,
                                                  @RequestPart("updateRequest") MemberUpdateRequest updateRequest,

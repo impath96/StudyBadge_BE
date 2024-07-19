@@ -7,13 +7,13 @@ import com.tenten.studybadge.common.exception.member.*;
 import com.tenten.studybadge.common.jwt.JwtTokenProvider;
 import com.tenten.studybadge.common.redis.RedisService;
 import com.tenten.studybadge.common.security.CustomUserDetails;
-import com.tenten.studybadge.member.dto.MemberLoginRequest;
-import com.tenten.studybadge.member.dto.MemberResponse;
-import com.tenten.studybadge.member.dto.MemberSignUpRequest;
+import com.tenten.studybadge.member.dto.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
-import com.tenten.studybadge.member.dto.MemberUpdateRequest;
+import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
+import com.tenten.studybadge.study.member.domain.entity.StudyMember;
+import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 import static com.tenten.studybadge.common.constant.TokenConstant.BEARER;
@@ -49,6 +52,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final StudyMemberRepository studyMemberRepository;
     @Transactional
     public void signUp(MemberSignUpRequest signUpRequest, Platform platform) {
 
@@ -161,6 +165,13 @@ public class MemberService {
         return MemberResponse.toResponse(member);
     }
 
+    public List<MemberStudyList> getMyStudy(Long memberId) {
+
+        List<StudyMember> studyMembers = studyMemberRepository.findByMemberId(memberId)
+                .orElseThrow(NotFoundMemberException::new);
+
+        return MemberStudyList.listToResponse(studyMembers);
+    }
 
     public MemberResponse memberUpdate(Long memberId, MemberUpdateRequest updateRequest, MultipartFile profile) {
 
