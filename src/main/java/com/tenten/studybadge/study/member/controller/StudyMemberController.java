@@ -2,15 +2,20 @@ package com.tenten.studybadge.study.member.controller;
 
 import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.study.member.dto.AssignRoleRequest;
+import com.tenten.studybadge.study.member.dto.ScheduleStudyMemberResponse;
 import com.tenten.studybadge.study.member.dto.StudyMembersResponse;
 import com.tenten.studybadge.study.member.service.StudyMemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,6 +42,29 @@ public class StudyMemberController {
             @Valid @RequestBody AssignRoleRequest assignRoleRequest) {
         studyMemberService.assignStudyLeaderRole(studyChannelId, principal.getId(), assignRoleRequest.getStudyMemberId());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/api/study-channels/{studyChannelId}/single-schedules/{scheduleId}/members")
+    public ResponseEntity<List<ScheduleStudyMemberResponse>> getStudyMembersSingleSchedule(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable Long studyChannelId,
+            @PathVariable Long scheduleId) {
+
+        return ResponseEntity.ok(
+                studyMemberService.getStudyMembersSingleSchedule(studyChannelId, scheduleId, principal.getId())
+        );
+    }
+
+    @GetMapping("/api/study-channels/{studyChannelId}/repeat-schedules/{scheduleId}/members")
+    public ResponseEntity<List<ScheduleStudyMemberResponse>> getStudyMembersRepeatSchedule(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable Long studyChannelId,
+            @PathVariable Long scheduleId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE, pattern = "yyyy-MM-dd") LocalDate date) {
+
+        return ResponseEntity.ok(
+                studyMemberService.getStudyMembersRepeatSchedule(studyChannelId, scheduleId, principal.getId(), date)
+        );
     }
 
 }
