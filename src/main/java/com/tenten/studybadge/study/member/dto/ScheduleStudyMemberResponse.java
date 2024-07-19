@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter
 @AllArgsConstructor
 @Builder
 public class ScheduleStudyMemberResponse {
@@ -15,6 +14,8 @@ public class ScheduleStudyMemberResponse {
     private Long studyMemberId;
     private String name;
     private String imageUrl;
+    @Setter
     private AttendanceStatus attendanceStatus;
+    @Setter
     private boolean isAttendance;
 }
