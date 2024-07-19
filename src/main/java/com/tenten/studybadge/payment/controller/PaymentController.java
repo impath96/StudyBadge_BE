@@ -6,16 +6,19 @@ import com.tenten.studybadge.payment.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/payments")
+@Tag(name = "Payment API", description = "결제와 관련된 요청, 성공, 실패, 취소, 조회할 수 있는 API")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -55,6 +58,18 @@ public class PaymentController {
                                                              @Valid @RequestBody PaymentCancelRequest cancelRequest) {
 
         Map<String, Object> response = paymentService.cancelPayment(memberId, cancelRequest);
+
+        return ResponseEntity.ok(response);
+    }
+    @Operation(summary = "결제 내역 조회", description = "결제 내역 조회 API", security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "page", description = "기본값 1")
+    @Parameter(name = "size", description = "기본값 10")
+    @GetMapping("/history")
+    public ResponseEntity<List<PaymentHistory>> paymentHistory(@LoginUser Long memberId,
+                                                               @RequestParam(name = "page", defaultValue = "1") int page,
+                                                               @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        List<PaymentHistory> response = paymentService.paymentHistory(memberId, page, size);
 
         return ResponseEntity.ok(response);
     }

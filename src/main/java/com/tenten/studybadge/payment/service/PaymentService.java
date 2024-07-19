@@ -2,10 +2,7 @@ package com.tenten.studybadge.payment.service;
 
 import com.tenten.studybadge.common.config.PaymentConfig;
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
-import com.tenten.studybadge.common.exception.payment.InvalidAmountException;
-import com.tenten.studybadge.common.exception.payment.NotEnoughPointException;
-import com.tenten.studybadge.common.exception.payment.NotFoundOrderException;
-import com.tenten.studybadge.common.exception.payment.NotMatchAmountException;
+import com.tenten.studybadge.common.exception.payment.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.payment.domain.entity.Payment;
@@ -13,6 +10,8 @@ import com.tenten.studybadge.payment.domain.repository.PaymentRepository;
 import com.tenten.studybadge.payment.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -22,6 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static com.tenten.studybadge.common.constant.PaymentConstant.*;
@@ -125,6 +125,20 @@ public class PaymentService {
                 .errorMessage(paymentFailRequest.getMessage())
                 .orderId(paymentFailRequest.getOrderId())
                 .build();
+    }
+
+    public List<PaymentHistory> paymentHistory(Long memberId, int page, int size) {
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, CREATED_AT));
+
+        List<Payment> payment = paymentRepository.findByCustomerId(memberId, pageRequest);
+
+        if (payment == null || payment.isEmpty())
+
+            throw new NotFoundCustomerException();
+
+        return  PaymentHistory.listToResponse(payment);
+
     }
 
     public Payment verifyPayment(String orderId, Long amount) {

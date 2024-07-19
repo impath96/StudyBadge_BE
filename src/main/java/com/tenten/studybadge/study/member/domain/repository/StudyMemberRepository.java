@@ -25,5 +25,5 @@ public interface StudyMemberRepository extends JpaRepository<StudyMember, Long> 
   
     Optional<StudyMember> findByMemberIdAndStudyChannelId(Long memberId, Long studyChannelId);
 
-    Optional<List<StudyMember>> findByMemberId(Long memberId);
+    List<StudyMember> findByMemberId(Long memberId);
 }
