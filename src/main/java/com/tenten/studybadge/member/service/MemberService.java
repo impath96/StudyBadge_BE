@@ -157,8 +157,10 @@ public class MemberService {
 
     public List<MemberStudyList> getMyStudy(Long memberId) {
 
-        List<StudyMember> studyMembers = studyMemberRepository.findByMemberId(memberId)
-                .orElseThrow(NotFoundMemberException::new);
+        List<StudyMember> studyMembers = studyMemberRepository.findByMemberId(memberId);
+        if (studyMembers == null || studyMembers.isEmpty())
+
+            throw new NotFoundMemberException();
 
         return MemberStudyList.listToResponse(studyMembers);
     }

@@ -131,8 +131,11 @@ public class PaymentService {
 
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, CREATED_AT));
 
-        List<Payment> payment = paymentRepository.findByCustomerId(memberId, pageRequest)
-                .orElseThrow(NotFoundCustomerException::new);
+        List<Payment> payment = paymentRepository.findByCustomerId(memberId, pageRequest);
+
+        if (payment == null || payment.isEmpty())
+
+            throw new NotFoundCustomerException();
 
         return  PaymentHistory.listToResponse(payment);
 
