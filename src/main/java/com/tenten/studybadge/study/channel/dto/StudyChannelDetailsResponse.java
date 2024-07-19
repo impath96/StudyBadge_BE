@@ -26,5 +26,6 @@ public class StudyChannelDetailsResponse {
     private int deposit;
     private String leaderName;
     private String subLeaderName;
+    private boolean isLeader;
 
 }
