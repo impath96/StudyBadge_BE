@@ -45,6 +45,9 @@ public class StudyMemberController {
     }
 
     @GetMapping("/api/study-channels/{studyChannelId}/single-schedules/{scheduleId}/members")
+    @Operation(summary = "특정 단일 일정의 스터디 멤버 정보 조회", description = "특정 단일 일정에 대한 스터디 멤버의 목록을 조회하는 API")
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    @Parameter(name = "scheduleId", description = "단일 일정 ID", deprecated = true)
     public ResponseEntity<List<ScheduleStudyMemberResponse>> getStudyMembersSingleSchedule(
             @AuthenticationPrincipal CustomUserDetails principal,
             @PathVariable Long studyChannelId,
@@ -56,6 +59,10 @@ public class StudyMemberController {
     }
 
     @GetMapping("/api/study-channels/{studyChannelId}/repeat-schedules/{scheduleId}/members")
+    @Operation(summary = "특정 반복 일정의 스터디 멤버 정보 조회", description = "특정 반복 일정에 대한 스터디 멤버의 목록을 조회하는 API")
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    @Parameter(name = "scheduleId", description = "반복 일정 ID", required = true)
+    @Parameter(name = "date", description = "특정 일정 날짜", required = true)
     public ResponseEntity<List<ScheduleStudyMemberResponse>> getStudyMembersRepeatSchedule(
             @AuthenticationPrincipal CustomUserDetails principal,
             @PathVariable Long studyChannelId,
