@@ -1,6 +1,7 @@
 package com.tenten.studybadge.member.controller;
 
 import com.tenten.studybadge.common.security.CustomUserDetails;
+import com.tenten.studybadge.common.security.LoginUser;
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
 import com.tenten.studybadge.common.token.dto.TokenDto;
 import com.tenten.studybadge.common.utils.CookieUtils;
@@ -77,28 +78,27 @@ public class MemberController {
     }
     @Operation(summary = "내 정보", description = "회원의 나의 정보", security = @SecurityRequirement(name = "bearerToken"))
     @GetMapping("/my-info")
-    public ResponseEntity<MemberResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails principal) {
+    public ResponseEntity<MemberResponse> getMyInfo(@LoginUser Long memberId) {
 
-        MemberResponse memberResponse = memberService.getMyInfo(principal.getId());
+        MemberResponse memberResponse = memberService.getMyInfo(memberId);
 
         return ResponseEntity.ok(memberResponse);
     }
     @PutMapping("/my-info/update")
-    public ResponseEntity<MemberResponse> memberUpdate(@AuthenticationPrincipal CustomUserDetails principal,
+    public ResponseEntity<MemberResponse> memberUpdate(@LoginUser Long memberId,
                                                  @RequestPart("updateRequest") MemberUpdateRequest updateRequest,
                                                  @RequestPart(value = "file", required = false) MultipartFile profile) {
 
-        memberService.memberUpdate(principal.getId(), updateRequest, profile);
+        memberService.memberUpdate(memberId, updateRequest, profile);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @DeleteMapping("/withdrawal")
-    public ResponseEntity<Void> withdrawal(@AuthenticationPrincipal CustomUserDetails principal) {
+    public ResponseEntity<Void> withdrawal(@LoginUser Long memberId) {
 
-        memberService.withdrawal(principal.getId());
+        memberService.withdrawal(memberId);
 
         return ResponseEntity.status(HttpStatus.OK).build();
-
     }
 }
