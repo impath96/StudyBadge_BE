@@ -1,6 +1,7 @@
 package com.tenten.studybadge.attendance.controller;
 
 import com.tenten.studybadge.attendance.dto.AttendanceCheckRequest;
+import com.tenten.studybadge.attendance.dto.AttendanceInfoResponse;
 import com.tenten.studybadge.attendance.service.AttendanceService;
 import com.tenten.studybadge.common.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,10 +12,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,4 +36,12 @@ public class AttendanceController {
         return ResponseEntity.ok().build();
 
     }
+
+    @GetMapping("/api/study-channels/{studyChannelId}/attendances")
+    @Operation(summary = "출석 현황 조회", description = "스터디 채널 내 멤버별 출석 현황을 조회하는 API", security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    public ResponseEntity<List<AttendanceInfoResponse>> getAttendanceRatio(@PathVariable Long studyChannelId, @AuthenticationPrincipal CustomUserDetails principal) {
+        return ResponseEntity.ok(attendanceService.getAttendanceRatioForStudyChannel(studyChannelId, principal.getId()));
+    }
+
 }
