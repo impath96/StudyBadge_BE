@@ -3,6 +3,7 @@ package com.tenten.studybadge.attendance.service;
 import com.tenten.studybadge.attendance.domain.entity.Attendance;
 import com.tenten.studybadge.attendance.domain.repository.AttendanceRepository;
 import com.tenten.studybadge.attendance.dto.AttendanceCheckRequest;
+import com.tenten.studybadge.attendance.dto.AttendanceInfoResponse;
 import com.tenten.studybadge.attendance.dto.AttendanceMember;
 import com.tenten.studybadge.common.exception.attendance.InvalidAttendanceCheckDateException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleException;
@@ -17,12 +18,16 @@ import com.tenten.studybadge.schedule.domain.repository.SingleScheduleRepository
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.attendance.AttendanceStatus;
+import com.tenten.studybadge.type.schedule.RepeatCycle;
+import com.tenten.studybadge.type.schedule.RepeatSituation;
 import com.tenten.studybadge.type.schedule.ScheduleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -46,6 +51,56 @@ public class AttendanceService {
         } else {
             checkAttendanceForRepeatSchedule(attendanceCheckRequest);
         }
+    }
+
+    public List<AttendanceInfoResponse> getAttendanceRatio(Long studyChannelId, Long memberId) {
+
+        studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId).orElseThrow(NotStudyMemberException::new);
+        List<StudyMember> studyMembers = studyMemberRepository.findAllByStudyChannelIdWithMember(studyChannelId);
+        List<SingleSchedule> singleSchedules = singleScheduleRepository.findAllByStudyChannelId(studyChannelId);
+        List<RepeatSchedule> repeatSchedules = repeatScheduleRepository.findAllByStudyChannelId(studyChannelId);
+
+        // 1) 단일 일정 수
+        int count0 = singleSchedules.size();
+
+        // 2) 반복 일정 수
+        int count1 = 0;
+        for (RepeatSchedule repeatSchedule : repeatSchedules) {
+            count1 += calculate(repeatSchedule.getScheduleDate(), repeatSchedule.getRepeatEndDate(), repeatSchedule.getRepeatCycle(), repeatSchedule.getRepeatSituation());
+        }
+
+        int total = count0 + count1;
+
+        // 스터디 멤버 별 총 출석 일수
+        Map<Long, Long> studyMemberAttendanceCountMap = new HashMap<>();
+        for (RepeatSchedule repeatSchedule : repeatSchedules) {
+            List<Attendance> repeatScheduleAttendances = attendanceRepository.findAllByRepeatScheduleId(repeatSchedule.getId());
+            Map<Long, List<Attendance>> listMap = repeatScheduleAttendances.stream().collect(Collectors.groupingBy(Attendance::getStudyMemberId));
+
+            for (Map.Entry<Long, List<Attendance>> entry : listMap.entrySet()) {
+                Long studyMemberId = entry.getKey();
+                List<Attendance> attendances = entry.getValue();
+
+                long count = attendances.stream().filter(attendance -> attendance.getAttendanceStatus().equals(AttendanceStatus.ATTENDANCE)).count();
+                studyMemberAttendanceCountMap.put(studyMemberId, studyMemberAttendanceCountMap.getOrDefault(studyMemberId, 0L) + count);
+            }
+
+        }
+        List<AttendanceInfoResponse> attendanceInfoResponses = new ArrayList<>();
+
+        for (StudyMember studyMember : studyMembers) {
+            long count = studyMemberAttendanceCountMap.get(studyMember.getId());
+            double attendanceRatio = (double) count * 100 / total;
+            attendanceInfoResponses.add(AttendanceInfoResponse.builder()
+                    .memberId(studyMember.getMember().getId())
+                    .studyMemberId(studyMember.getId())
+                    .name(studyMember.getMember().getName())
+                    .imageUrl(studyMember.getMember().getImgUrl())
+                    .attendanceCount(count)
+                    .attendanceRatio(attendanceRatio)
+                    .build());
+        }
+        return attendanceInfoResponses;
     }
 
     private void checkAttendanceForSingleSchedule(AttendanceCheckRequest attendanceCheckRequest) {
@@ -127,6 +182,28 @@ public class AttendanceService {
         attendanceRepository.saveAll(attendances);
     }
 
+    public int calculate(LocalDate startDate, LocalDate endDate, RepeatCycle repeatCycle, RepeatSituation repeatSituation) {
+        LocalDate currentDate = startDate;
+        int count = 0;
+        while (currentDate.isBefore(endDate) || currentDate.isEqual(endDate)) {
+            count++;
+            switch (repeatCycle) {
+                case DAILY: {
+                    currentDate = currentDate.plusDays(1);
+                    break;
+                }
+                case WEEKLY: {
+                    currentDate = currentDate.plusWeeks(1);
+                    break;
+                }
+                case MONTHLY: {
+                    currentDate = currentDate.plusMonths((Integer) repeatSituation.getDescription());
+                    break;
+                }
+            }
+        }
+        return count;
+    }
 
     private void checkLeader(Long memberId, Long studyChannelId) {
         StudyMember studyMember = studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId).orElseThrow(NotStudyMemberException::new);
