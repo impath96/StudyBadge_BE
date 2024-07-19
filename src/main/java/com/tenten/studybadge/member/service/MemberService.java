@@ -6,12 +6,10 @@ import com.tenten.studybadge.common.exception.InvalidTokenException;
 import com.tenten.studybadge.common.exception.member.*;
 import com.tenten.studybadge.common.jwt.JwtTokenProvider;
 import com.tenten.studybadge.common.redis.RedisService;
-import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.member.dto.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
-import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.member.MemberStatus;
@@ -19,23 +17,15 @@ import com.tenten.studybadge.type.member.Platform;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 import static com.tenten.studybadge.common.constant.TokenConstant.BEARER;

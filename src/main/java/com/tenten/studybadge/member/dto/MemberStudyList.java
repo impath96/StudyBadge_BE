@@ -1,6 +1,5 @@
 package com.tenten.studybadge.member.dto;
 
-import com.tenten.studybadge.common.exception.studychannel.NotStudyMemberException;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;

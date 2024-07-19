@@ -1,6 +1,5 @@
 package com.tenten.studybadge.member.controller;
 
-import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.common.security.LoginUser;
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
 import com.tenten.studybadge.common.token.dto.TokenDto;
@@ -18,7 +17,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -94,7 +92,8 @@ public class MemberController {
 
         return ResponseEntity.ok(studyList);
     }
-
+    @Operation(summary = "회원 정보 수정", description = "회원 정보 수정", security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "updateRequest", description = "회원 정보를 수정할 요청 값")
     @PutMapping("/my-info/update")
     public ResponseEntity<MemberResponse> memberUpdate(@LoginUser Long memberId,
                                                  @RequestPart("updateRequest") MemberUpdateRequest updateRequest,
@@ -104,7 +103,7 @@ public class MemberController {
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
-
+    @Operation(summary = "회원 탈퇴", description = "회원 상태를 탈퇴상태로 변경하는 API", security = @SecurityRequirement(name = "bearerToken"))
     @DeleteMapping("/withdrawal")
     public ResponseEntity<Void> withdrawal(@LoginUser Long memberId) {
 
