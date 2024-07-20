@@ -33,4 +33,8 @@ public class Attendance extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private AttendanceStatus attendanceStatus;
 
+    public boolean isAttendance() {
+        return this.attendanceStatus.equals(AttendanceStatus.ATTENDANCE);
+    }
+
 }
