@@ -19,10 +19,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+@Getter
+@ToString
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification extends BaseEntity {
@@ -68,7 +72,7 @@ public class Notification extends BaseEntity {
 
     public NotificationResponse toResponse() {
         return NotificationResponse.builder()
-            .id(this.id)
+            .notificationId(this.id)
             .receiverId(this.receiver.getId())
             .notificationType(this.notificationType.getDescription())
             .content(this.getContent())
