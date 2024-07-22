@@ -3,6 +3,7 @@ package com.tenten.studybadge.common.oauth2;
 import com.tenten.studybadge.common.jwt.JwtTokenCreator;
 import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.common.token.dto.TokenDto;
+import com.tenten.studybadge.common.token.service.TokenService;
 import com.tenten.studybadge.common.utils.CookieUtils;
 import com.tenten.studybadge.member.domain.type.MemberRole;
 import com.tenten.studybadge.type.member.MemberStatus;
@@ -30,6 +31,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
 
     private final JwtTokenCreator jwtTokenCreator;
+    private final TokenService tokenService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -56,7 +58,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private void loginSuccess(HttpServletResponse response, CustomUserDetails userDetails) throws IOException {
 
 
-        TokenDto tokenDto = jwtTokenCreator.createToken(String.valueOf(userDetails.getId()), userDetails.getRole(), userDetails.getPlatform());
+        TokenDto tokenDto = tokenService.create(String.valueOf(userDetails.getId()), userDetails.getRole(), userDetails.getPlatform());
 
        String redirectUrl = UriComponentsBuilder.fromUriString(LOGIN_REDIRECT_URI)
                 .queryParam(ACCESS_TOKEN, tokenDto.getAccessToken())
@@ -65,9 +67,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         ResponseCookie refreshCookie = CookieUtils.addCookie(tokenDto.getRefreshToken());
         String authorizationHeader = BEARER + tokenDto.getAccessToken();
 
-        response.sendRedirect(redirectUrl);
         response.addHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-
+        response.sendRedirect(redirectUrl);
     }
 }

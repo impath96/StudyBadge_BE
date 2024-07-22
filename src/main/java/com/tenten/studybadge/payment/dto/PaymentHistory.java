@@ -18,6 +18,8 @@ public class PaymentHistory {
 
     private Long amount;
 
+    private String paymentKey;
+
 
     public static List<PaymentHistory> listToResponse(List<Payment> payment) {
 
@@ -28,6 +30,7 @@ public class PaymentHistory {
 
         return PaymentHistory.builder()
                 .amount(payment.getAmount())
+                .paymentKey(payment.getPaymentKey())
                 .createdAt(payment.getCreatedAt())
                 .build();
     }
