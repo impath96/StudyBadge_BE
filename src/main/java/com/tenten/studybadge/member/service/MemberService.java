@@ -4,12 +4,15 @@ import com.tenten.studybadge.common.component.AwsS3Service;
 import com.tenten.studybadge.common.email.MailService;
 import com.tenten.studybadge.common.exception.InvalidTokenException;
 import com.tenten.studybadge.common.exception.member.*;
+import com.tenten.studybadge.common.exception.participation.NotFoundParticipationException;
 import com.tenten.studybadge.common.jwt.JwtTokenProvider;
 import com.tenten.studybadge.common.redis.RedisService;
 import com.tenten.studybadge.member.dto.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
+import com.tenten.studybadge.participation.domain.entity.Participation;
+import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.member.MemberStatus;
@@ -43,6 +46,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final StudyMemberRepository studyMemberRepository;
+    private final ParticipationRepository participationRepository;
     @Transactional
     public void signUp(MemberSignUpRequest signUpRequest, Platform platform) {
 
@@ -163,6 +167,17 @@ public class MemberService {
             throw new NotFoundMemberException();
 
         return MemberStudyList.listToResponse(studyMembers);
+    }
+
+    public List<MemberApplyList> getMyApply(Long memberId) {
+
+        List<Participation> participationList = participationRepository.findByMemberId(memberId);
+        if (participationList == null || participationList.isEmpty())
+
+            throw new NotFoundParticipationException();
+
+        return MemberApplyList.listToResponse(participationList);
+
     }
 
     public MemberResponse memberUpdate(Long memberId, MemberUpdateRequest updateRequest, MultipartFile profile) {
