@@ -28,6 +28,6 @@ public class NotificationController {
     @Parameter(name = "Last-Event-ID", description = "마지막 event id, 필수는 아님" )
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails memberDetails,
         @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
-        return notificationService.subscribe(2L, lastEventId);
+        return notificationService.subscribe(memberDetails.getId(), lastEventId);
     }
 }

@@ -41,12 +41,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests( requests -> requests
                         .requestMatchers("/api/members/sign-up", "/api/members/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/members/login/**", "/error", "/health-check").permitAll()
                         .requestMatchers("/api/token/oauth2/**", "/favicon.ico", "/oauth2/**").permitAll()
-                    // TODO : 로그인이 연결되면 user 권한으로 이동
-                    .requestMatchers("/api/notifications/subscribe").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/study-channels", "/api/study-channels/{studyChannelId:\\d+}").permitAll()
                         .requestMatchers("/api/members/logout", "api/study-channels/*/places", "/api/study-channels/**", "/api/token/re-issue"
                                 , "/api/members/my-info", "/api/members/my-info/update", "/api/payments/**",
-                            "/api/study-channels/*/schedules/**").hasRole("USER"))
+                            "/api/study-channels/*/schedules/**", "/api/notifications/subscribe").hasRole("USER"))
 
                 .cors(cors -> new CorsConfig())
                 .headers(headers -> headers // h2-console 페이지 접속을 위한 설정
