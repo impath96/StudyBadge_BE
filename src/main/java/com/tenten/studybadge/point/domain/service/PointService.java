@@ -27,9 +27,4 @@ public class PointService {
 
         return PointResponse.listToResponse(point);
     }
-
-    public void usePoint() {
-
-
-    }
 }

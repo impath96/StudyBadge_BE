@@ -8,6 +8,8 @@ import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.payment.domain.entity.Payment;
 import com.tenten.studybadge.payment.domain.repository.PaymentRepository;
 import com.tenten.studybadge.payment.dto.*;
+import com.tenten.studybadge.point.domain.entity.Point;
+import com.tenten.studybadge.point.domain.repository.PointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +27,10 @@ import java.util.List;
 import java.util.Map;
 
 import static com.tenten.studybadge.common.constant.PaymentConstant.*;
+import static com.tenten.studybadge.type.point.PointHistoryType.DEDUCTED;
+import static com.tenten.studybadge.type.point.PointHistoryType.EARNED;
+import static com.tenten.studybadge.type.point.TransferType.PAYMENT_CANCEL;
+import static com.tenten.studybadge.type.point.TransferType.PAYMENT_CHARGE;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +39,7 @@ public class PaymentService {
     private final MemberRepository memberRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentConfig paymentConfig;
+    private final PointRepository pointRepository;
 
     public PaymentResponse requestPayment(Long memberId, PaymentRequest paymentRequest) {
 
@@ -69,6 +76,14 @@ public class PaymentService {
                 .build();
         paymentRepository.save(updatedPayment);
 
+        Point updatedPoint = Point.builder()
+                .amount(confirmRequest.getAmount())
+                .historyType(EARNED)
+                .transferType(PAYMENT_CHARGE)
+                .member(payment.getCustomer())
+                .build();
+        pointRepository.save(updatedPoint);
+
         return result;
     }
     @Transactional
@@ -90,6 +105,14 @@ public class PaymentService {
                     .point((int) (payment.getCustomer().getPoint() - payment.getAmount()))
                     .build();
             memberRepository.save(updatedMember);
+
+            Point updatedPoint = Point.builder()
+                    .amount(-payment.getAmount())
+                    .historyType(DEDUCTED)
+                    .transferType(PAYMENT_CANCEL)
+                    .member(payment.getCustomer())
+                    .build();
+            pointRepository.save(updatedPoint);
 
             return requestCancelPayment(cancelRequest);
         }
