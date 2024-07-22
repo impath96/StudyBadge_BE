@@ -9,13 +9,21 @@ import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.participation.dto.StudyChannelParticipationStatusResponse;
+import com.tenten.studybadge.point.domain.entity.Point;
+import com.tenten.studybadge.point.domain.repository.PointRepository;
 import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
+import com.tenten.studybadge.study.deposit.domain.entity.StudyChannelDeposit;
+import com.tenten.studybadge.study.deposit.domain.repository.StudyChannelDepositRepository;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
+import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.member.BadgeLevel;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
+import com.tenten.studybadge.type.point.PointHistoryType;
+import com.tenten.studybadge.type.point.TransferType;
 import com.tenten.studybadge.type.study.channel.RecruitmentStatus;
+import com.tenten.studybadge.type.study.deposit.DepositStatus;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -50,6 +58,15 @@ class StudyChannelParticipationServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private StudyMemberRepository studyMemberRepository;
+
+    @Mock
+    private PointRepository pointRepository;
+
+    @Mock
+    private StudyChannelDepositRepository studyChannelDepositRepository;
 
     @DisplayName("[스터디 채널 참가 신청 테스트]")
     @Nested
@@ -243,11 +260,12 @@ class StudyChannelParticipationServiceTest {
         void success_approveStudyChannelParticipation() {
 
             //given
-            Member member = Member.builder().id(1L).build();
+            Member member = Member.builder().id(1L).point(30_000).build();
             Member leader = Member.builder().id(2L).build();
 
             StudyChannel studyChannel = StudyChannel.builder()
                     .id(1L)
+                    .deposit(10_000)
                     .build();
 
             StudyMember studyMember = StudyMember.builder()
@@ -269,9 +287,39 @@ class StudyChannelParticipationServiceTest {
             //when
             studyChannelParticipationService.approve(1L, 1L, 2L);
 
+            ArgumentCaptor<StudyMember> studyMemberCaptor = ArgumentCaptor.forClass(StudyMember.class);
+            ArgumentCaptor<Point> pointCaptor = ArgumentCaptor.forClass(Point.class);
+            ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
+            ArgumentCaptor<StudyChannelDeposit> studyChannelDepositCaptor = ArgumentCaptor.forClass(StudyChannelDeposit.class);
+
+            verify(studyMemberRepository, times(1)).save(studyMemberCaptor.capture());
+            verify(pointRepository, times(1)).save(pointCaptor.capture());
+            verify(memberRepository, times(1)).save(memberCaptor.capture());
+            verify(studyChannelDepositRepository, times(1)).save(studyChannelDepositCaptor.capture());
+
+            StudyMember studyMemberCaptorValue = studyMemberCaptor.getValue();
+            Point pointCaptorValue = pointCaptor.getValue();
+            Member memberCaptorValue = memberCaptor.getValue();
+            StudyChannelDeposit studyChannelDepositValue = studyChannelDepositCaptor.getValue();
+
             //then
             assertThat(participation.getParticipationStatus()).isEqualTo(ParticipationStatus.APPROVED);
-            assertThat(studyChannel.getStudyMembers().size()).isEqualTo(2);
+            assertThat(studyMemberCaptorValue.getStudyChannel().getId()).isEqualTo(1L);
+            assertThat(studyMemberCaptorValue.getMember().getId()).isEqualTo(1L);
+            assertThat(studyMemberCaptorValue.getStudyMemberRole()).isEqualTo(StudyMemberRole.STUDY_MEMBER);
+
+            assertThat(pointCaptorValue.getMember().getId()).isEqualTo(1L);
+            assertThat(pointCaptorValue.getAmount()).isEqualTo(10_000);
+            assertThat(pointCaptorValue.getHistoryType()).isEqualTo(PointHistoryType.SPENT);
+            assertThat(pointCaptorValue.getTransferType()).isEqualTo(TransferType.STUDY_DEPOSIT);
+
+            assertThat(memberCaptorValue.getId()).isEqualTo(1L);
+            assertThat(memberCaptorValue.getPoint()).isEqualTo(20_000);
+
+            assertThat(studyChannelDepositValue.getStudyChannel().getId()).isEqualTo(1L);
+            assertThat(studyChannelDepositValue.getMember().getId()).isEqualTo(1L);
+            assertThat(studyChannelDepositValue.getDepositStatus()).isEqualTo(DepositStatus.DEPOSIT);
+            assertThat(studyChannelDepositValue.getAmount()).isEqualTo(10_000);
 
         }
 
