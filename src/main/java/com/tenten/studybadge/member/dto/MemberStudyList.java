@@ -28,6 +28,7 @@ public class MemberStudyList {
     }
 
     public static MemberStudyList toResponse(StudyChannel studyChannel, StudyMember studyMember) {
+
         return MemberStudyList.builder()
                 .studyName(studyChannel.getName())
                 .studyId(studyChannel.getId())

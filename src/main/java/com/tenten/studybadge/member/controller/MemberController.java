@@ -92,6 +92,14 @@ public class MemberController {
 
         return ResponseEntity.ok(studyList);
     }
+    @Operation(summary = "내 스터디 신청 정보", description = "회원이 신청한 스터디 목록", security = @SecurityRequirement(name = "bearerToken"))
+    @GetMapping("/my-apply")
+    public ResponseEntity<List<MemberApplyList>> getMyApply(@LoginUser Long memberId) {
+
+        List<MemberApplyList> applyList = memberService.getMyApply(memberId);
+
+        return ResponseEntity.ok(applyList);
+    }
     @Operation(summary = "회원 정보 수정", description = "회원 정보 수정", security = @SecurityRequirement(name = "bearerToken"))
     @Parameter(name = "updateRequest", description = "회원 정보를 수정할 요청 값")
     @PutMapping("/my-info/update")
