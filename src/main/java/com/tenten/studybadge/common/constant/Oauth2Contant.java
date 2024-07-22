@@ -24,7 +24,7 @@ public class Oauth2Contant {
 
     public static final String OAUTH2_PASSWORD = "SNS";
 
-    public static final String LOGIN_REDIRECT_URI = "/api/token/oauth2";
+    public static final String LOGIN_REDIRECT_URI = "http://localhost:5173/oauth2/callback";
 
     public static final String SIGN_UP_REDIRECT_URI = "/oauth2/sign-up";
 
