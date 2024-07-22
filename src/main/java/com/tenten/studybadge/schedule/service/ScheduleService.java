@@ -69,6 +69,7 @@ public class ScheduleService {
 
         SingleSchedule saveSingleSchedule = singleScheduleRepository.save(createSingleScheduleFromRequest(
             singleScheduleCreateRequest, studyChannel));
+
         sendNotificationForScheduleCreate(studyChannelId, saveSingleSchedule.getId(),
             saveSingleSchedule.getScheduleDate(), NotificationType.SCHEDULE_CREATE,
             SINGLE_SCHEDULE_URL, SINGLE_SCHEDULE_CREATE);
@@ -86,6 +87,7 @@ public class ScheduleService {
 
         RepeatSchedule saveRepeatSchedule = repeatScheduleRepository.save(
             createRepeatScheduleFromRequest(repeatScheduleCreateRequest, studyChannel));
+
 
         sendNotificationForScheduleCreate(studyChannelId, saveRepeatSchedule.getId(),
             saveRepeatSchedule.getScheduleDate(), NotificationType.SCHEDULE_CREATE,
@@ -483,6 +485,7 @@ public class ScheduleService {
             throw new NotStudyLeaderException();
         }
     }
+  
     private boolean isNotIncluded(LocalDate selectedDate, LocalDate repeatStartDate
         , LocalDate repeatEndDate) {
         return (selectedDate.isAfter(repeatEndDate) || selectedDate.isBefore(repeatStartDate));

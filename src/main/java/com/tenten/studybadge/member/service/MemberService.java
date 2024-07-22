@@ -4,34 +4,30 @@ import com.tenten.studybadge.common.component.AwsS3Service;
 import com.tenten.studybadge.common.email.MailService;
 import com.tenten.studybadge.common.exception.InvalidTokenException;
 import com.tenten.studybadge.common.exception.member.*;
+import com.tenten.studybadge.common.exception.participation.NotFoundParticipationException;
 import com.tenten.studybadge.common.jwt.JwtTokenProvider;
 import com.tenten.studybadge.common.redis.RedisService;
-import com.tenten.studybadge.common.security.CustomUserDetails;
-import com.tenten.studybadge.member.dto.MemberLoginRequest;
-import com.tenten.studybadge.member.dto.MemberResponse;
-import com.tenten.studybadge.member.dto.MemberSignUpRequest;
+import com.tenten.studybadge.member.dto.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
-import com.tenten.studybadge.member.dto.MemberUpdateRequest;
+import com.tenten.studybadge.participation.domain.entity.Participation;
+import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
+import com.tenten.studybadge.study.member.domain.entity.StudyMember;
+import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -49,6 +45,8 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final StudyMemberRepository studyMemberRepository;
+    private final ParticipationRepository participationRepository;
     @Transactional
     public void signUp(MemberSignUpRequest signUpRequest, Platform platform) {
 
@@ -161,6 +159,26 @@ public class MemberService {
         return MemberResponse.toResponse(member);
     }
 
+    public List<MemberStudyList> getMyStudy(Long memberId) {
+
+        List<StudyMember> studyMembers = studyMemberRepository.findByMemberId(memberId);
+        if (studyMembers == null || studyMembers.isEmpty())
+
+            throw new NotFoundMemberException();
+
+        return MemberStudyList.listToResponse(studyMembers);
+    }
+
+    public List<MemberApplyList> getMyApply(Long memberId) {
+
+        List<Participation> participationList = participationRepository.findByMemberId(memberId);
+        if (participationList == null || participationList.isEmpty())
+
+            throw new NotFoundParticipationException();
+
+        return MemberApplyList.listToResponse(participationList);
+
+    }
 
     public MemberResponse memberUpdate(Long memberId, MemberUpdateRequest updateRequest, MultipartFile profile) {
 

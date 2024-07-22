@@ -66,7 +66,7 @@ public class StudyChannel extends BaseEntity {
     }
 
     public boolean isLeader(Member member) {
-        return studyMembers.stream()
+        return (member != null) && studyMembers.stream()
                 .anyMatch(studyMember -> studyMember.getMember().getId().equals(member.getId()) && studyMember.isLeader());
     }
 
@@ -123,6 +123,7 @@ public class StudyChannel extends BaseEntity {
                 .startDate(this.studyDuration.getStudyStartDate())
                 .endDate(this.studyDuration.getStudyEndDate())
                 .capacity(this.recruitment.getRecruitmentNumber())
+                .isLeader(isLeader(member))
                 .leaderName(leader.getMember().getName())
                 .subLeaderName(Objects.requireNonNullElse(subLeader, leader).getMember().getName());
 
