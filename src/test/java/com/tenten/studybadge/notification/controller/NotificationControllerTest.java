@@ -72,6 +72,9 @@ public class NotificationControllerTest {
     @Mock
     private SecurityContext securityContext;
 
+    private Notification notificationScheduleCreate;
+    private Notification notificationScheduleDelete;
+
     @BeforeEach
     public void setup() throws Exception {
         mockMvc = MockMvcBuilders.
@@ -82,15 +85,9 @@ public class NotificationControllerTest {
         when(authentication.getPrincipal()).thenReturn(customUserDetails);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-    }
 
-    @Test
-    @DisplayName("특정 사용자(member id: 1의 전체 알림 조회 성공")
-    @WithMockUser(username = "testuser", roles = "USER")
-    public void testGetNotifications() throws Exception {
-        // given
         Long memberId = 1L;
-        Notification notification1 = Notification.builder()
+        notificationScheduleCreate =  Notification.builder()
             .content("일정 생성 알림")
             .url("관련 url")
             .isRead(false)
@@ -100,7 +97,8 @@ public class NotificationControllerTest {
                 .role(MemberRole.USER)
                 .build())
             .build();
-        Notification notification2 = Notification.builder()
+
+        notificationScheduleDelete = Notification.builder()
             .content("일정 삭제 알림")
             .url("관련 url")
             .isRead(false)
@@ -110,8 +108,15 @@ public class NotificationControllerTest {
                 .role(MemberRole.USER)
                 .build())
             .build();
+    }
 
-        List<Notification> notifications = Arrays.asList(notification1, notification2);
+    @Test
+    @DisplayName("특정 사용자(member id: 1의 전체 알림 조회 성공")
+    @WithMockUser(username = "testuser", roles = "USER")
+    public void testGetNotifications() throws Exception {
+        // given
+
+        List<Notification> notifications = Arrays.asList(notificationScheduleCreate, notificationScheduleDelete);
         List<NotificationResponse> notificationResponses = notifications.stream()
             .map(Notification::toResponse)
             .collect(Collectors.toList());
@@ -119,8 +124,8 @@ public class NotificationControllerTest {
         when(loginUserArgumentResolver.supportsParameter(any())).thenReturn(true);
         when(loginUserArgumentResolver.resolveArgument(any(), any(), any(), any()))
             .thenReturn(1L);
-        when(customUserDetails.getId()).thenReturn(memberId);
-        when(notificationService.getNotifications(memberId))
+        when(customUserDetails.getId()).thenReturn(1L);
+        when(notificationService.getNotifications(1L))
             .thenReturn(notifications);
 
         // when & then
