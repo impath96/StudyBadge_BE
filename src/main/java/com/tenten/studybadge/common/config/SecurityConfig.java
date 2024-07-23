@@ -40,10 +40,12 @@ public class SecurityConfig implements WebMvcConfigurer {
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final LoginUserArgumentResolver loginUserArgumentResolver;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+  
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+  
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -54,8 +56,9 @@ public class SecurityConfig implements WebMvcConfigurer {
                         .requestMatchers(HttpMethod.GET, "/api/study-channels", "/api/study-channels/{studyChannelId:\\d+}").permitAll()
                         .requestMatchers("/api/members/logout", "api/study-channels/*/places", "/api/study-channels/**", "/api/token/re-issue"
                                 , "/api/members/my-info", "/api/members/my-info/update", "/api/payments/**",
-                            "/api/study-channels/*/schedules/**", "/api/points/my-point/**", "/api/members/my-apply/**").hasRole("USER"))
+                            "/api/study-channels/*/schedules/**", "/api/points/my-point/**", "/api/members/my-apply/**", "/api/notifications/subscribe").hasRole("USER"))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint))
+
                 .cors(cors -> new CorsConfig())
                 .headers(headers -> headers // h2-console 페이지 접속을 위한 설정
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)

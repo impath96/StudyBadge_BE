@@ -15,6 +15,7 @@ import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.member.domain.entity.Member;
+import com.tenten.studybadge.notification.service.NotificationService;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
@@ -58,6 +59,9 @@ class ScheduleServiceTest {
     private RepeatScheduleRepository repeatScheduleRepository;
     @Mock
     private StudyChannelRepository studyChannelRepository;
+    @Mock
+    private NotificationService notificationService;
+
 
     @Mock
     private StudyMemberRepository studyMemberRepository;
@@ -749,20 +753,24 @@ class ScheduleServiceTest {
     @Nested
     class ScheduleEditTest2 {
 
-        private RepeatSchedule repeatDailySchedule =
-            RepeatSchedule.withoutIdBuilder()
-            .scheduleName("7월 1일 부터 15일까지 매일 반복 일정")
-            .scheduleContent("Content for repeat meeting")
-            .scheduleDate(LocalDate.of(2024, 9, 1))
-            .scheduleStartTime(LocalTime.of(10, 0))
-            .scheduleEndTime(LocalTime.of(11, 0))
-            .repeatCycle(RepeatCycle.DAILY)
-            .repeatSituation(RepeatSituation.EVERYDAY)
-            .repeatEndDate(LocalDate.of(2024, 12, 29))
-            .isRepeated(true)
-            .studyChannel(studyChannel)
-            .placeId(null)
-            .build();
+        private RepeatSchedule repeatDailySchedule;
+
+        @BeforeEach
+        public void setUp() {
+            repeatDailySchedule = RepeatSchedule.withoutIdBuilder()
+                .scheduleName("7월 1일 부터 15일까지 매일 반복 일정")
+                .scheduleContent("Content for repeat meeting")
+                .scheduleDate(LocalDate.of(2024, 9, 1))
+                .scheduleStartTime(LocalTime.of(10, 0))
+                .scheduleEndTime(LocalTime.of(11, 0))
+                .repeatCycle(RepeatCycle.DAILY)
+                .repeatSituation(RepeatSituation.EVERYDAY)
+                .repeatEndDate(LocalDate.of(2024, 12, 29))
+                .isRepeated(true)
+                .studyChannel(studyChannel) // Ensure studyChannel is set
+                .placeId(null)
+                .build();
+        }
 
         @Test
         @DisplayName("일정 수정 실패(반복 일정 -> 단일 일정) - 스터디 리더가 아님")

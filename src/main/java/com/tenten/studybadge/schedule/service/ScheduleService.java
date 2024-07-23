@@ -1,5 +1,13 @@
 package com.tenten.studybadge.schedule.service;
 
+import static com.tenten.studybadge.common.constant.NotificationConstant.REPEAT_SCHEDULE_CREATE;
+import static com.tenten.studybadge.common.constant.NotificationConstant.REPEAT_SCHEDULE_DELETE;
+import static com.tenten.studybadge.common.constant.NotificationConstant.REPEAT_SCHEDULE_URL;
+import static com.tenten.studybadge.common.constant.NotificationConstant.SINGLE_SCHEDULE_CREATE;
+import static com.tenten.studybadge.common.constant.NotificationConstant.SINGLE_SCHEDULE_DELETE;
+import static com.tenten.studybadge.common.constant.NotificationConstant.SINGLE_SCHEDULE_URL;
+
+import com.tenten.studybadge.common.constant.NotificationConstant;
 import com.tenten.studybadge.common.exception.schedule.CanNotDeleteForBeforeDateException;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatScheduleEditRequestException;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatSituationException;
@@ -13,8 +21,7 @@ import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyMemberException;
-//import com.tenten.studybadge.notification.service.NotificationService;
-import com.tenten.studybadge.schedule.domain.Schedule;
+import com.tenten.studybadge.notification.service.NotificationService;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
@@ -30,12 +37,13 @@ import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
-//import com.tenten.studybadge.type.notification.NotificationType;
+import com.tenten.studybadge.type.notification.NotificationType;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
 import com.tenten.studybadge.type.schedule.RepeatSituation;
 import com.tenten.studybadge.type.schedule.ScheduleType;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,7 +60,7 @@ public class ScheduleService {
     private final StudyChannelRepository studyChannelRepository;
     private final StudyMemberRepository studyMemberRepository;
 
-//    private final NotificationService notificationService;
+    private final NotificationService notificationService;
 
     public void postSingleSchedule(SingleScheduleCreateRequest singleScheduleCreateRequest, Long studyChannelId) {
         StudyChannel studyChannel = validateStudyChannel(studyChannelId);
@@ -61,10 +69,10 @@ public class ScheduleService {
 
         SingleSchedule saveSingleSchedule = singleScheduleRepository.save(createSingleScheduleFromRequest(
             singleScheduleCreateRequest, studyChannel));
-        log.info("단일 일정이 생성 되었습니다. studyChannelId: {}", studyChannelId);
-        String url = String.format("/api/study-channels/%d/repeat-schedules/%d", studyChannelId, saveSingleSchedule.getId());
-//        notificationService.sendNotificationToStudyChannel(studyChannelId,
-//            NotificationType.SCHEDULE_CREATE, "새로운 단일 일정이 등록되었습니다.", url);
+
+        sendNotificationForScheduleCreate(studyChannelId, saveSingleSchedule.getId(),
+            saveSingleSchedule.getScheduleDate(), NotificationType.SCHEDULE_CREATE,
+            SINGLE_SCHEDULE_URL, SINGLE_SCHEDULE_CREATE);
     }
 
     public void postRepeatSchedule(RepeatScheduleCreateRequest repeatScheduleCreateRequest, Long studyChannelId) {
@@ -79,10 +87,11 @@ public class ScheduleService {
 
         RepeatSchedule saveRepeatSchedule = repeatScheduleRepository.save(
             createRepeatScheduleFromRequest(repeatScheduleCreateRequest, studyChannel));
-        String url = String.format("/api/study-channels/%d/repeat-schedules/%d", studyChannelId, saveRepeatSchedule.getId());
-        log.info("반복 일정이 생성 되었습니다. studyChannelId: {}", studyChannelId);
-//        notificationService.sendNotificationToStudyChannel(studyChannelId,
-//            NotificationType.SCHEDULE_CREATE, "새로운 반복 일정이 등록되었습니다.", url);
+
+
+        sendNotificationForScheduleCreate(studyChannelId, saveRepeatSchedule.getId(),
+            saveRepeatSchedule.getScheduleDate(), NotificationType.SCHEDULE_CREATE,
+            REPEAT_SCHEDULE_URL, REPEAT_SCHEDULE_CREATE);
     }
 
     public List<ScheduleResponse> getSchedulesInStudyChannel(
@@ -192,6 +201,10 @@ public class ScheduleService {
 
         singleSchedule.updateSingleSchedule(editRequestToSingleSchedule);
         singleScheduleRepository.save(singleSchedule);
+
+        sendNotificationForScheduleUpdateOrDelete(singleSchedule.getStudyChannel().getId(),
+            singleSchedule.getScheduleDate(), NotificationType.SCHEDULE_UPDATE,
+            NotificationConstant.SCHEDULE_UPDATE_FOR_SINGLE_TO_SINGLE);
     }
 
     public void putScheduleSingleToRepeat(RepeatScheduleEditRequest editRequestToRepeatSchedule) {
@@ -209,6 +222,10 @@ public class ScheduleService {
             editRequestToRepeatSchedule, singleSchedule.getStudyChannel()));
 
         singleScheduleRepository.deleteById(editRequestToRepeatSchedule.getScheduleId());
+
+        sendNotificationForScheduleUpdateOrDelete(singleSchedule.getStudyChannel().getId(),
+            singleSchedule.getScheduleDate(), NotificationType.SCHEDULE_UPDATE,
+            NotificationConstant.SCHEDULE_UPDATE_FOR_SINGLE_TO_REPEAT);
     }
 
     public void putScheduleRepeatToRepeat(RepeatScheduleEditRequest editRequestToRepeatSchedule) {
@@ -237,6 +254,10 @@ public class ScheduleService {
 
         repeatSchedule.updateRepeatSchedule(editRequestToRepeatSchedule);
         repeatScheduleRepository.save(repeatSchedule);
+
+        sendNotificationForScheduleUpdateOrDelete(repeatSchedule.getStudyChannel().getId(),
+            repeatSchedule.getScheduleDate(), NotificationType.SCHEDULE_UPDATE,
+            NotificationConstant.SCHEDULE_UPDATE_FOR_REPEAT_TO_REPEAT);
     }
 
     public void putScheduleRepeatToSingle(
@@ -274,6 +295,10 @@ public class ScheduleService {
         } else {
             throw new IllegalArgumentForScheduleRequestException();
         }
+
+        sendNotificationForScheduleUpdateOrDelete(repeatSchedule.getStudyChannel().getId(),
+            repeatSchedule.getScheduleDate(), NotificationType.SCHEDULE_UPDATE,
+            NotificationConstant.SCHEDULE_UPDATE_FOR_REPEAT_TO_SINGLE);
     }
 
     public void putScheduleRepeatToSingleAfterEventYes(RepeatSchedule repeatSchedule, SingleScheduleEditRequest singleScheduleEditRequest) {
@@ -353,6 +378,9 @@ public class ScheduleService {
         }
         validateStudyLeader(scheduleDeleteRequest.getMemberId(), studyChannelId);
         singleScheduleRepository.deleteById(scheduleDeleteRequest.getScheduleId());
+
+        sendNotificationForScheduleUpdateOrDelete(studyChannelId, scheduleDeleteRequest.getSelectedDate(),
+            NotificationType.SCHEDULE_DELETE, SINGLE_SCHEDULE_DELETE);
     }
 
     public void deleteRepeatSchedule(Long studyChannelId, Boolean isAfterEventSame, ScheduleDeleteRequest scheduleDeleteRequest) {
@@ -381,6 +409,9 @@ public class ScheduleService {
         } else if (!isAfterEventSame) {
             deleteRepeatScheduleAfterEventSameNo(selectedDate, repeatSchedule);
         }
+
+        sendNotificationForScheduleUpdateOrDelete(studyChannelId, scheduleDeleteRequest.getSelectedDate(),
+            NotificationType.SCHEDULE_DELETE, REPEAT_SCHEDULE_DELETE);
     }
 
     public void deleteRepeatScheduleAfterEventSameYes(LocalDate selectedDate, RepeatSchedule repeatSchedule) {
@@ -454,6 +485,7 @@ public class ScheduleService {
             throw new NotStudyLeaderException();
         }
     }
+  
     private boolean isNotIncluded(LocalDate selectedDate, LocalDate repeatStartDate
         , LocalDate repeatEndDate) {
         return (selectedDate.isAfter(repeatEndDate) || selectedDate.isBefore(repeatStartDate));
@@ -625,5 +657,42 @@ public class ScheduleService {
             .placeId(singleScheduleCreateRequest.getPlaceId())
             .isRepeated(false)
             .build();
+    }
+
+    private void sendNotificationForScheduleCreate(Long studyChannelId, Long scheduleId,
+        LocalDate scheduleDate, NotificationType notificationType,
+        String relateUrlFormat, String notificationFormatMessage) {
+        // 로그 메시지 및 알림 메시지에 사용할 날짜 포맷터
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
+        // 단일 일정 날짜를 포맷팅
+        String formattedDate = scheduleDate.format(formatter);
+        // 알림 메시지 생성
+        String notificationMessage = String.format(notificationFormatMessage, studyChannelId, formattedDate);
+        // 관련 URL 생성
+        String relateUrl = String.format(relateUrlFormat, studyChannelId, scheduleId);
+        notificationService.sendNotificationToStudyChannel(studyChannelId,
+            notificationType, notificationMessage, relateUrl);
+        // 로그 메시지
+        log.info(notificationMessage);
+    }
+
+
+    private void sendNotificationForScheduleUpdateOrDelete(Long studyChannelId, LocalDate scheduleDate,
+        NotificationType notificationType, String notificationFormatMessage) {
+        // 로그 메시지 및 알림 메시지에 사용할 날짜 포맷터
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
+        // 단일 일정 날짜를 포맷팅
+        String formattedDate = scheduleDate.format(formatter);
+        // 알림 메시지 생성
+        String notificationMessage = String.format(notificationFormatMessage, studyChannelId, formattedDate);
+        // 관련 URL 생성
+        int scheduleYear = scheduleDate.getYear();
+        int scheduleMonth = scheduleDate.getMonthValue();
+        String relateUrl = String.format("/api/study-channels/%d/schedules/date?year=%d&month=%d",
+            studyChannelId, scheduleYear, scheduleMonth);
+        notificationService.sendNotificationToStudyChannel(studyChannelId,
+            notificationType, notificationMessage, relateUrl);
+        // 로그 메시지
+        log.info(notificationMessage);
     }
 }
