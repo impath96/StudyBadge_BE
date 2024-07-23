@@ -2,12 +2,14 @@ package com.tenten.studybadge.notification.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tenten.studybadge.common.exception.notification.NotificationNotFoundException;
 import com.tenten.studybadge.common.redis.RedisPublisher;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.notification.domain.entitiy.Notification;
 import com.tenten.studybadge.notification.domain.repository.EmitterRepository;
 import com.tenten.studybadge.notification.domain.repository.NotificationRepository;
 import com.tenten.studybadge.notification.dto.DummyData;
+import com.tenten.studybadge.notification.dto.NotificationReadRequest;
 import com.tenten.studybadge.notification.dto.NotificationResponse;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
@@ -35,6 +37,15 @@ public class NotificationService {
     public List<Notification> getNotifications(Long memberId) {
         // 특정 사용자의 모든 알림을 조회
         return notificationRepository.findAllByReceiverId(memberId);
+    }
+
+    public void patchNotification(Long memberId, NotificationReadRequest notificationReadRequest) {
+        Notification notification = notificationRepository
+            .findByIdAndReceiverId(notificationReadRequest.getNotificationId(), memberId)
+            .orElseThrow(NotificationNotFoundException::new);
+
+        notification.setIsRead(true);
+        notificationRepository.save(notification);
     }
 
     public SseEmitter subscribe(Long memberId, String lastEventId) {

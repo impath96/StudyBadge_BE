@@ -3,6 +3,7 @@ package com.tenten.studybadge.notification.controller;
 import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.common.security.LoginUser;
 import com.tenten.studybadge.notification.domain.entitiy.Notification;
+import com.tenten.studybadge.notification.dto.NotificationReadRequest;
 import com.tenten.studybadge.notification.dto.NotificationResponse;
 import com.tenten.studybadge.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -52,5 +55,15 @@ public class NotificationController {
             .collect(Collectors.toList());
 
         return ResponseEntity.ok(responseList);
+    }
+
+    // 알림 읽음 처리
+    @PatchMapping()
+    @Operation(summary = "알림 읽음 처리", description = "사용자가 알림을 선택했을 때 읽음 처리 api")
+    public ResponseEntity<Void> patchNotification(
+        @LoginUser Long memberId,
+        @RequestBody NotificationReadRequest notificationReadRequest) {
+        notificationService.patchNotification(memberId, notificationReadRequest);
+        return ResponseEntity.ok().build();
     }
 }
