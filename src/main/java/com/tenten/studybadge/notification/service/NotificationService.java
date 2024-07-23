@@ -7,6 +7,7 @@ import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.notification.domain.entitiy.Notification;
 import com.tenten.studybadge.notification.domain.repository.EmitterRepository;
 import com.tenten.studybadge.notification.domain.repository.NotificationRepository;
+import com.tenten.studybadge.notification.dto.DummyData;
 import com.tenten.studybadge.notification.dto.NotificationResponse;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
@@ -53,7 +54,8 @@ public class NotificationService {
 
         // 503 에러를 방지하기 위한 더미 이벤트 전송
         String eventId = makeTimeIncludeId(memberId);
-        sendNotification(sseEmitter, eventId, emitterId, "알림 서버 연결 성공, EventStream 생성. [memberId=" + memberId + "]");
+        sendNotification(sseEmitter, eventId, emitterId,
+            new DummyData("알림 서버 연결 성공, EventStream 생성. [memberId=" + memberId + "]"));
 
         // 클라이언트가 미수신한 Event 목록이 존재할 경우 전송하여 Event 유실을 예방
         if (hasLostData(lastEventId)) {
