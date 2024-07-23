@@ -1,13 +1,16 @@
 package com.tenten.studybadge.notification.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tenten.studybadge.common.jwt.JwtTokenProvider;
 import com.tenten.studybadge.common.oauth2.CustomOAuth2UserService;
 import com.tenten.studybadge.common.oauth2.OAuth2FailureHandler;
@@ -18,6 +21,7 @@ import com.tenten.studybadge.common.security.LoginUserArgumentResolver;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.type.MemberRole;
 import com.tenten.studybadge.notification.domain.entitiy.Notification;
+import com.tenten.studybadge.notification.dto.NotificationReadRequest;
 import com.tenten.studybadge.notification.dto.NotificationResponse;
 import com.tenten.studybadge.notification.service.NotificationService;
 import com.tenten.studybadge.type.notification.NotificationType;
@@ -64,6 +68,8 @@ public class NotificationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Mock
     private CustomUserDetails customUserDetails;
@@ -133,5 +139,20 @@ public class NotificationControllerTest {
               .andExpect(status().isOk())
               .andExpect(jsonPath("$[0].content").value("일정 생성 알림"))
               .andExpect(jsonPath("$[1].content").value("일정 삭제 알림"));
+    }
+
+    @Test
+    @DisplayName("특정 사용자(member id: 1)의 알림(notificationId : 1) 읽음 처리 성공")
+    @WithMockUser(username = "testuser", roles = "USER")
+    public void testPatchNotification() throws Exception {
+        Long memberId = 1L;
+        NotificationReadRequest notificationReadRequest = new NotificationReadRequest(1L);
+
+        doNothing().when(notificationService).patchNotification(memberId, notificationReadRequest);
+
+        mockMvc.perform(patch("/api/notifications")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(notificationReadRequest)))
+            .andExpect(status().isOk());
     }
 }
