@@ -4,7 +4,6 @@ import com.tenten.studybadge.common.BaseEntity;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.type.study.deposit.DepositStatus;
-import com.tenten.studybadge.type.study.member.StudyMemberStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,11 +33,8 @@ public class StudyChannelDeposit extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private DepositStatus depositStatus;
 
-    @Enumerated(EnumType.STRING)
-    private StudyMemberStatus studyMemberStatus;
     private Long amount;                    // 예치한 금액
     private LocalDateTime depositAt;        // 예치한 날짜
-
 
 }
 

@@ -1,6 +1,7 @@
 package com.tenten.studybadge.study.member.controller;
 
 import com.tenten.studybadge.common.security.CustomUserDetails;
+import com.tenten.studybadge.common.security.LoginUser;
 import com.tenten.studybadge.study.member.dto.AssignRoleRequest;
 import com.tenten.studybadge.study.member.dto.ScheduleStudyMemberResponse;
 import com.tenten.studybadge.study.member.dto.StudyMembersResponse;
@@ -72,6 +73,18 @@ public class StudyMemberController {
         return ResponseEntity.ok(
                 studyMemberService.getStudyMembersRepeatSchedule(studyChannelId, scheduleId, principal.getId(), date)
         );
+    }
+
+    @DeleteMapping("/api/study-channels/{studyChannelId}/members/{studyMemberId}")
+    @Operation(summary = "스터디 채널 나가기", description = "스터디 채널을 나가기 위한 API")
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    @Parameter(name = "studyMemberId", description = "스터디 멤버 ID", required = true)
+    public ResponseEntity<Void> leaveStudyChannel(
+            @LoginUser Long memberId,
+            @PathVariable Long studyChannelId,
+            @PathVariable Long studyMemberId) {
+        studyMemberService.leaveStudyChannel(studyChannelId, studyMemberId, memberId);
+        return ResponseEntity.ok().build();
     }
 
 }
