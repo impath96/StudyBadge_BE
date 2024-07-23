@@ -2,22 +2,30 @@ package com.tenten.studybadge.participation.service;
 
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
 import com.tenten.studybadge.common.exception.participation.*;
-import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
-import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberException;
-import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
-import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
+import com.tenten.studybadge.common.exception.studychannel.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.participation.dto.StudyChannelParticipationStatusResponse;
+import com.tenten.studybadge.point.domain.entity.Point;
+import com.tenten.studybadge.point.domain.repository.PointRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
+import com.tenten.studybadge.type.study.deposit.DepositStatus;
+import com.tenten.studybadge.study.deposit.domain.entity.StudyChannelDeposit;
+import com.tenten.studybadge.study.deposit.domain.repository.StudyChannelDepositRepository;
+import com.tenten.studybadge.type.study.member.StudyMemberStatus;
+import com.tenten.studybadge.study.member.domain.entity.StudyMember;
+import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
+import com.tenten.studybadge.type.point.PointHistoryType;
+import com.tenten.studybadge.type.point.TransferType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,6 +36,9 @@ public class StudyChannelParticipationService {
     private final ParticipationRepository  participationRepository;
     private final StudyChannelRepository studyChannelRepository;
     private final MemberRepository memberRepository;
+    private final PointRepository pointRepository;
+    private final StudyChannelDepositRepository studyChannelDepositRepository;
+    private final StudyMemberRepository studyMemberRepository;
 
     // TODO 1) 탈퇴 당한 회원인가?
     //      2) 참가 거절 당한 회원인가?
@@ -66,7 +77,6 @@ public class StudyChannelParticipationService {
         participation.cancel();
     }
 
-    @Transactional
     public void approve(Long studyChannelId, Long participationId, Long memberId) {
 
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
@@ -82,8 +92,13 @@ public class StudyChannelParticipationService {
         if (!participation.getParticipationStatus().equals(ParticipationStatus.APPROVE_WAITING)) {
             throw new InvalidApprovalStatusException();
         }
-        participation.approve();
-        studyChannel.addMember(participation.getMember());
+
+        StudyChannel channel = participation.getStudyChannel();
+        Member applyMember = participation.getMember();
+
+        approveMember(participation, studyChannel, applyMember);
+        Point point = deductPoint(applyMember, Long.valueOf(studyChannel.getDeposit()));
+        recordDeposit(channel, applyMember, point.getAmount());
 
     }
 
@@ -129,5 +144,47 @@ public class StudyChannelParticipationService {
                         .map(Participation::toResponse)
                         .toList())
                 .build();
+    }
+
+    private void approveMember(Participation participation, StudyChannel studyChannel, Member member) {
+        // 참가 신청 내역 변경(승인 대기중 -> 승인됨)
+        participation.approve();
+        StudyMember studyMember = StudyMember.member(member, studyChannel);
+        participationRepository.save(participation);
+        studyMemberRepository.save(studyMember);
+    }
+
+    // 예치금 내역 기록
+    private void recordDeposit(StudyChannel channel, Member member, Long amount) {
+        StudyChannelDeposit deposit = StudyChannelDeposit.builder()
+                .depositAt(LocalDateTime.now())
+                .amount(amount)
+                .depositStatus(DepositStatus.DEPOSIT)
+                .studyChannel(channel)
+                .member(member)
+                .attendanceRatio(0.0)
+                .studyMemberStatus(StudyMemberStatus.PARTICIPATING)
+                .build();
+        studyChannelDepositRepository.save(deposit);
+    }
+
+    // 포인트 차감
+    private Point deductPoint(Member member, Long deposit) {
+
+        // 포인트 내역 기록
+        Point point = Point.builder()
+                .amount(deposit)
+                .member(member)
+                .historyType(PointHistoryType.SPENT)
+                .transferType(TransferType.STUDY_DEPOSIT)
+                .build();
+
+        // 사용자 포인트 차감(차감 시 포인트 내역에 기록된 금액을 차감)
+        Member updatedMember = member.toBuilder()
+                .point((int) (member.getPoint() - point.getAmount()))
+                .build();
+        pointRepository.save(point);
+        memberRepository.save(updatedMember);
+        return point;
     }
 }
