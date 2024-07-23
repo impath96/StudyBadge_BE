@@ -1,6 +1,7 @@
 package com.tenten.studybadge.notification.controller;
 
 import com.tenten.studybadge.common.security.CustomUserDetails;
+import com.tenten.studybadge.common.security.LoginUser;
 import com.tenten.studybadge.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,8 +27,8 @@ public class NotificationController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "세션 연결", description = "클라이언트 측에서 세션 연결하는 api")
     @Parameter(name = "Last-Event-ID", description = "마지막 event id, 필수는 아님" )
-    public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails memberDetails,
+    public SseEmitter subscribe(@LoginUser Long memberId,
         @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
-        return notificationService.subscribe(memberDetails.getId(), lastEventId);
+        return notificationService.subscribe(memberId, lastEventId);
     }
 }
