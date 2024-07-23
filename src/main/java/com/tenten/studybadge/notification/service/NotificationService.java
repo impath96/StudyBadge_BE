@@ -13,6 +13,7 @@ import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.notification.NotificationType;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,11 @@ public class NotificationService {
     private final StudyMemberRepository studyMemberRepository;
     private final RedisPublisher redisPublisher;
     private final ObjectMapper objectMapper;
+
+    public List<Notification> getNotifications(Long memberId) {
+        // 특정 사용자의 모든 알림을 조회
+        return notificationRepository.findAllByReceiverId(memberId);
+    }
 
     public SseEmitter subscribe(Long memberId, String lastEventId) {
         String emitterId = makeTimeIncludeId(memberId);
