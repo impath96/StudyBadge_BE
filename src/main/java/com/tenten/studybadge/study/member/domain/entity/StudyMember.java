@@ -32,8 +32,6 @@ public class StudyMember extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private StudyMemberStatus studyMemberStatus;
 
-    private Integer balance;
-
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
@@ -46,7 +44,6 @@ public class StudyMember extends BaseEntity {
         return StudyMember.builder()
                 .member(member)
                 .studyChannel(studyChannel)
-                .balance(0)
                 .studyMemberRole(LEADER)
                 .studyMemberStatus(StudyMemberStatus.PARTICIPATING)
                 .build();
@@ -56,7 +53,6 @@ public class StudyMember extends BaseEntity {
         return StudyMember.builder()
                 .member(member)
                 .studyChannel(studyChannel)
-                .balance(0)
                 .studyMemberRole(STUDY_MEMBER)
                 .studyMemberStatus(StudyMemberStatus.PARTICIPATING)
                 .build();
