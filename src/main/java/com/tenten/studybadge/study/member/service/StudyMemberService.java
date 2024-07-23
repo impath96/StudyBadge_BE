@@ -5,10 +5,7 @@ import com.tenten.studybadge.attendance.domain.repository.AttendanceRepository;
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundSingleScheduleException;
-import com.tenten.studybadge.common.exception.studychannel.AlreadyExistsSubLeaderException;
-import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
-import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
-import com.tenten.studybadge.common.exception.studychannel.NotStudyMemberException;
+import com.tenten.studybadge.common.exception.studychannel.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
@@ -116,6 +113,20 @@ public class StudyMemberService {
             return response(studyMembers, attendances);
         }
         return response(studyMembers, Collections.emptyList());
+    }
+
+    public void leaveStudyChannel(Long studyChannelId, Long studyMemberId, Long memberId) {
+        StudyMember studyMember = studyMemberRepository.findById(studyMemberId).orElseThrow(NotStudyMemberException::new);
+        if (!studyMember.getStudyChannel().getId().equals(studyChannelId)) {
+            throw new NotStudyMemberException();
+        }
+        if (!studyMember.getMember().getId().equals(memberId)) {
+            throw new NotStudyMemberException();
+        }
+        if (studyMember.isLeader()) {
+            throw new LeaveStudyLeaderException();
+        }
+        studyMemberRepository.delete(studyMember);
     }
 
     private void validate(RepeatSchedule repeatSchedule, LocalDate date) {
