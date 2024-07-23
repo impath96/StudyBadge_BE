@@ -13,9 +13,7 @@ import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.notification.NotificationType;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -96,15 +94,10 @@ public class NotificationService {
     public void sendNotificationToStudyChannel(Long studyChannelId,
         NotificationType notificationType, String content, String url) {
 
-        List<Member> members = studyMemberRepository.findAllByStudyChannelIdWithMember(
-                studyChannelId)
+        studyMemberRepository.findAllByStudyChannelIdWithMember(studyChannelId)
             .stream()
             .map(StudyMember::getMember)
-            .collect(Collectors.toList());
-
-        for (Member member : members) {
-            send(member, notificationType, content, url);
-        }
+            .forEach((member) -> send(member, notificationType, content, url));
     }
 
     public void send(Member receiver, NotificationType notificationType, String content,
