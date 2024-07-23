@@ -163,7 +163,6 @@ public class StudyChannelParticipationService {
                 .studyChannel(channel)
                 .member(member)
                 .attendanceRatio(0.0)
-                .studyMemberStatus(StudyMemberStatus.PARTICIPATING)
                 .build();
         studyChannelDepositRepository.save(deposit);
     }
