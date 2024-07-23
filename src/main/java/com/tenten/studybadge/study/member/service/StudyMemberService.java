@@ -154,7 +154,7 @@ public class StudyMemberService {
         StudyChannelDeposit deposit = studyChannelDepositRepository.findByStudyChannelIdAndMemberId(studyChannelId, member.getId()).orElseThrow(IllegalArgumentException::new);
         Long refundAmount = (long) (deposit.getAmount() * 0.5);
         deposit.setDepositStatus(DepositStatus.REFUND);
-        deposit.setAmount(refundAmount);
+        deposit.setAmount(deposit.getAmount() - refundAmount);
 
         // 회원의 퇴출횟수 +1 증가, 포인트 증가
         Member banMember = member.toBuilder()
