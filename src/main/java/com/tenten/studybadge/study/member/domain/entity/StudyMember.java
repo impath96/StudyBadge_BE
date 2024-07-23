@@ -29,6 +29,7 @@ public class StudyMember extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private StudyMemberRole studyMemberRole;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private StudyMemberStatus studyMemberStatus;
 

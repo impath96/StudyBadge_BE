@@ -8,20 +8,28 @@ import com.tenten.studybadge.common.exception.schedule.NotFoundSingleScheduleExc
 import com.tenten.studybadge.common.exception.studychannel.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
+import com.tenten.studybadge.point.domain.entity.Point;
+import com.tenten.studybadge.point.domain.repository.PointRepository;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
 import com.tenten.studybadge.schedule.domain.repository.SingleScheduleRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
+import com.tenten.studybadge.study.deposit.domain.entity.StudyChannelDeposit;
+import com.tenten.studybadge.study.deposit.domain.repository.StudyChannelDepositRepository;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.study.member.dto.ScheduleStudyMemberResponse;
 import com.tenten.studybadge.study.member.dto.StudyMemberInfoResponse;
 import com.tenten.studybadge.study.member.dto.StudyMembersResponse;
+import com.tenten.studybadge.type.point.PointHistoryType;
+import com.tenten.studybadge.type.point.TransferType;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
 import com.tenten.studybadge.type.schedule.RepeatSituation;
+import com.tenten.studybadge.type.study.deposit.DepositStatus;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
+import com.tenten.studybadge.type.study.member.StudyMemberStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +51,8 @@ public class StudyMemberService {
     private final SingleScheduleRepository singleScheduleRepository;
     private final AttendanceRepository attendanceRepository;
     private final RepeatScheduleRepository repeatScheduleRepository;
+    private final StudyChannelDepositRepository studyChannelDepositRepository;
+    private final PointRepository pointRepository;
 
     public StudyMembersResponse getStudyMembers(Long studyChannelId, Long memberId) {
 
@@ -127,6 +137,43 @@ public class StudyMemberService {
             throw new LeaveStudyLeaderException();
         }
         studyMemberRepository.delete(studyMember);
+    }
+
+    public void banStudyMember(Long studyChannelId, Long studyMemberId, Long memberId) {
+        StudyMember studyMember = studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId).orElseThrow(NotStudyMemberException::new);
+        if (!studyMember.isLeader()) {
+            throw new NotStudyLeaderException();
+        }
+        StudyMember banedStudyMember = studyMemberRepository.findById(studyMemberId).orElseThrow(NotStudyMemberException::new);
+        Member member = banedStudyMember.getMember();
+
+        // 스터디 멤버 상태 : "BAN"으로 변경
+        banedStudyMember.setStudyMemberStatus(StudyMemberStatus.BAN);
+
+        // 스터디 채널 예치금 - "환급" 상태로 변경 + 50 % 환급
+        StudyChannelDeposit deposit = studyChannelDepositRepository.findByStudyChannelIdAndMemberId(studyChannelId, member.getId()).orElseThrow(IllegalArgumentException::new);
+        Long refundAmount = (long) (deposit.getAmount() * 0.5);
+        deposit.setDepositStatus(DepositStatus.REFUND);
+        deposit.setAmount(refundAmount);
+
+        // 회원의 퇴출횟수 +1 증가, 포인트 증가
+        Member banMember = member.toBuilder()
+                .banCnt(member.getBanCnt() + 1)
+                .point((int) (member.getPoint() + refundAmount))
+                .build();
+
+        // 환급 포인트 기록
+        Point point = Point.builder()
+                .member(member)
+                .historyType(PointHistoryType.EARNED)
+                .transferType(TransferType.STUDY_REWARD)
+                .amount(refundAmount)
+                .build();
+
+        studyMemberRepository.save(banedStudyMember);
+        studyChannelDepositRepository.save(deposit);
+        pointRepository.save(point);
+        memberRepository.save(banMember);
     }
 
     private void validate(RepeatSchedule repeatSchedule, LocalDate date) {

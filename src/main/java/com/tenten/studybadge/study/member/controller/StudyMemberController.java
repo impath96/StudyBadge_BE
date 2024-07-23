@@ -87,4 +87,16 @@ public class StudyMemberController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/api/study-channels/{studyChannelId}/members/{studyMemberId}/ban")
+    @Operation(summary = "스터디 채널 퇴출", description = "스터디 채널을 나가기 위한 API")
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    @Parameter(name = "studyMemberId", description = "스터디 멤버 ID", required = true)
+    public ResponseEntity<Void> banStudyMember(
+            @LoginUser Long memberId,
+            @PathVariable Long studyChannelId,
+            @PathVariable Long studyMemberId) {
+        studyMemberService.banStudyMember(studyChannelId, studyMemberId, memberId);
+        return ResponseEntity.ok().build();
+    }
+
 }
