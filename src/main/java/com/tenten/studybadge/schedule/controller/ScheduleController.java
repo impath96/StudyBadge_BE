@@ -67,7 +67,7 @@ public class ScheduleController {
         @LoginUser Long memberId,
         @PathVariable Long studyChannelId) {
         return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannel(
-            studyChannelId, memberId));
+            memberId, studyChannelId));
     }
 
     @GetMapping("/study-channels/{studyChannelId}/schedules/date")
