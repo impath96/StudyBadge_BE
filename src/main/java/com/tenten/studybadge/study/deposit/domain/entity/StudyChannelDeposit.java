@@ -30,10 +30,12 @@ public class StudyChannelDeposit extends BaseEntity {
     private Member member;
     private Double attendanceRatio;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private DepositStatus depositStatus;
 
-    private Long amount;                    // 예치한 금액
+    @Setter
+    private Integer amount;                    // 예치한 금액
     private LocalDateTime depositAt;        // 예치한 날짜
 
 }
