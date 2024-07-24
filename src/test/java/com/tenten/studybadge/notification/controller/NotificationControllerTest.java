@@ -155,4 +155,28 @@ public class NotificationControllerTest {
                 .content(objectMapper.writeValueAsString(notificationReadRequest)))
             .andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("특정 사용자(member id: 1)의 안읽은 알림 전체 조회 성공")
+    @WithMockUser(username = "testuser", roles = "USER")
+    public void testGetUnreadNotifications() throws Exception {
+        // given
+        notificationScheduleDelete.setIsRead(true);
+        List<Notification> unreadNotifications = Arrays.asList(notificationScheduleCreate);
+        List<NotificationResponse> notificationResponses = unreadNotifications.stream()
+            .map(Notification::toResponse)
+            .collect(Collectors.toList());
+
+        when(loginUserArgumentResolver.supportsParameter(any())).thenReturn(true);
+        when(loginUserArgumentResolver.resolveArgument(any(), any(), any(), any()))
+            .thenReturn(1L);
+        when(customUserDetails.getId()).thenReturn(1L);
+        when(notificationService.getUnreadNotifications(1L))
+            .thenReturn(unreadNotifications);
+
+        // when & then
+        mockMvc.perform(get("/api/notifications/unread"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].content").value("일정 생성 알림"));
+    }
 }
