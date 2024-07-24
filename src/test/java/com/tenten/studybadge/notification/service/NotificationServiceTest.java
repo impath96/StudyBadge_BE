@@ -101,4 +101,23 @@ public class NotificationServiceTest {
         assertEquals(true, notificationScheduleCreate.getIsRead()); //1L : create Notification
         assertEquals(false, notificationScheduleDelete.getIsRead()); //2L : delete Notification
     }
+
+    @Test
+    @DisplayName("안읽은 알림 전체 조회 성공")
+    void getUnreadNotifications_success() {
+        List<Notification> unReadNotifications = Arrays.asList(notificationScheduleCreate);
+
+        when(notificationRepository.findAllByReceiverIdAndIsReadFalse(memberId))
+            .thenReturn(unReadNotifications);
+
+        List<Notification> result = notificationService.getUnreadNotifications(memberId);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(notificationScheduleCreate, result.get(0));
+        assertEquals(false, result.get(0).getIsRead());
+
+        verify(notificationRepository, times(1))
+            .findAllByReceiverIdAndIsReadFalse(memberId);
+    }
 }
