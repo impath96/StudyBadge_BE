@@ -35,7 +35,7 @@ public class StudyChannelDeposit extends BaseEntity {
     private DepositStatus depositStatus;
 
     @Setter
-    private Long amount;                    // 예치한 금액
+    private Integer amount;                    // 예치한 금액
     private LocalDateTime depositAt;        // 예치한 날짜
 
 }

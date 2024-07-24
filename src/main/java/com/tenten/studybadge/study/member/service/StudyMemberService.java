@@ -152,14 +152,14 @@ public class StudyMemberService {
 
         // 스터디 채널 예치금 - "환급" 상태로 변경 + 50 % 환급
         StudyChannelDeposit deposit = studyChannelDepositRepository.findByStudyChannelIdAndMemberId(studyChannelId, member.getId()).orElseThrow(IllegalArgumentException::new);
-        Long refundAmount = (long) (deposit.getAmount() * 0.5);
+        Integer refundAmount = (int)(deposit.getAmount() * 0.5);
         deposit.setDepositStatus(DepositStatus.REFUND);
         deposit.setAmount(deposit.getAmount() - refundAmount);
 
         // 회원의 퇴출횟수 +1 증가, 포인트 증가
         Member banMember = member.toBuilder()
                 .banCnt(member.getBanCnt() + 1)
-                .point((int) (member.getPoint() + refundAmount))
+                .point(member.getPoint() + refundAmount)
                 .build();
 
         // 환급 포인트 기록
@@ -167,7 +167,7 @@ public class StudyMemberService {
                 .member(member)
                 .historyType(PointHistoryType.EARNED)
                 .transferType(TransferType.STUDY_REWARD)
-                .amount(refundAmount)
+                .amount((long) refundAmount)
                 .build();
 
         studyMemberRepository.save(banedStudyMember);

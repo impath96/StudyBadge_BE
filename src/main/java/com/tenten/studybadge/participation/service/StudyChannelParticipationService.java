@@ -158,7 +158,7 @@ public class StudyChannelParticipationService {
     private void recordDeposit(StudyChannel channel, Member member, Long amount) {
         StudyChannelDeposit deposit = StudyChannelDeposit.builder()
                 .depositAt(LocalDateTime.now())
-                .amount(amount)
+                .amount(amount.intValue())
                 .depositStatus(DepositStatus.DEPOSIT)
                 .studyChannel(channel)
                 .member(member)
