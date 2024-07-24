@@ -214,7 +214,8 @@ class ScheduleServiceTest {
 
             // when & then
             assertThrows(NotStudyLeaderException.class, () -> {
-                scheduleService.postSingleSchedule(singleScheduleRequestByStudyMember, 1L);
+                scheduleService.postSingleSchedule(
+                    1L, singleScheduleRequestByStudyMember);
             });
         }
         @Test
@@ -230,7 +231,7 @@ class ScheduleServiceTest {
 
             // when
             scheduleService.postSingleSchedule(
-                singleScheduleRequestWithoutPlace, 1L);
+                1L, singleScheduleRequestWithoutPlace);
 
             // then
             verify(singleScheduleRepository, times(1))
@@ -252,7 +253,7 @@ class ScheduleServiceTest {
 
             // when
             scheduleService.postRepeatSchedule(
-                repeatScheduleRequestWithoutPlace, 1L);
+                1L, repeatScheduleRequestWithoutPlace);
 
             // then
             verify(repeatScheduleRepository, times(1))
@@ -296,7 +297,7 @@ class ScheduleServiceTest {
 
             // when
             scheduleService.postSingleSchedule(
-                singleScheduleRequestWithPlace, 1L);
+                1L, singleScheduleRequestWithPlace);
 
             // then
             verify(singleScheduleRepository, times(1))
@@ -324,7 +325,8 @@ class ScheduleServiceTest {
 
             // when & then
             assertThrows(NotStudyLeaderException.class, () -> {
-                scheduleService.postRepeatSchedule(repeatScheduleRequestByStudyMember, 1L);
+                scheduleService.postRepeatSchedule(
+                    1L, repeatScheduleRequestByStudyMember);
             });
         }
         @Test
@@ -368,7 +370,7 @@ class ScheduleServiceTest {
 
             // when
             scheduleService.postRepeatSchedule(
-                repeatScheduleRequestWithPlace, 1L);
+                1L, repeatScheduleRequestWithPlace);
 
             // then
             verify(repeatScheduleRepository, times(1))
@@ -390,7 +392,7 @@ class ScheduleServiceTest {
 
             // when
             scheduleService.postRepeatSchedule(
-                repeatScheduleRequestWithoutPlace, 1L);
+                1L, repeatScheduleRequestWithoutPlace);
 
             // then
             verify(repeatScheduleRepository, times(1))
@@ -418,7 +420,7 @@ class ScheduleServiceTest {
 
             // when & then
             assertThrows(IllegalArgumentForRepeatSituationException.class, () -> {
-                scheduleService.postRepeatSchedule(wrongRequest, 1L);
+                scheduleService.postRepeatSchedule(1L, wrongRequest);
             });
         }
 
@@ -441,7 +443,7 @@ class ScheduleServiceTest {
 
             // when & then
             assertThrows(IllegalArgumentForRepeatSituationException.class, () -> {
-                scheduleService.postRepeatSchedule(wrongRequest, 1L);
+                scheduleService.postRepeatSchedule(1L, wrongRequest);
             });
         }
     }
