@@ -66,4 +66,19 @@ public class NotificationController {
         notificationService.patchNotification(memberId, notificationReadRequest);
         return ResponseEntity.ok().build();
     }
+
+    // 안읽은 알림 전체 조회
+    @GetMapping(value = "/unread")
+    @Operation(summary = "안읽은 알림 전체 조회", description = "사용자에게 온 알림 중 안읽은 전체 조회 api")
+    public ResponseEntity<List<NotificationResponse>> getUnreadNotifications(
+        @LoginUser Long memberId) {
+        List<Notification> notificationList =
+            notificationService.getUnreadNotifications(memberId);
+
+        List<NotificationResponse> responseList = notificationList.stream()
+            .map(Notification::toResponse)
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
+    }
 }
