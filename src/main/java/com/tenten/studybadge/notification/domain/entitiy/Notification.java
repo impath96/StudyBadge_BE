@@ -21,6 +21,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -41,6 +42,7 @@ public class Notification extends BaseEntity {
     @Embedded
     private RelatedUrl url;
 
+    @Setter
     @Column(nullable = false)
     private Boolean isRead;
 
