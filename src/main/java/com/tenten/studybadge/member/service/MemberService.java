@@ -47,7 +47,7 @@ public class MemberService {
     private final JwtTokenProvider jwtTokenProvider;
     private final StudyMemberRepository studyMemberRepository;
     private final ParticipationRepository participationRepository;
-    @Transactional
+
     public void signUp(MemberSignUpRequest signUpRequest, Platform platform) {
 
         if(!mailService.isValidEmail(signUpRequest.getEmail())) {
