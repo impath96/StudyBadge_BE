@@ -8,16 +8,19 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import static com.tenten.studybadge.common.constant.MailConstant.*;
 
 @Service
 @RequiredArgsConstructor
+@EnableAsync
 public class MailService {
 
     private final JavaMailSender javaMailSender;
-
+    @Async
     public void sendMail(MemberSignUpRequest signUpRequest, String authCode) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
 
