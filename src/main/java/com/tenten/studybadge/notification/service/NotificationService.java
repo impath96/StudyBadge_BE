@@ -48,6 +48,12 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    public List<Notification> getUnreadNotifications(Long memberId) {
+        // 특정 사용자의 읽지 않은 알림을 조회
+        return notificationRepository.findAllByReceiverIdAndIsReadFalse(memberId);
+    }
+
+
     public SseEmitter subscribe(Long memberId, String lastEventId) {
         String emitterId = makeTimeIncludeId(memberId);
         SseEmitter sseEmitter = new SseEmitter(timeout);
