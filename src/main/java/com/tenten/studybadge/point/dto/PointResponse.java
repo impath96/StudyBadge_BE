@@ -17,7 +17,7 @@ public class PointResponse {
 
     private PointHistoryType historyType;
     private TransferType transferType;
-    private Long amount;
+    private Integer amount;
     private LocalDateTime createdAt;
 
 

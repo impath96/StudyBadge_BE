@@ -50,7 +50,7 @@ public class PaymentServiceTest {
         member = Member.builder().id(1L).email("test@example.com").build();
 
         paymentRequest = new PaymentRequest();
-        paymentRequest.setAmount(20000L);
+        paymentRequest.setAmount(20000);
         paymentRequest.setOrderName("포인트충전");
         paymentRequest.setPayType(PayType.CARD);
 
@@ -105,7 +105,7 @@ public class PaymentServiceTest {
     @Test
     void requestPayment_InvalidAmount() {
         // Given
-        paymentRequest.setAmount(5000L);
+        paymentRequest.setAmount(5000);
         when(memberRepository.findById(anyLong())).thenReturn(Optional.of(member));
 
         // When & Then
