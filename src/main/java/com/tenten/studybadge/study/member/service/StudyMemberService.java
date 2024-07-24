@@ -167,7 +167,7 @@ public class StudyMemberService {
                 .member(member)
                 .historyType(PointHistoryType.EARNED)
                 .transferType(TransferType.STUDY_REWARD)
-                .amount((long) refundAmount)
+                .amount(refundAmount)
                 .build();
 
         studyMemberRepository.save(banedStudyMember);

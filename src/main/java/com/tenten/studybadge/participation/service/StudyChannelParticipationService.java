@@ -99,7 +99,7 @@ public class StudyChannelParticipationService {
         Member applyMember = participation.getMember();
 
         approveMember(participation, studyChannel, applyMember);
-        Point point = deductPoint(applyMember, Long.valueOf(studyChannel.getDeposit()));
+        Point point = deductPoint(applyMember, studyChannel.getDeposit());
         recordDeposit(channel, applyMember, point.getAmount());
 
     }
@@ -157,10 +157,10 @@ public class StudyChannelParticipationService {
     }
 
     // 예치금 내역 기록
-    private void recordDeposit(StudyChannel channel, Member member, Long amount) {
+    private void recordDeposit(StudyChannel channel, Member member, Integer amount) {
         StudyChannelDeposit deposit = StudyChannelDeposit.builder()
                 .depositAt(LocalDateTime.now())
-                .amount(amount.intValue())
+                .amount(amount)
                 .depositStatus(DepositStatus.DEPOSIT)
                 .studyChannel(channel)
                 .member(member)
@@ -170,7 +170,7 @@ public class StudyChannelParticipationService {
     }
 
     // 포인트 차감
-    private Point deductPoint(Member member, Long deposit) {
+    private Point deductPoint(Member member, Integer deposit) {
 
         // 포인트 내역 기록
         Point point = Point.builder()
@@ -182,7 +182,7 @@ public class StudyChannelParticipationService {
 
         // 사용자 포인트 차감(차감 시 포인트 내역에 기록된 금액을 차감)
         Member updatedMember = member.toBuilder()
-                .point((int) (member.getPoint() - point.getAmount()))
+                .point(member.getPoint() - point.getAmount())
                 .build();
         pointRepository.save(point);
         memberRepository.save(updatedMember);
