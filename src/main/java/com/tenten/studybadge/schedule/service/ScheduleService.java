@@ -308,7 +308,8 @@ public class ScheduleService {
             repeatScheduleRepository.deleteById(singleScheduleEditRequest.getScheduleId());
         } else if (isNextRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule.getScheduleDate())) {
             repeatScheduleRepository.deleteById(singleScheduleEditRequest.getScheduleId());
-            singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
+            singleScheduleRepository.save(createSingleScheduleFromRepeat(
+                repeatSchedule, repeatSchedule.getScheduleDate()));
 
         } else {
             changeRepeatEndDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
@@ -316,7 +317,8 @@ public class ScheduleService {
 
         // 만일 변경한 기존 반복 일정이 반복 시작 날짜와 끝나는 날짜가 같을 경우 단일 일정으로 변경한다.
         if (repeatSchedule.getScheduleDate().equals(repeatSchedule.getRepeatEndDate())) {
-            singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
+            singleScheduleRepository.save(createSingleScheduleFromRepeat(
+                repeatSchedule, repeatSchedule.getScheduleDate()));
             repeatScheduleRepository.deleteById(singleScheduleEditRequest.getScheduleId());
         }
 
@@ -335,15 +337,17 @@ public class ScheduleService {
             // 기존 반복 일정: endDate = endDate - (주기 1)으로 변경
             changeRepeatEndDate(selectedDate,repeatSchedule.getRepeatCycle(), repeatSchedule);
         } else if (isNextRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule.getScheduleDate())) {
-            singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
+            singleScheduleRepository.save(createSingleScheduleFromRepeat(
+                repeatSchedule, repeatSchedule.getScheduleDate()));
             changeRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
 
         } else if (isFrontRepeatEndDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule.getRepeatEndDate())) {
-            singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule, repeatSchedule.getRepeatEndDate()));
+            singleScheduleRepository.save(createSingleScheduleFromRepeat(
+                repeatSchedule, repeatSchedule.getRepeatEndDate()));
             changeRepeatEndDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
 
         } else {
-            RepeatSchedule secondRepeatSchedule =  makeAfterCycleRepeatSchedule(selectedDate,  repeatSchedule);
+            RepeatSchedule secondRepeatSchedule =  makeAfterCycleRepeatSchedule(selectedDate, repeatSchedule);
             repeatScheduleRepository.save(secondRepeatSchedule);
 
             changeRepeatEndDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
@@ -351,7 +355,8 @@ public class ScheduleService {
 
       // 만일 변경한 기존 반복 일정이 반복 시작 날짜와 끝나는 날짜가 같을 경우 단일 일정으로 변경한다.
       if (repeatSchedule.getScheduleDate().isEqual(repeatSchedule.getRepeatEndDate())) {
-        singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
+        singleScheduleRepository.save(createSingleScheduleFromRepeat(
+            repeatSchedule, repeatSchedule.getScheduleDate()));
         repeatScheduleRepository.deleteById(singleScheduleEditRequest.getScheduleId());
       }
 
@@ -420,14 +425,16 @@ public class ScheduleService {
             // 선택 날짜 repeat schedule 삭제
             repeatScheduleRepository.deleteById(repeatSchedule.getId());
         } else if (isNextRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule.getScheduleDate())) {
-            singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
+            singleScheduleRepository.save(createSingleScheduleFromRepeat(
+                repeatSchedule, repeatSchedule.getScheduleDate()));
             repeatScheduleRepository.deleteById(repeatSchedule.getId());
         } else {
             changeRepeatEndDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
         }
         // 만일 변경한 기존 반복 일정이 반복 시작 날짜와 끝나는 날짜가 같을 경우 단일 일정으로 변경한다.
         if (repeatSchedule.getScheduleDate().equals(repeatSchedule.getRepeatEndDate())) {
-            singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
+            singleScheduleRepository.save(createSingleScheduleFromRepeat(
+                repeatSchedule, repeatSchedule.getScheduleDate()));
             repeatScheduleRepository.deleteById(repeatSchedule.getId());
         }
     }
@@ -442,7 +449,8 @@ public class ScheduleService {
         } else if (isNextRepeatStartDate(selectedDate,
             repeatSchedule.getRepeatCycle(), repeatSchedule.getScheduleDate())) {
 
-            singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
+            singleScheduleRepository.save(createSingleScheduleFromRepeat(
+                repeatSchedule, repeatSchedule.getScheduleDate()));
             changeRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
 
         } else if (isFrontRepeatEndDate(selectedDate,
@@ -461,7 +469,8 @@ public class ScheduleService {
 
         // 만일 변경한 기존 반복 일정이 반복 시작 날짜와 끝나는 날짜가 같을 경우 단일 일정으로 변경한다.
         if (repeatSchedule.getScheduleDate().isEqual(repeatSchedule.getRepeatEndDate())) {
-            singleScheduleRepository.save(createSingleScheduleFromRepeat(repeatSchedule));
+            singleScheduleRepository.save(createSingleScheduleFromRepeat(
+                repeatSchedule, repeatSchedule.getScheduleDate()));
             repeatScheduleRepository.deleteById(repeatSchedule.getId());
         }
     }
@@ -607,20 +616,8 @@ public class ScheduleService {
             .build();
     }
 
-    private SingleSchedule createSingleScheduleFromRepeat(RepeatSchedule repeatSchedule) {
-        return SingleSchedule.withoutIdBuilder()
-            .scheduleName(repeatSchedule.getScheduleName())
-            .scheduleContent(repeatSchedule.getScheduleContent())
-            .scheduleDate(repeatSchedule.getScheduleDate())
-            .scheduleStartTime(repeatSchedule.getScheduleStartTime())
-            .scheduleEndTime(repeatSchedule.getScheduleEndTime())
-            .studyChannel(repeatSchedule.getStudyChannel())
-            .placeId(repeatSchedule.getPlaceId())
-            .isRepeated(false)
-            .build();
-    }
-
-    private SingleSchedule createSingleScheduleFromRepeat(RepeatSchedule repeatSchedule, LocalDate repeatEndDate) {
+    private SingleSchedule createSingleScheduleFromRepeat(
+        RepeatSchedule repeatSchedule, LocalDate repeatEndDate) {
         return SingleSchedule.withoutIdBuilder()
             .scheduleName(repeatSchedule.getScheduleName())
             .scheduleContent(repeatSchedule.getScheduleContent())
