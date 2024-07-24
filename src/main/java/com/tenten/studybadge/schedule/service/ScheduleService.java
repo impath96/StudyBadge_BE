@@ -62,7 +62,9 @@ public class ScheduleService {
 
     private final NotificationService notificationService;
 
-    public void postSingleSchedule(SingleScheduleCreateRequest singleScheduleCreateRequest, Long studyChannelId) {
+    public void postSingleSchedule(
+        SingleScheduleCreateRequest singleScheduleCreateRequest, Long studyChannelId) {
+
         StudyChannel studyChannel = validateStudyChannel(studyChannelId);
 
         validateStudyLeader(singleScheduleCreateRequest.getMemberId(), studyChannelId);
@@ -75,7 +77,9 @@ public class ScheduleService {
             SINGLE_SCHEDULE_URL, SINGLE_SCHEDULE_CREATE);
     }
 
-    public void postRepeatSchedule(RepeatScheduleCreateRequest repeatScheduleCreateRequest, Long studyChannelId) {
+    public void postRepeatSchedule(
+        RepeatScheduleCreateRequest repeatScheduleCreateRequest, Long studyChannelId) {
+
         StudyChannel studyChannel = validateStudyChannel(studyChannelId);
 
         RepeatCycle repeatCycle = repeatScheduleCreateRequest.getRepeatCycle();
@@ -96,6 +100,7 @@ public class ScheduleService {
 
     public List<ScheduleResponse> getSchedulesInStudyChannel(
         Long memberId, Long studyChannelId) {
+
         validateStudyChannel(studyChannelId);
         validateStudyMember(memberId, studyChannelId);
 
@@ -144,7 +149,8 @@ public class ScheduleService {
         return scheduleResponses;
     }
 
-    public SingleSchedule getSingleSchedule(Long memberId, Long studyChannelId, Long scheduleId) {
+    public SingleSchedule getSingleSchedule(
+        Long memberId, Long studyChannelId, Long scheduleId) {
 
         studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId)
             .orElseThrow(NotStudyMemberException::new);
@@ -153,7 +159,8 @@ public class ScheduleService {
             .orElseThrow(NotFoundSingleScheduleException::new);
     }
 
-    public RepeatSchedule getRepeatSchedule(Long memberId, Long studyChannelId, Long scheduleId) {
+    public RepeatSchedule getRepeatSchedule(
+        Long memberId, Long studyChannelId, Long scheduleId) {
 
         studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId)
             .orElseThrow(NotStudyMemberException::new);
@@ -162,7 +169,8 @@ public class ScheduleService {
             .orElseThrow(NotFoundSingleScheduleException::new);
     }
 
-    public void putSchedule(Long studyChannelId, ScheduleEditRequest scheduleEditRequest) {
+    public void putSchedule(
+        Long studyChannelId, ScheduleEditRequest scheduleEditRequest) {
         validateStudyChannel(studyChannelId);
 
         if (scheduleEditRequest instanceof SingleScheduleEditRequest) {
@@ -193,7 +201,8 @@ public class ScheduleService {
         }
     }
 
-    public void putScheduleSingleToSingle(SingleScheduleEditRequest editRequestToSingleSchedule) {
+    public void putScheduleSingleToSingle(
+        SingleScheduleEditRequest editRequestToSingleSchedule) {
 
         SingleSchedule singleSchedule = singleScheduleRepository.findById(
                 editRequestToSingleSchedule.getScheduleId())
@@ -207,7 +216,8 @@ public class ScheduleService {
             NotificationConstant.SCHEDULE_UPDATE_FOR_SINGLE_TO_SINGLE);
     }
 
-    public void putScheduleSingleToRepeat(RepeatScheduleEditRequest editRequestToRepeatSchedule) {
+    public void putScheduleSingleToRepeat(
+        RepeatScheduleEditRequest editRequestToRepeatSchedule) {
 
         SingleSchedule singleSchedule = singleScheduleRepository.findById(
                 editRequestToRepeatSchedule.getScheduleId())
@@ -228,7 +238,9 @@ public class ScheduleService {
             NotificationConstant.SCHEDULE_UPDATE_FOR_SINGLE_TO_REPEAT);
     }
 
-    public void putScheduleRepeatToRepeat(RepeatScheduleEditRequest editRequestToRepeatSchedule) {
+    public void putScheduleRepeatToRepeat(
+        RepeatScheduleEditRequest editRequestToRepeatSchedule) {
+
         LocalDate currentDate = LocalDate.now();
         LocalTime currentTime = LocalTime.now();
 
@@ -261,7 +273,8 @@ public class ScheduleService {
     }
 
     public void putScheduleRepeatToSingle(
-        Long studyChannelId, Boolean isAfterEventSame, SingleScheduleEditRequest editRequestToSingleSchedule) {
+        Long studyChannelId, Boolean isAfterEventSame,
+        SingleScheduleEditRequest editRequestToSingleSchedule) {
 
         LocalDate currentDate = LocalDate.now();
         LocalTime currentTime = LocalTime.now();
@@ -301,7 +314,8 @@ public class ScheduleService {
             NotificationConstant.SCHEDULE_UPDATE_FOR_REPEAT_TO_SINGLE);
     }
 
-    public void putScheduleRepeatToSingleAfterEventYes(RepeatSchedule repeatSchedule, SingleScheduleEditRequest singleScheduleEditRequest) {
+    public void putScheduleRepeatToSingleAfterEventYes(
+        RepeatSchedule repeatSchedule, SingleScheduleEditRequest singleScheduleEditRequest) {
 
         LocalDate selectedDate = singleScheduleEditRequest.getSelectedDate();
         if (selectedDate.equals(repeatSchedule.getScheduleDate())) {
@@ -327,7 +341,8 @@ public class ScheduleService {
             singleScheduleEditRequest, repeatSchedule.getStudyChannel()));
     }
 
-    public void putScheduleRepeatToSingleAfterEventNo(RepeatSchedule repeatSchedule, SingleScheduleEditRequest singleScheduleEditRequest) {
+    public void putScheduleRepeatToSingleAfterEventNo(
+        RepeatSchedule repeatSchedule, SingleScheduleEditRequest singleScheduleEditRequest) {
 
         LocalDate selectedDate = singleScheduleEditRequest.getSelectedDate();
         if (selectedDate.isEqual(repeatSchedule.getScheduleDate())) {
@@ -365,7 +380,8 @@ public class ScheduleService {
             singleScheduleEditRequest, repeatSchedule.getStudyChannel()));
     }
 
-    public void deleteSingleSchedule(Long studyChannelId, ScheduleDeleteRequest scheduleDeleteRequest) {
+    public void deleteSingleSchedule(
+        Long studyChannelId, ScheduleDeleteRequest scheduleDeleteRequest) {
         LocalDate currentDate =LocalDate.now();
 
         validateStudyChannel(studyChannelId);
@@ -388,7 +404,9 @@ public class ScheduleService {
             NotificationType.SCHEDULE_DELETE, SINGLE_SCHEDULE_DELETE);
     }
 
-    public void deleteRepeatSchedule(Long studyChannelId, Boolean isAfterEventSame, ScheduleDeleteRequest scheduleDeleteRequest) {
+    public void deleteRepeatSchedule(
+        Long studyChannelId, Boolean isAfterEventSame,
+        ScheduleDeleteRequest scheduleDeleteRequest) {
         LocalDate currentDate =LocalDate.now();
 
         validateStudyChannel(studyChannelId);
@@ -419,7 +437,8 @@ public class ScheduleService {
             NotificationType.SCHEDULE_DELETE, REPEAT_SCHEDULE_DELETE);
     }
 
-    public void deleteRepeatScheduleAfterEventSameYes(LocalDate selectedDate, RepeatSchedule repeatSchedule) {
+    public void deleteRepeatScheduleAfterEventSameYes(
+        LocalDate selectedDate, RepeatSchedule repeatSchedule) {
 
         if (selectedDate.equals(repeatSchedule.getScheduleDate())) {
             // 선택 날짜 repeat schedule 삭제
@@ -439,7 +458,9 @@ public class ScheduleService {
         }
     }
 
-    public void deleteRepeatScheduleAfterEventSameNo(LocalDate selectedDate, RepeatSchedule repeatSchedule) {
+    public void deleteRepeatScheduleAfterEventSameNo(
+        LocalDate selectedDate, RepeatSchedule repeatSchedule) {
+
         if (selectedDate.isEqual(repeatSchedule.getScheduleDate())) {
             // 기존 반복 일정: scheduleDate = scheduleDate + (주기 1)으로 변경
             changeRepeatStartDate(selectedDate, repeatSchedule.getRepeatCycle(), repeatSchedule);
@@ -480,12 +501,14 @@ public class ScheduleService {
             .orElseThrow(NotFoundStudyChannelException::new);
     }
 
-    private void validateStudyMember(Long memberId, Long studyChannelId){
+    private void validateStudyMember(
+        Long memberId, Long studyChannelId){
         studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId)
             .orElseThrow(NotStudyMemberException::new);
     }
 
-    private void validateStudyLeader(Long memberId, Long studyChannelId) {
+    private void validateStudyLeader(
+        Long memberId, Long studyChannelId) {
         StudyMember studyMember = studyMemberRepository.findByMemberIdAndStudyChannelId(memberId,
                 studyChannelId)
             .orElseThrow(NotStudyMemberException::new);
@@ -495,12 +518,13 @@ public class ScheduleService {
         }
     }
   
-    private boolean isNotIncluded(LocalDate selectedDate, LocalDate repeatStartDate
-        , LocalDate repeatEndDate) {
+    private boolean isNotIncluded(
+        LocalDate selectedDate, LocalDate repeatStartDate, LocalDate repeatEndDate) {
         return (selectedDate.isAfter(repeatEndDate) || selectedDate.isBefore(repeatStartDate));
     }
 
-    private boolean isNextRepeatStartDate(LocalDate selectedDate, RepeatCycle repeatCycle, LocalDate repeatStartDate) {
+    private boolean isNextRepeatStartDate(
+        LocalDate selectedDate, RepeatCycle repeatCycle, LocalDate repeatStartDate) {
         return switch (repeatCycle) {
             case DAILY -> selectedDate.minusDays(1).isEqual(repeatStartDate);
             case WEEKLY -> selectedDate.minusWeeks(1).isEqual(repeatStartDate);
@@ -508,7 +532,8 @@ public class ScheduleService {
         };
     }
 
-    private boolean isFrontRepeatEndDate(LocalDate selectedDate, RepeatCycle repeatCycle, LocalDate repeatEndDate) {
+    private boolean isFrontRepeatEndDate(
+        LocalDate selectedDate, RepeatCycle repeatCycle, LocalDate repeatEndDate) {
         return switch (repeatCycle) {
             case DAILY -> selectedDate.plusDays(1).isEqual(repeatEndDate);
             case WEEKLY -> selectedDate.plusWeeks(1).isEqual(repeatEndDate);
@@ -516,7 +541,9 @@ public class ScheduleService {
         };
     }
 
-    private void changeRepeatStartDate(LocalDate selectedDate, RepeatCycle repeatCycle, RepeatSchedule repeatSchedule) {
+    private void changeRepeatStartDate(
+        LocalDate selectedDate, RepeatCycle repeatCycle, RepeatSchedule repeatSchedule) {
+
         LocalDate newStartDate = switch (repeatCycle) {
             case DAILY -> selectedDate.plusDays(1);
             case WEEKLY -> selectedDate.plusWeeks(1);
@@ -526,7 +553,8 @@ public class ScheduleService {
         repeatScheduleRepository.save(repeatSchedule);
     }
 
-    private void changeRepeatEndDate(LocalDate selectedDate, RepeatCycle repeatCycle, RepeatSchedule repeatSchedule) {
+    private void changeRepeatEndDate(
+        LocalDate selectedDate, RepeatCycle repeatCycle, RepeatSchedule repeatSchedule) {
         LocalDate newEndDate = switch (repeatCycle) {
             case DAILY -> selectedDate.minusDays(1);
             case WEEKLY -> selectedDate.minusWeeks(1);
@@ -536,7 +564,8 @@ public class ScheduleService {
         repeatScheduleRepository.save(repeatSchedule);
     }
 
-    private RepeatSchedule makeAfterCycleRepeatSchedule(LocalDate selectedDate, RepeatSchedule existRepeatSchedule) {
+    private RepeatSchedule makeAfterCycleRepeatSchedule(
+        LocalDate selectedDate, RepeatSchedule existRepeatSchedule) {
         LocalDate afterStartDate = switch (existRepeatSchedule.getRepeatCycle()) {
             case DAILY -> selectedDate.plusDays(1);
             case WEEKLY -> selectedDate.plusWeeks(1);
@@ -557,19 +586,22 @@ public class ScheduleService {
             .build();
     }
 
-    private void validateNotPastTime(LocalTime scheduleStartTime, LocalTime currentTime) {
+    private void validateNotPastTime(
+        LocalTime scheduleStartTime, LocalTime currentTime) {
         if (scheduleStartTime.isBefore(currentTime)) {
             throw new InvalidScheduleModificationException("당일의 일정을 변경할 경우 일정의 시작 시간 이전만 가능합니다.");
         }
     }
 
-    private void validateRepeatSituation(LocalDate scheduleDate, RepeatCycle repeatCycle, RepeatSituation repeatSituation) {
+    private void validateRepeatSituation(
+        LocalDate scheduleDate, RepeatCycle repeatCycle, RepeatSituation repeatSituation) {
         if (!isValidRepeatSituation(scheduleDate, repeatCycle, repeatSituation)) {
             throw new IllegalArgumentForRepeatSituationException();
         }
     }
 
-    private boolean isValidRepeatSituation(LocalDate scheduleDate, RepeatCycle repeatCycle, RepeatSituation repeatSituation) {
+    private boolean isValidRepeatSituation(
+        LocalDate scheduleDate, RepeatCycle repeatCycle, RepeatSituation repeatSituation) {
         switch (repeatCycle) {
             case DAILY:
                 return true; // DAILY 주기에서는 특별한 검증이 필요하지 않으므로 통과
@@ -599,7 +631,8 @@ public class ScheduleService {
             .placeId(repeatScheduleCreateRequest.getPlaceId())
             .build();
     }
-    private RepeatSchedule createRepeatScheduleFromRequest(RepeatScheduleEditRequest editRequestToRepeatSchedule, StudyChannel studyChannel) {
+    private RepeatSchedule createRepeatScheduleFromRequest(
+        RepeatScheduleEditRequest editRequestToRepeatSchedule, StudyChannel studyChannel) {
         return RepeatSchedule.withoutIdBuilder()
             .scheduleName(editRequestToRepeatSchedule.getScheduleName())
             .scheduleContent(editRequestToRepeatSchedule.getScheduleContent())
@@ -630,7 +663,8 @@ public class ScheduleService {
             .build();
     }
 
-    private SingleSchedule createSingleScheduleFromRequest(SingleScheduleEditRequest singleScheduleEditRequest, StudyChannel studyChannel) {
+    private SingleSchedule createSingleScheduleFromRequest(
+        SingleScheduleEditRequest singleScheduleEditRequest, StudyChannel studyChannel) {
         return SingleSchedule.withoutIdBuilder()
             .scheduleName(singleScheduleEditRequest.getScheduleName())
             .scheduleContent(singleScheduleEditRequest.getScheduleContent())
@@ -643,7 +677,8 @@ public class ScheduleService {
             .build();
     }
 
-    private SingleSchedule createSingleScheduleFromRequest(SingleScheduleCreateRequest singleScheduleCreateRequest, StudyChannel studyChannel) {
+    private SingleSchedule createSingleScheduleFromRequest(
+        SingleScheduleCreateRequest singleScheduleCreateRequest, StudyChannel studyChannel) {
         return SingleSchedule.withoutIdBuilder()
             .scheduleName(singleScheduleCreateRequest.getScheduleName())
             .scheduleContent(singleScheduleCreateRequest.getScheduleContent())
@@ -656,9 +691,11 @@ public class ScheduleService {
             .build();
     }
 
-    private void sendNotificationForScheduleCreate(Long studyChannelId, Long scheduleId,
+    private void sendNotificationForScheduleCreate(
+        Long studyChannelId, Long scheduleId,
         LocalDate scheduleDate, NotificationType notificationType,
         String relateUrlFormat, String notificationFormatMessage) {
+
         // 로그 메시지 및 알림 메시지에 사용할 날짜 포맷터
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
         // 단일 일정 날짜를 포맷팅
@@ -674,8 +711,10 @@ public class ScheduleService {
     }
 
 
-    private void sendNotificationForScheduleUpdateOrDelete(Long studyChannelId, LocalDate scheduleDate,
+    private void sendNotificationForScheduleUpdateOrDelete(
+        Long studyChannelId, LocalDate scheduleDate,
         NotificationType notificationType, String notificationFormatMessage) {
+
         // 로그 메시지 및 알림 메시지에 사용할 날짜 포맷터
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
         // 단일 일정 날짜를 포맷팅
