@@ -63,7 +63,7 @@ public class ScheduleService {
     private final NotificationService notificationService;
 
     public void postSingleSchedule(
-        SingleScheduleCreateRequest singleScheduleCreateRequest, Long studyChannelId) {
+        Long studyChannelId, SingleScheduleCreateRequest singleScheduleCreateRequest) {
 
         StudyChannel studyChannel = validateStudyChannel(studyChannelId);
 
@@ -78,7 +78,7 @@ public class ScheduleService {
     }
 
     public void postRepeatSchedule(
-        RepeatScheduleCreateRequest repeatScheduleCreateRequest, Long studyChannelId) {
+        Long studyChannelId, RepeatScheduleCreateRequest repeatScheduleCreateRequest) {
 
         StudyChannel studyChannel = validateStudyChannel(studyChannelId);
 

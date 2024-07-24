@@ -46,7 +46,7 @@ public class ScheduleController {
     public ResponseEntity<Void> postSingleSchedule(
         @PathVariable Long studyChannelId,
         @Valid @RequestBody SingleScheduleCreateRequest singleScheduleCreateRequest)  {
-        scheduleService.postSingleSchedule(singleScheduleCreateRequest, studyChannelId);
+        scheduleService.postSingleSchedule(studyChannelId, singleScheduleCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -58,7 +58,7 @@ public class ScheduleController {
     public ResponseEntity<Void> postSingleSchedule(
         @PathVariable Long studyChannelId,
         @Valid @RequestBody RepeatScheduleCreateRequest repeatScheduleCreateRequest)  {
-      scheduleService.postRepeatSchedule(repeatScheduleCreateRequest, studyChannelId);
+      scheduleService.postRepeatSchedule(studyChannelId, repeatScheduleCreateRequest);
       return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -67,9 +67,9 @@ public class ScheduleController {
     @Parameter(name = "studyChannelId", description = "일정을 만드는 study channel의 id 값", required = true)
     public ResponseEntity<List<ScheduleResponse>> getSchedules(
         @AuthenticationPrincipal CustomUserDetails memberDetails,
-        @PathVariable Long studyChannelId) {;
+        @PathVariable Long studyChannelId) {
         return ResponseEntity.ok(scheduleService.getSchedulesInStudyChannel(
-            memberDetails.getId(), studyChannelId));
+            studyChannelId, memberDetails.getId()));
     }
 
     @GetMapping("/study-channels/{studyChannelId}/schedules/date")
