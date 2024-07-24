@@ -53,7 +53,6 @@ public class NotificationService {
         return notificationRepository.findAllByReceiverIdAndIsReadFalse(memberId);
     }
 
-
     public SseEmitter subscribe(Long memberId, String lastEventId) {
         String emitterId = makeTimeIncludeId(memberId);
         SseEmitter sseEmitter = new SseEmitter(timeout);
