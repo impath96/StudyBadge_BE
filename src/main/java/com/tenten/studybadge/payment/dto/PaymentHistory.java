@@ -16,7 +16,7 @@ public class PaymentHistory {
 
     private LocalDateTime createdAt;
 
-    private Long amount;
+    private Integer amount;
 
     private String paymentKey;
 

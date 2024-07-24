@@ -27,7 +27,7 @@ public class Point extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    private Long amount;
+    private Integer amount;
 
     @Enumerated(EnumType.STRING)
     private PointHistoryType historyType;

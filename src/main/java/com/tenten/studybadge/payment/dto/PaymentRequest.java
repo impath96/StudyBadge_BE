@@ -21,7 +21,7 @@ public class PaymentRequest {
     private PayType payType;
 
     @NotNull
-    private Long amount;
+    private Integer amount;
 
     @NotBlank
     private String orderName;
