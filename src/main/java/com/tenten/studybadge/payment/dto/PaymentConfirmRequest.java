@@ -20,5 +20,5 @@ public class PaymentConfirmRequest {
     private String orderId;
 
     @NotNull
-    private Long amount;
+    private Integer amount;
 }

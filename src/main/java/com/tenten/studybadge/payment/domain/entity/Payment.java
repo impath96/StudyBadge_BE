@@ -23,7 +23,7 @@ public class Payment extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PayType payType;
 
-    private Long amount;
+    private Integer amount;
 
     private String orderName;
 

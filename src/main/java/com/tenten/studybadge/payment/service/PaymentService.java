@@ -66,7 +66,7 @@ public class PaymentService {
         PaymentConfirm result = requestAcceptPayment(confirmRequest);
 
         Member updatedCustomer = payment.getCustomer().toBuilder()
-                .point((int) (payment.getCustomer().getPoint() + confirmRequest.getAmount()))
+                .point((payment.getCustomer().getPoint() + confirmRequest.getAmount()))
                 .build();
         memberRepository.save(updatedCustomer);
 
@@ -102,7 +102,7 @@ public class PaymentService {
             paymentRepository.save(canceldPayment);
 
             Member updatedMember = payment.getCustomer().toBuilder()
-                    .point((int) (payment.getCustomer().getPoint() - payment.getAmount()))
+                    .point((payment.getCustomer().getPoint() - payment.getAmount()))
                     .build();
             memberRepository.save(updatedMember);
 
@@ -164,7 +164,7 @@ public class PaymentService {
 
     }
 
-    public Payment verifyPayment(String orderId, Long amount) {
+    public Payment verifyPayment(String orderId, int amount) {
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(NotFoundOrderException::new);
 
