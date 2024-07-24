@@ -50,30 +50,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    // Redis 연결 실패 예외 처리
-    @ExceptionHandler(RedisConnectionFailureException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<ErrorResponse> handleRedisConnectionException(RedisConnectionFailureException ex) {
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode("REDIS_CONNECTION_FAILURE")
-            .message("레디스 연결 실패: " + ex.getMessage())
-            .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    // 데이터베이스 연결 실패 예외 처리
-    @ExceptionHandler(DataAccessException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<ErrorResponse> handleDatabaseConnectionException(DataAccessException ex) {
-        ErrorResponse errorResponse = ErrorResponse.builder()
-            .errorCode("DATABASE_CONNECTION_FAILURE")
-            .message("데이터 베이스 연결 실패: " + ex.getMessage())
-            .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
     // 파일 업로드 크기 초과 예외 처리
     @ExceptionHandler(MultipartException.class)
     @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
