@@ -58,6 +58,8 @@ dependencies {
 	// Swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4'
 
+	// Quartz
+	implementation 'org.springframework.boot:spring-boot-starter-quartz'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
