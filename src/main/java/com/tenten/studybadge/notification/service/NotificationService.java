@@ -14,6 +14,7 @@ import com.tenten.studybadge.notification.dto.NotificationResponse;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.notification.NotificationType;
+import com.tenten.studybadge.type.study.member.StudyMemberStatus;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +119,7 @@ public class NotificationService {
 
         studyMemberRepository.findAllByStudyChannelIdWithMember(studyChannelId)
             .stream()
+            .filter(studyMember -> studyMember.getStudyMemberStatus() == StudyMemberStatus.PARTICIPATING)
             .map(StudyMember::getMember)
             .forEach((member) -> send(member, notificationType, content, url));
     }
