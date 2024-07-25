@@ -15,6 +15,7 @@ import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.member.domain.entity.Member;
+import com.tenten.studybadge.notification.service.NotificationSchedulerService;
 import com.tenten.studybadge.notification.service.NotificationService;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
@@ -61,7 +62,8 @@ class ScheduleServiceTest {
     private StudyChannelRepository studyChannelRepository;
     @Mock
     private NotificationService notificationService;
-
+    @Mock
+    private NotificationSchedulerService notificationSchedulerService;
 
     @Mock
     private StudyMemberRepository studyMemberRepository;
