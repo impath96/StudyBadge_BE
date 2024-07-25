@@ -15,6 +15,7 @@ import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
 import com.tenten.studybadge.schedule.domain.repository.SingleScheduleRepository;
+import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.attendance.AttendanceStatus;
@@ -104,6 +105,33 @@ public class AttendanceService {
                     .build());
         }
         return attendanceInfoResponses;
+    }
+
+    public double getAttendanceRatioForMember(StudyMember studyMember) {
+        StudyChannel studyChannel = studyMember.getStudyChannel();
+        List<SingleSchedule> singleSchedules = singleScheduleRepository.findAllByStudyChannelId(studyChannel.getId());
+        List<RepeatSchedule> repeatSchedules = repeatScheduleRepository.findAllByStudyChannelId(studyChannel.getId());
+
+        int totalDays = countAllScheduleDays(singleSchedules, repeatSchedules);
+        long totalAttendanceDays = 0;
+
+        // 반복 일정
+        for (RepeatSchedule repeatSchedule : repeatSchedules) {
+            List<Attendance> repeatScheduleAttendances = attendanceRepository.findAllByRepeatScheduleIdAndStudyMemberId(repeatSchedule.getId(), studyMember.getId());
+            totalAttendanceDays += repeatScheduleAttendances.stream()
+                    .filter(Attendance::isAttendance)
+                    .count();
+        }
+
+        // 단일 일정
+        for (SingleSchedule singleSchedule : singleSchedules) {
+            List<Attendance> singleScheduleAttendances = attendanceRepository.findAllBySingleScheduleIdAndStudyMemberId(singleSchedule.getId(), studyMember.getId());
+            totalAttendanceDays += singleScheduleAttendances.stream()
+                    .filter(Attendance::isAttendance)
+                    .count();
+        }
+
+        return (double) (totalAttendanceDays * 100) / totalDays;
     }
 
     private Map<Long, List<Attendance>> groupByStudyMember(List<Attendance> repeatScheduleAttendances) {
