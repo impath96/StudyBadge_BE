@@ -45,7 +45,10 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
             TokenDto tokenDto = jwtTokenCreator.createToken(authentication.getName(), role, platform);
             String authorizationHeader = BEARER + tokenDto.getAccessToken();
-            response.sendRedirect(SIGN_UP_REDIRECT_URI);
+            String redirectUrl = UriComponentsBuilder.fromUriString(SIGN_UP_REDIRECT_URI)
+                    .queryParam(ACCESS_TOKEN, tokenDto.getAccessToken())
+                    .build().toUriString();
+            response.sendRedirect(redirectUrl);
             response.addHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
 
         } else {

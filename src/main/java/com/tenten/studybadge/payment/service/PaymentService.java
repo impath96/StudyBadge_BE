@@ -152,7 +152,7 @@ public class PaymentService {
 
     public List<PaymentHistory> paymentHistory(Long memberId, int page, int size) {
 
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, CREATED_AT));
+        PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, CREATED_AT));
 
         List<Payment> payment = paymentRepository.findByCustomerId(memberId, pageRequest);
 

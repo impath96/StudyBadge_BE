@@ -38,6 +38,8 @@ public class Member extends BaseEntity {
 
     private Boolean isAuth;
 
+    private Boolean isPasswordAuth;
+
     @Enumerated(EnumType.STRING)
     private MemberRole role;
 

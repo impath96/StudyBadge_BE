@@ -57,6 +57,7 @@ public class MemberSignUpRequest {
                 .nickname(signUpRequest.getNickname())
                 .introduction(signUpRequest.getIntroduction())
                 .isAuth(false)
+                .isPasswordAuth(false)
                 .role(USER)
                 .point(0)
                 .banCnt(0)

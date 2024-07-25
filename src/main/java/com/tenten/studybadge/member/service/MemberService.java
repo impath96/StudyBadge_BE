@@ -21,9 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -204,12 +204,61 @@ public class MemberService {
 
     public void withdrawal(Long memberId) {
 
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(NotFoundMemberException::new);
 
         Member withdrawMember = member.toBuilder()
                 .status(MemberStatus.WITHDRAWN)
                 .build();
         memberRepository.save(withdrawMember);
+    }
+
+    public void requestReset(String email, Platform platform) {
+
+        Member member = memberRepository.findByEmailAndPlatform(email, platform)
+                .orElseThrow(NotFoundMemberException::new);
+
+        String authCode = redisService.generateAuthCode();
+
+        redisService.saveAuthCode(member.getEmail(), authCode);
+
+        mailService.sendResetMail(member.getEmail() , authCode);
+    }
+
+    public void authPassword(String email, String code, Platform platform) {
+
+        Member member = memberRepository.findByEmailAndPlatform(email, platform)
+                .orElseThrow(NotFoundMemberException::new);
+
+        if (!code.equals(redisService.getAuthCode(email))) {
+            throw new InvalidAuthCodeException();
+        }
+
+        Member authResetPassword = member.toBuilder()
+                .isPasswordAuth(true)
+                .build();
+        memberRepository.save(authResetPassword);
+
+        redisService.deleteAuthCode(email);
+    }
+
+    public void resetPassword(String email, String newPassword, Platform platform) {
+
+        Member member = memberRepository.findByEmailAndPlatform(email, platform)
+                .orElseThrow(NotFoundMemberException::new);
+
+        if (!member.getIsPasswordAuth()) {
+
+            throw new NotAuthorizedPasswordAuth();
+        }
+
+        String encPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+        Member passwordReset = member.toBuilder()
+                .password(encPassword)
+                .isPasswordAuth(false)
+                .build();
+        memberRepository.save(passwordReset);
     }
 }
 
