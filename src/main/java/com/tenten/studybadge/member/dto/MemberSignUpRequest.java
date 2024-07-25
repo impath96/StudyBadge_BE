@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
-import static com.tenten.studybadge.member.domain.type.MemberRole.USER;
+import static com.tenten.studybadge.type.member.MemberRole.USER;
 
 
 @Getter

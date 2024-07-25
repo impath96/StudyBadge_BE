@@ -1,7 +1,7 @@
 package com.tenten.studybadge.common.security;
 
 import com.tenten.studybadge.member.domain.entity.Member;
-import com.tenten.studybadge.member.domain.type.MemberRole;
+import com.tenten.studybadge.type.member.MemberRole;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
 import lombok.Getter;

@@ -2,7 +2,6 @@ package com.tenten.studybadge.notification.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -19,7 +18,7 @@ import com.tenten.studybadge.common.security.CustomAuthenticationEntryPoint;
 import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.common.security.LoginUserArgumentResolver;
 import com.tenten.studybadge.member.domain.entity.Member;
-import com.tenten.studybadge.member.domain.type.MemberRole;
+import com.tenten.studybadge.type.member.MemberRole;
 import com.tenten.studybadge.notification.domain.entitiy.Notification;
 import com.tenten.studybadge.notification.dto.NotificationReadRequest;
 import com.tenten.studybadge.notification.dto.NotificationResponse;

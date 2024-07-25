@@ -1,6 +1,6 @@
 package com.tenten.studybadge.common.token.dto;
 
-import com.tenten.studybadge.member.domain.type.MemberRole;
+import com.tenten.studybadge.type.member.MemberRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
