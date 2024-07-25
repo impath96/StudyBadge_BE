@@ -17,7 +17,7 @@ import com.tenten.studybadge.common.exception.schedule.InvalidScheduleModificati
 import com.tenten.studybadge.common.exception.schedule.NotEqualSingleScheduleDate;
 import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundSingleScheduleException;
-import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
+import com.tenten.studybadge.common.exception.schedule.NotIncludedInRepeatScheduleException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyMemberException;
@@ -300,8 +300,10 @@ public class ScheduleService {
             .orElseThrow(NotFoundRepeatScheduleException::new);
 
         LocalDate selectedDate = editRequestToSingleSchedule.getSelectedDate();
-        if (isNotIncluded(selectedDate, repeatSchedule.getScheduleDate(), repeatSchedule.getRepeatEndDate())) {
-            throw new OutRangeScheduleException();
+        if (isNotIncludedRepeatSchedule(
+            repeatSchedule.getRepeatCycle(), selectedDate,
+            repeatSchedule.getScheduleDate(), repeatSchedule.getRepeatEndDate())) {
+            throw new NotIncludedInRepeatScheduleException();
         }
 
         if (currentDate.isEqual(selectedDate)) {
@@ -476,13 +478,15 @@ public class ScheduleService {
 
         LocalDate selectedDate = scheduleDeleteRequest.getSelectedDate();
 
-        if (isNotIncluded(selectedDate, repeatSchedule.getScheduleDate(), repeatSchedule.getRepeatEndDate())) {
-            throw new OutRangeScheduleException();
+        if (isNotIncludedRepeatSchedule(
+            repeatSchedule.getRepeatCycle(), selectedDate,
+            repeatSchedule.getScheduleDate(), repeatSchedule.getRepeatEndDate())) {
+            throw new NotIncludedInRepeatScheduleException();
         }
 
-//        if (currentDate.isAfter(repeatSchedule.getScheduleDate())) {
-//            throw new CanNotDeleteForBeforeDateException();
-//        }
+        if (currentDate.isAfter(scheduleDeleteRequest.getSelectedDate())) {
+            throw new CanNotDeleteForBeforeDateException();
+        }
 
         validateStudyLeader(scheduleDeleteRequest.getMemberId(), studyChannelId);
 
@@ -615,10 +619,28 @@ public class ScheduleService {
             throw new NotStudyLeaderException();
         }
     }
-  
-    private boolean isNotIncluded(
-        LocalDate selectedDate, LocalDate repeatStartDate, LocalDate repeatEndDate) {
-        return (selectedDate.isAfter(repeatEndDate) || selectedDate.isBefore(repeatStartDate));
+
+    private boolean isNotIncludedRepeatSchedule(
+        RepeatCycle repeatCycle, LocalDate selectedDate,
+        LocalDate repeatStartDate, LocalDate repeatEndDate) {
+        if (selectedDate.isAfter(repeatEndDate) || selectedDate.isBefore(repeatStartDate)) {
+            return true;
+        }
+
+        return switch (repeatCycle) {
+            case DAILY -> false;
+            case WEEKLY -> !isDateInWeeklyCycle(selectedDate, repeatStartDate);
+            case MONTHLY -> !isDateInMonthlyCycle(selectedDate, repeatStartDate);
+        };
+    }
+
+    private boolean isDateInWeeklyCycle(LocalDate selectedDate, LocalDate repeatStartDate) {
+        long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(repeatStartDate, selectedDate);
+        return daysBetween % 7 == 0;
+    }
+
+    private boolean isDateInMonthlyCycle(LocalDate selectedDate, LocalDate repeatStartDate) {
+        return selectedDate.getDayOfMonth() == repeatStartDate.getDayOfMonth();
     }
 
     private boolean isNextRepeatStartDate(
