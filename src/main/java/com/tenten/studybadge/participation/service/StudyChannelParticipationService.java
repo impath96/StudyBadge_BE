@@ -82,8 +82,9 @@ public class StudyChannelParticipationService {
     public void approve(Long studyChannelId, Long participationId, Long memberId) {
 
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
-        Participation participation = participationRepository.findById(participationId).orElseThrow(NotFoundParticipationException::new);
-        StudyChannel studyChannel = participation.getStudyChannel();
+        Participation participation = participationRepository.findByIdWithMember(participationId).orElseThrow(NotFoundParticipationException::new);
+        StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(participation.getStudyChannel().getId()).orElseThrow(NotFoundStudyChannelException::new);
+        Member applyMember = participation.getMember();
 
         if (!studyChannel.getId().equals(studyChannelId)) {
              throw new OtherStudyChannelParticipationException();
@@ -95,12 +96,9 @@ public class StudyChannelParticipationService {
             throw new InvalidApprovalStatusException();
         }
 
-        StudyChannel channel = participation.getStudyChannel();
-        Member applyMember = participation.getMember();
-
         approveMember(participation, studyChannel, applyMember);
         Point point = deductPoint(applyMember, studyChannel.getDeposit());
-        recordDeposit(channel, applyMember, point.getAmount());
+        recordDeposit(studyChannel, applyMember, point.getAmount());
 
     }
 
@@ -108,7 +106,7 @@ public class StudyChannelParticipationService {
 
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
         Participation participation = participationRepository.findById(participationId).orElseThrow(NotFoundParticipationException::new);
-        StudyChannel studyChannel = participation.getStudyChannel();
+        StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(participation.getStudyChannel().getId()).orElseThrow(NotFoundStudyChannelException::new);
 
         if (!studyChannel.getId().equals(studyChannelId)) {
             throw new OtherStudyChannelParticipationException();
@@ -127,7 +125,7 @@ public class StudyChannelParticipationService {
     public StudyChannelParticipationStatusResponse getParticipationStatus(Long studyChannelId, Long memberId) {
 
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
-        StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
+        StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
         if (!studyChannel.isLeader(member)) {
             throw new NotStudyLeaderException();
         }
