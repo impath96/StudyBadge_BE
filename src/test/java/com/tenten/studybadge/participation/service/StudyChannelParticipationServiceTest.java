@@ -89,7 +89,7 @@ class StudyChannelParticipationServiceTest {
             Member member = Member.builder().id(1L).build();
 
             given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.findByIdWithMember(anyLong())).willReturn(Optional.of(studyChannel));
             given(participationRepository.existsByMemberIdAndStudyChannelId(anyLong(), anyLong())).willReturn(false);
 
             // when
@@ -114,7 +114,7 @@ class StudyChannelParticipationServiceTest {
             // given
             Member member = mock(Member.class);
             given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(studyChannelRepository.findById(anyLong())).willReturn(Optional.empty());
+            given(studyChannelRepository.findByIdWithMember(anyLong())).willReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> studyChannelParticipationService.apply(1L, 1L))
@@ -137,7 +137,7 @@ class StudyChannelParticipationServiceTest {
                     .build();
             Member member = mock(Member.class);
             given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.findByIdWithMember(anyLong())).willReturn(Optional.of(studyChannel));
             given(participationRepository.existsByMemberIdAndStudyChannelId(anyLong(), anyLong())).willReturn(true);
 
             // when
@@ -172,7 +172,7 @@ class StudyChannelParticipationServiceTest {
                     .build();
             studyChannel.getStudyMembers().add(studyMember);
             given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.findByIdWithMember(anyLong())).willReturn(Optional.of(studyChannel));
 
             // when & then
             assertThatThrownBy(() -> studyChannelParticipationService.apply(studyChannel.getId(), 1L))
@@ -195,7 +195,7 @@ class StudyChannelParticipationServiceTest {
                     .build();
             Member member = mock(Member.class);
             given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(studyChannelRepository.findById(anyLong())).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.findByIdWithMember(anyLong())).willReturn(Optional.of(studyChannel));
 
             // when & then
             assertThatThrownBy(() -> studyChannelParticipationService.apply(studyChannel.getId(), 1L))
@@ -282,7 +282,8 @@ class StudyChannelParticipationServiceTest {
                     .build();
 
             given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
-            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
+            given(participationRepository.findByIdWithMember(1L)).willReturn(Optional.of(participation));
 
             //when
             studyChannelParticipationService.approve(1L, 1L, 2L);
@@ -348,7 +349,8 @@ class StudyChannelParticipationServiceTest {
                     .build();
 
             given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
-            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+            given(participationRepository.findByIdWithMember(1L)).willReturn(Optional.of(participation));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
 
             //when & then
             assertThatThrownBy(() -> studyChannelParticipationService.approve(2L, 1L, 2L))
@@ -381,7 +383,8 @@ class StudyChannelParticipationServiceTest {
                     .build();
 
             given(memberRepository.findById(2L)).willReturn(Optional.of(member2));
-            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+            given(participationRepository.findByIdWithMember(1L)).willReturn(Optional.of(participation));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
 
             //when & then
             assertThatThrownBy(() -> studyChannelParticipationService.approve(1L, 1L, 2L))
@@ -415,7 +418,8 @@ class StudyChannelParticipationServiceTest {
                     .build();
 
             given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
-            given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+            given(participationRepository.findByIdWithMember(1L)).willReturn(Optional.of(participation));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
 
             //when & then
             assertThatThrownBy(() -> studyChannelParticipationService.approve(1L, 1L, 2L))
@@ -456,6 +460,7 @@ class StudyChannelParticipationServiceTest {
 
             given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
             given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
 
             //when
             studyChannelParticipationService.reject(1L, 1L, 2L);
@@ -491,6 +496,7 @@ class StudyChannelParticipationServiceTest {
 
             given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
             given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
 
             //when & then
             assertThatThrownBy(() -> studyChannelParticipationService.reject(2L, 1L, 2L))
@@ -524,6 +530,7 @@ class StudyChannelParticipationServiceTest {
 
             given(memberRepository.findById(2L)).willReturn(Optional.of(member2));
             given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
 
             //when & then
             assertThatThrownBy(() -> studyChannelParticipationService.reject(1L, 1L, 2L))
@@ -558,6 +565,7 @@ class StudyChannelParticipationServiceTest {
 
             given(memberRepository.findById(2L)).willReturn(Optional.of(leader));
             given(participationRepository.findById(1L)).willReturn(Optional.of(participation));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
 
             //when & then
             assertThatThrownBy(() -> studyChannelParticipationService.reject(1L, 1L, 2L))
@@ -593,7 +601,7 @@ class StudyChannelParticipationServiceTest {
             studyChannel.getStudyMembers().add(leader);
 
             given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
-            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
 
             //when
             StudyChannelParticipationStatusResponse response = studyChannelParticipationService.getParticipationStatus(1L, 1L);
@@ -641,7 +649,7 @@ class StudyChannelParticipationServiceTest {
                     .build();
 
             given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
-            given(studyChannelRepository.findById(1L)).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
             given(participationRepository.findByStudyChannelIdWithMember(1L)).willReturn(List.of(participation));
 
             //when
