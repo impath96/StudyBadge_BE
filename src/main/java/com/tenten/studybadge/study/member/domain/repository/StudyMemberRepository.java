@@ -26,4 +26,9 @@ public interface StudyMemberRepository extends JpaRepository<StudyMember, Long> 
     Optional<StudyMember> findByMemberIdAndStudyChannelId(Long memberId, Long studyChannelId);
 
     List<StudyMember> findByMemberId(Long memberId);
+
+    @Query("SELECT sm FROM StudyMember sm " +
+            "JOIN FETCH sm.studyChannel " +
+            "WHERE sm.member.id = :memberId")
+    List<StudyMember> findAllByMemberIdWithStudyChannel(Long memberId);
 }
