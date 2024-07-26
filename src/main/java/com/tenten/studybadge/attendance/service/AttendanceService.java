@@ -8,7 +8,7 @@ import com.tenten.studybadge.attendance.dto.AttendanceMember;
 import com.tenten.studybadge.common.exception.attendance.InvalidAttendanceCheckDateException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundRepeatScheduleException;
 import com.tenten.studybadge.common.exception.schedule.NotFoundSingleScheduleException;
-import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
+import com.tenten.studybadge.common.exception.schedule.NotIncludedInRepeatScheduleException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyMemberException;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
@@ -134,7 +134,7 @@ public class AttendanceService {
         LocalDateTime currentTime = LocalDateTime.now();
 
         if (repeatSchedule.getScheduleDate().isAfter(attendanceCheckDate) || repeatSchedule.getRepeatEndDate().isBefore(attendanceCheckDate)) {
-            throw new OutRangeScheduleException();
+            throw new NotIncludedInRepeatScheduleException();
         }
 
         if (!currentTime.toLocalDate().isEqual(attendanceCheckDate)) {

@@ -11,7 +11,7 @@ import static org.mockito.Mockito.verify;
 
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatSituationException;
 import com.tenten.studybadge.common.exception.schedule.NotEqualSingleScheduleDate;
-import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
+import com.tenten.studybadge.common.exception.schedule.NotIncludedInRepeatScheduleException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.member.domain.entity.Member;
@@ -1073,7 +1073,7 @@ class ScheduleServiceTest {
                 .thenReturn(Optional.of(studyLeader));
 
             // when & then
-            assertThrows(OutRangeScheduleException.class, () -> {
+            assertThrows(NotIncludedInRepeatScheduleException.class, () -> {
               scheduleService.putScheduleRepeatToSingle(1L, true, singleScheduleEditRequest);
             });
         }
@@ -1329,7 +1329,7 @@ class ScheduleServiceTest {
             given(repeatScheduleRepository.findById(2L)).willReturn(
                 Optional.of(repeatScheduleWithoutPlace));
             // when & then
-            assertThrows(OutRangeScheduleException.class, () -> {
+            assertThrows(NotIncludedInRepeatScheduleException.class, () -> {
                 scheduleService.deleteRepeatSchedule(1L, true, deleteRequest);
             });
         }
