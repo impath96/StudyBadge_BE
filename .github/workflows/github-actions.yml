@@ -31,14 +31,11 @@ jobs:
             ${{ runner.os }}-gradle-
             
 
-      - name: make application.yml
-
+      - name: Make application.yml for develop branch
         if: contains(github.ref, 'develop')
         run: |
             mkdir -p ./src/main/resources
-            cd ./src/main/resources
-            touch ./application.yml
-            echo "${{ secrets.YML }}" >
+            echo "${{ secrets.YML }}" > ./src/main/resources/application.yml
         shell: bash
 
 
