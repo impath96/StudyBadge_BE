@@ -6,6 +6,7 @@ import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForSchedul
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -33,9 +34,15 @@ public class NotificationSchedulerService {
 
     // 알림 스케줄링 (단일 일정)
     public void schedulingSingleScheduleNotification(SingleSchedule singleSchedule) {
-        LocalDateTime notificationTime = LocalDateTime.of(
+        LocalDateTime AttendanceStartDateTime = LocalDateTime.of(
             singleSchedule.getScheduleDate(), singleSchedule.getScheduleStartTime()).minusMinutes(10);
-        Date notificationDate = Date.from(notificationTime.atZone(ZoneId.systemDefault()).toInstant());
+        Date notificationDate = Date.from(AttendanceStartDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+        // 현재 날짜와 시간과 비교하여 과거 날짜인지 확인
+        if (AttendanceStartDateTime.isBefore(LocalDateTime.now())) {
+            log.info("출석 체크 시작 시간이 과거 날짜이므로 단일 일정 출석 체크 알림 스케줄링을 생략합니다.: " + AttendanceStartDateTime);
+            return; // 과거 날짜일 경우 스케줄링을 건너뜁니다.
+        }
 
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("scheduleId", singleSchedule.getId());
@@ -54,7 +61,8 @@ public class NotificationSchedulerService {
         Trigger trigger = TriggerBuilder.newTrigger()
             .withIdentity(triggerKey)
             .startAt(notificationDate)
-            .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
+            .endAt(notificationDate)
+            .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionNextWithExistingCount())
             .build();
 
         try {
@@ -67,8 +75,16 @@ public class NotificationSchedulerService {
 
     // 알림 스케줄링 (반복 일정)
     public void schedulingRepeatScheduleNotification(RepeatSchedule repeatSchedule) {
-        LocalDateTime startDateTime = LocalDateTime.of(repeatSchedule.getScheduleDate(), repeatSchedule.getScheduleStartTime()).minusMinutes(10);
-        String cronExpression = getCronExpression(repeatSchedule.getRepeatCycle(), startDateTime);
+        LocalDateTime startDateTime = LocalDateTime.of(
+            repeatSchedule.getScheduleDate(), repeatSchedule.getScheduleStartTime()).minusMinutes(10);
+        LocalDateTime endDateTime = repeatSchedule.getRepeatEndDate().atTime(23, 59, 59); // 하루의 끝으로 설정
+        Date endDate = Date.from(endDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+        // 현재 날짜와 시간과 비교하여 반복 끝나는 날짜가 과거 날짜인지 확인
+        if (repeatSchedule.getRepeatEndDate().isBefore(LocalDate.now())) {
+            log.info("반복 끝나는 날짜가 현재보다 과거 날짜이므로 반복 일정 출석 체크 알림 스케줄링을 생략합니다.: " + endDateTime);
+            return; // 과거 날짜일 경우 스케줄링을 건너뜁니다.
+        }
 
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("scheduleId", repeatSchedule.getId());
@@ -81,14 +97,18 @@ public class NotificationSchedulerService {
             .usingJobData(jobDataMap)
             .build();
 
+        String cronExpression = getCronExpression(repeatSchedule.getRepeatCycle(), startDateTime);
+
         TriggerKey triggerKey = new TriggerKey("repeatScheduleNotificationTrigger-" + repeatSchedule.getId(), "repeat-schedule-notifications");
-
-        Trigger trigger = TriggerBuilder.newTrigger()
-            .withIdentity(triggerKey)
-            .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression).withMisfireHandlingInstructionFireAndProceed())
-            .build();
-
         try {
+            Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(triggerKey)
+                .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression)
+                    .withMisfireHandlingInstructionDoNothing())
+                .startAt(Date.from(startDateTime.atZone(ZoneId.systemDefault()).toInstant()))  // Start time 설정
+                .endAt(endDate)
+                .build();
+
             if (scheduler.checkExists(jobDetail.getKey())) {
                 scheduler.addJob(jobDetail, true); // 기존 Job 덮어쓰기
                 scheduler.rescheduleJob(triggerKey, trigger); // 트리거 재스케줄링
@@ -98,6 +118,13 @@ public class NotificationSchedulerService {
             log.info("Scheduled repeat schedule notification: JobKey={}, TriggerKey={}", jobDetail.getKey(), triggerKey);
         } catch (SchedulerException e) {
             log.error("Error scheduling repeat schedule notification", e);
+            e.printStackTrace();  // 예외의 상세 정보 출력
+        } catch (IllegalArgumentException e) {
+            // IllegalArgumentException 예외의 상세 정보 출력
+            log.error("Illegal argument encountered while scheduling repeat schedule notification", e);
+            System.out.println("IllegalArgumentException: " + e.getMessage());
+            System.out.println("StackTrace: ");
+            e.printStackTrace(System.out);
         }
     }
 
