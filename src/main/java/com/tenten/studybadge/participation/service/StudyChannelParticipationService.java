@@ -47,7 +47,7 @@ public class StudyChannelParticipationService {
     public void apply(Long studyChannelId, Long memberId) {
 
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
-        StudyChannel studyChannel = studyChannelRepository.findById(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
+        StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
 
         if (studyChannel.isStudyMember(memberId)) {
             throw new AlreadyStudyMemberException();
