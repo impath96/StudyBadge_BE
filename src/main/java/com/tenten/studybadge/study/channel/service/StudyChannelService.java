@@ -6,6 +6,7 @@ import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelE
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
+import com.tenten.studybadge.notification.service.NotificationSchedulerService;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
@@ -38,6 +39,7 @@ public class StudyChannelService {
     private final StudyMemberRepository studyMemberRepository;
     private final MemberRepository memberRepository;
     private final ParticipationRepository participationRepository;
+    private final NotificationSchedulerService notificationSchedulerService;
 
     @Transactional
     public Long create(StudyChannelCreateRequest request, Long memberId) {
@@ -119,6 +121,8 @@ public class StudyChannelService {
 
         studyChannelRepository.save(studyChannel);
         participationRepository.saveAll(approveWaitingParticipationList);
+
+        notificationSchedulerService.scheduleStudyEndNotifications(studyChannel);
     }
 
     private void checkLeader(StudyChannel studyChannel, Member member) {
