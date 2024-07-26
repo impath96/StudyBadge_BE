@@ -34,13 +34,13 @@ public class NotificationSchedulerService {
 
     // 알림 스케줄링 (단일 일정)
     public void schedulingSingleScheduleNotification(SingleSchedule singleSchedule) {
-        LocalDateTime AttendanceStartDateTime = LocalDateTime.of(
+        LocalDateTime attendanceStartDateTime = LocalDateTime.of(
             singleSchedule.getScheduleDate(), singleSchedule.getScheduleStartTime()).minusMinutes(10);
-        Date notificationDate = Date.from(AttendanceStartDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        Date notificationDate = Date.from(attendanceStartDateTime.atZone(ZoneId.systemDefault()).toInstant());
 
         // 현재 날짜와 시간과 비교하여 과거 날짜인지 확인
-        if (AttendanceStartDateTime.isBefore(LocalDateTime.now())) {
-            log.info("출석 체크 시작 시간이 과거 날짜이므로 단일 일정 출석 체크 알림 스케줄링을 생략합니다.: " + AttendanceStartDateTime);
+        if (attendanceStartDateTime.isBefore(LocalDateTime.now())) {
+            log.info("출석 체크 시작 시간이 과거 날짜이므로 단일 일정 출석 체크 알림 스케줄링을 생략합니다.: " + attendanceStartDateTime);
             return; // 과거 날짜일 경우 스케줄링을 건너뜁니다.
         }
 
@@ -62,7 +62,8 @@ public class NotificationSchedulerService {
             .withIdentity(triggerKey)
             .startAt(notificationDate)
             .endAt(notificationDate)
-            .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionNextWithExistingCount())
+            .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                .withMisfireHandlingInstructionNextWithExistingCount())
             .build();
 
         try {
