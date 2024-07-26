@@ -144,7 +144,7 @@ public class StudyMemberService {
         if (!studyMember.isLeader()) {
             throw new NotStudyLeaderException();
         }
-        StudyMember banedStudyMember = studyMemberRepository.findById(studyMemberId).orElseThrow(NotStudyMemberException::new);
+        StudyMember banedStudyMember = studyMemberRepository.findByIdWithMember(studyMemberId).orElseThrow(NotStudyMemberException::new);
         Member member = banedStudyMember.getMember();
 
         // 스터디 멤버 상태 : "BAN"으로 변경

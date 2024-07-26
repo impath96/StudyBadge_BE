@@ -31,4 +31,9 @@ public interface StudyMemberRepository extends JpaRepository<StudyMember, Long> 
             "JOIN FETCH sm.studyChannel " +
             "WHERE sm.member.id = :memberId")
     List<StudyMember> findAllByMemberIdWithStudyChannel(Long memberId);
+
+    @Query("SELECT sm FROM StudyMember sm " +
+            "JOIN FETCH sm.member " +
+            "WHERE sm.id = :id")
+    Optional<StudyMember> findByIdWithMember(Long id);
 }
