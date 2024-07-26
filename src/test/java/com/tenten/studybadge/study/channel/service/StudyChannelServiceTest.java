@@ -3,6 +3,7 @@ package com.tenten.studybadge.study.channel.service;
 import com.tenten.studybadge.common.exception.studychannel.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
+import com.tenten.studybadge.notification.service.NotificationSchedulerService;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
@@ -56,6 +57,9 @@ class StudyChannelServiceTest {
 
     @Mock
     private ParticipationRepository participationRepository;
+
+    @Mock
+    private NotificationSchedulerService notificationSchedulerService;
 
     @DisplayName("[스터디 채널 생성 테스트]")
     @Nested
