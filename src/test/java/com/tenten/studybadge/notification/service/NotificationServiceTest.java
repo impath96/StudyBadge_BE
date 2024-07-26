@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tenten.studybadge.member.domain.entity.Member;
-import com.tenten.studybadge.member.domain.type.MemberRole;
+import com.tenten.studybadge.type.member.MemberRole;
 import com.tenten.studybadge.notification.domain.entitiy.Notification;
 import com.tenten.studybadge.notification.domain.repository.NotificationRepository;
 import com.tenten.studybadge.notification.dto.NotificationReadRequest;

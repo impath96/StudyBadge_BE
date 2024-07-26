@@ -40,6 +40,26 @@ public class MailService {
 
     }
 
+    @Async
+    public void sendResetMail(String email, String authCode) {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+
+        try {
+
+            String body = String.format(RESET_PASSWORD_BODY, email);
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, UNICODE);
+            mimeMessageHelper.setTo(email);
+            mimeMessageHelper.setSubject(RESET_PASSWORD_SUBJECT);
+            mimeMessageHelper.setText(body + authCode, true);
+
+        } catch (MessagingException e) {
+            throw new SendMailException();
+        }
+
+        javaMailSender.send(mimeMessage);
+
+    }
+
     public boolean isValidEmail(String email) {
         return EmailValidator.getInstance().isValid(email);
     }

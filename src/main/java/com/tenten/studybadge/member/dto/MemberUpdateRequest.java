@@ -13,6 +13,8 @@ public class MemberUpdateRequest {
 
     private String account;
 
+    private String accountBank;
+
     private String introduction;
 
     private String imgUrl;

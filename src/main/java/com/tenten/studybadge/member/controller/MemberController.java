@@ -119,4 +119,31 @@ public class MemberController {
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+    @Operation(summary = "비밀번호 재설정 요청", description = "비밀번호 재설정 요청")
+    @Parameter(name = "email" , description = "비밀번호 재설정을 요청할 회원의 이메일")
+    @PostMapping("/password")
+    public ResponseEntity<Void> requestReset(@RequestParam(name = "email") String email) {
+
+        memberService.requestReset(email, LOCAL);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    @Operation(summary = "비밀번호 재설정 인증", description = "비밀번호 재설정을 위한 인증코드 비교 인증")
+    @GetMapping("/auth/password")
+    public ResponseEntity<Void> passwordAuth(@RequestParam(name = "email") String email, @RequestParam(name = "code") String code) {
+
+        memberService.authPassword(email, code, LOCAL);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    @Operation(summary = "비밀번호 재설정", description = "인증을 마친 회원의 비밀번호 재설정")
+    @Parameter(name = "email",  description = "비밀번호 재설정 할 회원의 이메일")
+    @Parameter(name = "newPassword", description = "새로운 비밀번호")
+    @PatchMapping("/password/reset")
+    public ResponseEntity<Void> resetPassword(@RequestParam(name = "email") String email, @RequestParam(name = "newPassword") String newPassword) {
+
+        memberService.resetPassword(email, newPassword, LOCAL);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }

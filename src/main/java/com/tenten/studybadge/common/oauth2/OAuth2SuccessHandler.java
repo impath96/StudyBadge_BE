@@ -5,7 +5,7 @@ import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.common.token.dto.TokenDto;
 import com.tenten.studybadge.common.token.service.TokenService;
 import com.tenten.studybadge.common.utils.CookieUtils;
-import com.tenten.studybadge.member.domain.type.MemberRole;
+import com.tenten.studybadge.type.member.MemberRole;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,7 +45,10 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
             TokenDto tokenDto = jwtTokenCreator.createToken(authentication.getName(), role, platform);
             String authorizationHeader = BEARER + tokenDto.getAccessToken();
-            response.sendRedirect(SIGN_UP_REDIRECT_URI);
+            String redirectUrl = UriComponentsBuilder.fromUriString(SIGN_UP_REDIRECT_URI)
+                    .queryParam(ACCESS_TOKEN, tokenDto.getAccessToken())
+                    .build().toUriString();
+            response.sendRedirect(redirectUrl);
             response.addHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
 
         } else {
