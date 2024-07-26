@@ -29,6 +29,18 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+            
+
+      - name: make application.yml
+
+        if: contains(github.ref, 'develop')
+        run: |
+            mkdir ./src/main/resources
+            cd ./src/main/resources
+            touch ./application.yml
+            echo "${{ secrets.YML }}" >
+        shell: bash
+
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
