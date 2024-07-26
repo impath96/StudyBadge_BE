@@ -60,7 +60,7 @@ jobs:
       - name: Code Deploy
         run: |
           aws deploy create-deployment \
-            --application-name studybadgebucket \
+            --application-name studybadge \
             --deployment-config-name CodeDeployDefault.OneAtATime \
             --deployment-group-name studybadge-deploy \
             --s3-location bucket=studybadgebucket,bundleType=zip,key=deploy/$GITHUB_SHA.zip
