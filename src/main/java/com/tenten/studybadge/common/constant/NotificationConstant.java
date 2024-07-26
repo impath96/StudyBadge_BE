@@ -15,4 +15,7 @@ public class NotificationConstant {
     public static final String REPEAT_SCHEDULE_DELETE = "스터디 채널 id: %d의  %s 반복 일정이 삭제되었습니다.";
 
     public static final String TEN_MINUTES_BEFORE_SCHEDULE_START = "%s 일정 시작 10분 전입니다.";
+
+    public static final String STUDY_END_TOMORROW_NOTIFICATION = "[%s] 스터디가 내일 종료됩니다.";
+    public static final String STUDY_END_TODAY_AND_REFUND_NOTIFICATION = "[%s] 스터디가 끝났습니다. 출석률 기반 환급 금액은 다음날 정산 될 예정입니다.";
 }
