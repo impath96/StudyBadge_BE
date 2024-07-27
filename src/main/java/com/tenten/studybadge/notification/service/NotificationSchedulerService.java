@@ -15,6 +15,7 @@ import com.tenten.studybadge.type.schedule.RepeatCycle;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,12 +51,17 @@ public class NotificationSchedulerService {
             return; // 과거 날짜일 경우 스케줄링을 건너뜁니다.
         }
 
+        LocalDate scheduleDate = singleSchedule.getScheduleDate();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = scheduleDate.format(formatter);
+
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("scheduleId", singleSchedule.getId());
         jobDataMap.put("scheduleName", singleSchedule.getScheduleName());
         jobDataMap.put("startTime", LocalDateTime.of(
-            singleSchedule.getScheduleDate(), singleSchedule.getScheduleStartTime()));
+            scheduleDate, singleSchedule.getScheduleStartTime()));
         jobDataMap.put("studyChannelId", singleSchedule.getStudyChannel().getId());
+        jobDataMap.put("formattedDate", formattedDate);
 
         JobDetail jobDetail = JobBuilder.newJob(SingleScheduleNotificationJob.class)
             .withIdentity("singleScheduleNotificationJob-" + singleSchedule.getId(), "single-schedule-notifications")
@@ -82,6 +88,9 @@ public class NotificationSchedulerService {
 
     // 알림 스케줄링 (반복 일정)
     public void schedulingRepeatScheduleNotification(RepeatSchedule repeatSchedule) {
+        LocalDate scheduleDate = repeatSchedule.getScheduleDate();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = scheduleDate.format(formatter);
         LocalDateTime startDateTime = LocalDateTime.of(
             repeatSchedule.getScheduleDate(), repeatSchedule.getScheduleStartTime()).minusMinutes(10);
         LocalDateTime endDateTime = repeatSchedule.getRepeatEndDate().atTime(23, 59, 59); // 하루의 끝으로 설정
@@ -98,6 +107,7 @@ public class NotificationSchedulerService {
         jobDataMap.put("scheduleName", repeatSchedule.getScheduleName());
         jobDataMap.put("startTime", LocalDateTime.of(repeatSchedule.getScheduleDate(), repeatSchedule.getScheduleStartTime()));
         jobDataMap.put("studyChannelId", repeatSchedule.getStudyChannel().getId());
+        jobDataMap.put("formattedDate", formattedDate);
 
         JobDetail jobDetail = JobBuilder.newJob(RepeatScheduleNotificationJob.class)
             .withIdentity("repeatScheduleNotificationJob-" + repeatSchedule.getId(), "repeat-schedule-notifications")

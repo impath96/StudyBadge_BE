@@ -2,12 +2,14 @@ package com.tenten.studybadge.schedule.service;
 
 import static com.tenten.studybadge.common.constant.NotificationConstant.REPEAT_SCHEDULE_CREATE;
 import static com.tenten.studybadge.common.constant.NotificationConstant.REPEAT_SCHEDULE_DELETE;
-import static com.tenten.studybadge.common.constant.NotificationConstant.REPEAT_SCHEDULE_URL;
+import static com.tenten.studybadge.common.constant.NotificationConstant.SCHEDULE_RELATED_URL;
+import static com.tenten.studybadge.common.constant.NotificationConstant.SCHEDULE_UPDATE_FOR_REPEAT_TO_REPEAT;
+import static com.tenten.studybadge.common.constant.NotificationConstant.SCHEDULE_UPDATE_FOR_REPEAT_TO_SINGLE;
+import static com.tenten.studybadge.common.constant.NotificationConstant.SCHEDULE_UPDATE_FOR_SINGLE_TO_REPEAT;
+import static com.tenten.studybadge.common.constant.NotificationConstant.SCHEDULE_UPDATE_FOR_SINGLE_TO_SINGLE;
 import static com.tenten.studybadge.common.constant.NotificationConstant.SINGLE_SCHEDULE_CREATE;
 import static com.tenten.studybadge.common.constant.NotificationConstant.SINGLE_SCHEDULE_DELETE;
-import static com.tenten.studybadge.common.constant.NotificationConstant.SINGLE_SCHEDULE_URL;
 
-import com.tenten.studybadge.common.constant.NotificationConstant;
 import com.tenten.studybadge.common.exception.schedule.CanNotDeleteForBeforeDateException;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatScheduleEditRequestException;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatSituationException;
@@ -76,9 +78,9 @@ public class ScheduleService {
 
         // 생성된 단일 일정 스케줄링 등록
         notificationSchedulerService.schedulingSingleScheduleNotification(saveSingleSchedule);
-        sendNotificationForScheduleCreate(studyChannelId, saveSingleSchedule.getId(),
-            saveSingleSchedule.getScheduleDate(), NotificationType.SCHEDULE_CREATE,
-            SINGLE_SCHEDULE_URL, SINGLE_SCHEDULE_CREATE);
+        sendNotificationForSchedule(studyChannel, saveSingleSchedule.getScheduleDate(),
+            NotificationType.SCHEDULE_CREATE,
+            SCHEDULE_RELATED_URL, SINGLE_SCHEDULE_CREATE);
     }
 
     public void postRepeatSchedule(
@@ -98,9 +100,9 @@ public class ScheduleService {
 
         // 생성된 반복 일정 스케줄링 등록
         notificationSchedulerService.schedulingRepeatScheduleNotification(saveRepeatSchedule);
-        sendNotificationForScheduleCreate(studyChannelId, saveRepeatSchedule.getId(),
-            saveRepeatSchedule.getScheduleDate(), NotificationType.SCHEDULE_CREATE,
-            REPEAT_SCHEDULE_URL, REPEAT_SCHEDULE_CREATE);
+        sendNotificationForSchedule(studyChannel, saveRepeatSchedule.getScheduleDate(),
+            NotificationType.SCHEDULE_CREATE,
+            SCHEDULE_RELATED_URL, REPEAT_SCHEDULE_CREATE);
     }
 
     public List<ScheduleResponse> getSchedulesInStudyChannel(
@@ -219,9 +221,9 @@ public class ScheduleService {
         // 기존 단일 일정 스케줄링 삭제 & 업데이트 된 단일 일정 스케줄링 등록
         notificationSchedulerService.reschedulingSingleScheduleNotification(
             singleSchedule, updateSingleSchedule);
-        sendNotificationForScheduleUpdateOrDelete(singleSchedule.getStudyChannel().getId(),
-            singleSchedule.getScheduleDate(), NotificationType.SCHEDULE_UPDATE,
-            NotificationConstant.SCHEDULE_UPDATE_FOR_SINGLE_TO_SINGLE);
+        sendNotificationForSchedule(singleSchedule.getStudyChannel(), singleSchedule.getScheduleDate(),
+            NotificationType.SCHEDULE_UPDATE,
+            SCHEDULE_RELATED_URL, SCHEDULE_UPDATE_FOR_SINGLE_TO_SINGLE);
     }
 
     public void putScheduleSingleToRepeat(
@@ -244,9 +246,9 @@ public class ScheduleService {
         // 기존 스케줄링 해놨던 단일 일정 삭제 & 새롭게 수정한 반복 일정으로 스케줄링
         notificationSchedulerService.unSchedulingSingleScheduleNotification(singleSchedule);
         notificationSchedulerService.schedulingRepeatScheduleNotification(repeatSchedule);
-        sendNotificationForScheduleUpdateOrDelete(singleSchedule.getStudyChannel().getId(),
-            singleSchedule.getScheduleDate(), NotificationType.SCHEDULE_UPDATE,
-            NotificationConstant.SCHEDULE_UPDATE_FOR_SINGLE_TO_REPEAT);
+        sendNotificationForSchedule(singleSchedule.getStudyChannel(), singleSchedule.getScheduleDate(),
+            NotificationType.SCHEDULE_UPDATE,
+            SCHEDULE_RELATED_URL, SCHEDULE_UPDATE_FOR_SINGLE_TO_REPEAT);
     }
 
     public void putScheduleRepeatToRepeat(
@@ -281,9 +283,9 @@ public class ScheduleService {
         // 기존 반복 일정 스케줄링 삭제 & 업데이트 된 반복 일정 스케줄링 등록
         notificationSchedulerService.reSchedulingRepeatScheduleNotification(
             repeatSchedule, updateRepeatSchedule);
-        sendNotificationForScheduleUpdateOrDelete(repeatSchedule.getStudyChannel().getId(),
-            repeatSchedule.getScheduleDate(), NotificationType.SCHEDULE_UPDATE,
-            NotificationConstant.SCHEDULE_UPDATE_FOR_REPEAT_TO_REPEAT);
+        sendNotificationForSchedule(repeatSchedule.getStudyChannel(), repeatSchedule.getScheduleDate(),
+            NotificationType.SCHEDULE_UPDATE,
+            SCHEDULE_RELATED_URL, SCHEDULE_UPDATE_FOR_REPEAT_TO_REPEAT);
     }
 
     public void putScheduleRepeatToSingle(
@@ -293,7 +295,7 @@ public class ScheduleService {
         LocalDate currentDate = LocalDate.now();
         LocalTime currentTime = LocalTime.now();
 
-        validateStudyChannel(studyChannelId);
+        StudyChannel studyChannel = validateStudyChannel(studyChannelId);
 
         RepeatSchedule repeatSchedule = repeatScheduleRepository.findById(
                 editRequestToSingleSchedule.getScheduleId())
@@ -325,9 +327,9 @@ public class ScheduleService {
             throw new IllegalArgumentForScheduleRequestException();
         }
 
-        sendNotificationForScheduleUpdateOrDelete(repeatSchedule.getStudyChannel().getId(),
-            repeatSchedule.getScheduleDate(), NotificationType.SCHEDULE_UPDATE,
-            NotificationConstant.SCHEDULE_UPDATE_FOR_REPEAT_TO_SINGLE);
+        sendNotificationForSchedule(studyChannel, repeatSchedule.getScheduleDate(),
+            NotificationType.SCHEDULE_UPDATE,
+            SCHEDULE_RELATED_URL, SCHEDULE_UPDATE_FOR_REPEAT_TO_SINGLE);
     }
 
     public void putScheduleRepeatToSingleAfterEventYes(
@@ -444,7 +446,7 @@ public class ScheduleService {
         Long studyChannelId, ScheduleDeleteRequest scheduleDeleteRequest) {
         LocalDate currentDate =LocalDate.now();
 
-        validateStudyChannel(studyChannelId);
+        StudyChannel studyChannel = validateStudyChannel(studyChannelId);
 
         SingleSchedule singleSchedule = singleScheduleRepository.findById(
                 scheduleDeleteRequest.getScheduleId())
@@ -461,8 +463,9 @@ public class ScheduleService {
         // 기존 단일 일정 삭제 -> 스케줄링도 삭제
         singleScheduleRepository.deleteById(scheduleDeleteRequest.getScheduleId());
         notificationSchedulerService.unSchedulingSingleScheduleNotification(singleSchedule);
-        sendNotificationForScheduleUpdateOrDelete(studyChannelId, scheduleDeleteRequest.getSelectedDate(),
-            NotificationType.SCHEDULE_DELETE, SINGLE_SCHEDULE_DELETE);
+        sendNotificationForSchedule(studyChannel, scheduleDeleteRequest.getSelectedDate(),
+            NotificationType.SCHEDULE_DELETE,
+            SCHEDULE_RELATED_URL, SINGLE_SCHEDULE_DELETE);
     }
 
     public void deleteRepeatSchedule(
@@ -470,7 +473,7 @@ public class ScheduleService {
         ScheduleDeleteRequest scheduleDeleteRequest) {
         LocalDate currentDate =LocalDate.now();
 
-        validateStudyChannel(studyChannelId);
+        StudyChannel studyChannel = validateStudyChannel(studyChannelId);
 
         RepeatSchedule repeatSchedule = repeatScheduleRepository.findById(
                 scheduleDeleteRequest.getScheduleId())
@@ -496,8 +499,9 @@ public class ScheduleService {
             deleteRepeatScheduleAfterEventSameNo(selectedDate, repeatSchedule);
         }
 
-        sendNotificationForScheduleUpdateOrDelete(studyChannelId, scheduleDeleteRequest.getSelectedDate(),
-            NotificationType.SCHEDULE_DELETE, REPEAT_SCHEDULE_DELETE);
+        sendNotificationForSchedule(studyChannel, scheduleDeleteRequest.getSelectedDate(),
+            NotificationType.SCHEDULE_DELETE,
+            SCHEDULE_RELATED_URL, REPEAT_SCHEDULE_DELETE);
     }
 
     public void deleteRepeatScheduleAfterEventSameYes(
@@ -811,42 +815,22 @@ public class ScheduleService {
             .build();
     }
 
-    private void sendNotificationForScheduleCreate(
-        Long studyChannelId, Long scheduleId,
-        LocalDate scheduleDate, NotificationType notificationType,
+    private void sendNotificationForSchedule(
+        StudyChannel studyChannel, LocalDate scheduleDate,
+        NotificationType notificationType,
         String relateUrlFormat, String notificationFormatMessage) {
 
         // 로그 메시지 및 알림 메시지에 사용할 날짜 포맷터
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
-        // 단일 일정 날짜를 포맷팅
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        // 일정 날짜를 클라이언트 쪽 관련 url으로 포맷팅
         String formattedDate = scheduleDate.format(formatter);
         // 알림 메시지 생성
-        String notificationMessage = String.format(notificationFormatMessage, studyChannelId, formattedDate);
+        String notificationMessage = String.format(
+            notificationFormatMessage, studyChannel.getName(), formattedDate);
         // 관련 URL 생성
-        String relateUrl = String.format(relateUrlFormat, studyChannelId, scheduleId);
-        notificationService.sendNotificationToStudyChannel(studyChannelId,
-            notificationType, notificationMessage, relateUrl);
-        // 로그 메시지
-        log.info(notificationMessage);
-    }
-
-
-    private void sendNotificationForScheduleUpdateOrDelete(
-        Long studyChannelId, LocalDate scheduleDate,
-        NotificationType notificationType, String notificationFormatMessage) {
-
-        // 로그 메시지 및 알림 메시지에 사용할 날짜 포맷터
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
-        // 단일 일정 날짜를 포맷팅
-        String formattedDate = scheduleDate.format(formatter);
-        // 알림 메시지 생성
-        String notificationMessage = String.format(notificationFormatMessage, studyChannelId, formattedDate);
-        // 관련 URL 생성
-        int scheduleYear = scheduleDate.getYear();
-        int scheduleMonth = scheduleDate.getMonthValue();
-        String relateUrl = String.format("/api/study-channels/%d/schedules/date?year=%d&month=%d",
-            studyChannelId, scheduleYear, scheduleMonth);
-        notificationService.sendNotificationToStudyChannel(studyChannelId,
+        String relateUrl = String.format(
+            relateUrlFormat, studyChannel.getId(), formattedDate);
+        notificationService.sendNotificationToStudyChannel(studyChannel.getId(),
             notificationType, notificationMessage, relateUrl);
         // 로그 메시지
         log.info(notificationMessage);
