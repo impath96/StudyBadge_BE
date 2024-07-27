@@ -86,10 +86,8 @@ public class NotificationSchedulerServiceTest {
         when(studyChannel.getStudyDuration()).thenReturn(studyDuration);
         when(studyDuration.getStudyEndDate()).thenReturn(LocalDate.now().plusDays(1));
 
-        LocalDateTime now = LocalDateTime.now();
-        int hour = now.getHour();
-        int minute = now.getMinute() + 2;
-        LocalDateTime customTime = studyDuration.getStudyEndDate().atStartOfDay().withHour(hour).withMinute(minute).withSecond(0).withNano(0);
+        LocalDateTime customTime = studyDuration.getStudyEndDate().atStartOfDay()
+            .withHour(8).withMinute(0).withSecond(0).withNano(0);
 
         // Trigger 캡처
         ArgumentCaptor<Trigger> triggerCaptor = ArgumentCaptor.forClass(Trigger.class);
