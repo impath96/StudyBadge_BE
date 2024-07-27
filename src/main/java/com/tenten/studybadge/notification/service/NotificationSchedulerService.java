@@ -1,10 +1,16 @@
 package com.tenten.studybadge.notification.service;
 
+import static com.tenten.studybadge.common.constant.NotificationConstant.STUDY_END_TODAY_AND_REFUND_NOTIFICATION;
+import static com.tenten.studybadge.common.constant.NotificationConstant.STUDY_END_TOMORROW_NOTIFICATION;
+
 import com.tenten.studybadge.common.quartz.RepeatScheduleNotificationJob;
 import com.tenten.studybadge.common.quartz.SingleScheduleNotificationJob;
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForScheduleRequestException;
+import com.tenten.studybadge.common.quartz.StudyEndNotificationJob;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
+import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
+import com.tenten.studybadge.type.notification.NotificationType;
 import com.tenten.studybadge.type.schedule.RepeatCycle;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -180,6 +186,65 @@ public class NotificationSchedulerService {
             log.info("Successfully unscheduled and deleted repeat schedule notification job and trigger: JobKey={}, TriggerKey={}", jobKey, triggerKey);
         } catch (SchedulerException e) {
             log.error("Error unscheduling repeat schedule notification", e);
+        }
+    }
+
+    // 알림 스케줄링:
+    // 1. 스터디 채널 끝나기 하루 전 알림
+    // 2. 스터디 채널 끝 + 환급은 다음날 하는 것 알림
+    public void scheduleStudyEndNotifications(StudyChannel studyChannel) {
+
+        LocalDate studyEndDate = studyChannel.getStudyDuration().getStudyEndDate();
+        // 현재 날짜와 시간과 비교하여 스터디 채널 끝나는 날짜가 과거 날짜인지 확인
+        if (studyEndDate.isBefore(LocalDate.now())) {
+            log.info("스터디 채널 끝나는 날짜가 현재보다 과거 날짜이므로 반복 일정 출석 체크 알림 스케줄링을 생략합니다.: " + studyEndDate);
+            return; // 과거 날짜일 경우 스케줄링을 건너뜁니다.
+        }
+
+        // 오전 8시에 스터디 종료 관련 알림 일괄 전송
+        LocalDateTime customTime = studyEndDate.atStartOfDay()
+            .withHour(8).withMinute(0).withSecond(0).withNano(0);
+        scheduleNotification(
+            studyChannel, NotificationType.STUDY_END_TOMORROW,
+            "study-end-tomorrow-group", STUDY_END_TOMORROW_NOTIFICATION, customTime.minusDays(1));
+        scheduleNotification(
+            studyChannel, NotificationType.STUDY_END_TODAY,
+            "study-end-today-group", STUDY_END_TODAY_AND_REFUND_NOTIFICATION, customTime);
+    }
+
+    private void scheduleNotification(StudyChannel studyChannel, NotificationType notificationType, String groupName, String messageTemplate, LocalDateTime notificationTime) {
+        Date notificationDate = Date.from(notificationTime.atZone(ZoneId.systemDefault()).toInstant());
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("studyChannelId", studyChannel.getId());
+        jobDataMap.put("studyChannelName", studyChannel.getName());
+        jobDataMap.put("notificationType", notificationType.name());
+        jobDataMap.put("messageTemplate", messageTemplate);
+
+        String jobIdentity = String.format("studyEndNotificationJob-%d-%s", studyChannel.getId(), notificationTime);
+        JobKey jobKey = JobKey.jobKey(jobIdentity, groupName);
+
+        try {
+            if (scheduler.checkExists(jobKey)) {
+                scheduler.deleteJob(jobKey);
+            }
+
+            JobDetail jobDetail = JobBuilder.newJob(StudyEndNotificationJob.class)
+                .withIdentity(jobKey)
+                .usingJobData(jobDataMap)
+                .build();
+
+            TriggerKey triggerKey = new TriggerKey("studyEndNotificationTrigger-" + studyChannel.getId() + "-" + notificationTime, groupName);
+            Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(triggerKey)
+                .startAt(notificationDate)
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                    .withMisfireHandlingInstructionFireNow())
+                .build();
+            scheduler.scheduleJob(jobDetail, trigger);
+            log.info("스터디 채널 id: {} 스터디 멤버들에게 보낼 {} 알림을 스케줄링 했습니다.", notificationType.getDescription(), studyChannel.getId());
+            log.info("Scheduled study end notification: JobKey={}, TriggerKey={}", jobDetail.getKey(), trigger.getKey());
+        } catch (SchedulerException e) {
+            log.error("Error scheduling study end notification", e);
         }
     }
 }

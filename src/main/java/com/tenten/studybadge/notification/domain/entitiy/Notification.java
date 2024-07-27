@@ -47,7 +47,7 @@ public class Notification extends BaseEntity {
     private Boolean isRead;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50) // 충분한 길이로 설정
     private NotificationType notificationType;
 
     @ManyToOne(fetch = FetchType.LAZY)
