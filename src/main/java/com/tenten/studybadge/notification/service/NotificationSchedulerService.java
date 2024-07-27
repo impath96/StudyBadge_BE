@@ -201,16 +201,9 @@ public class NotificationSchedulerService {
             return; // 과거 날짜일 경우 스케줄링을 건너뜁니다.
         }
 
-        // 민호님 의견대로 20시에 전날 보내도록 time 셋팅
-        LocalDateTime customTimeForStudyEndTomorrow = studyEndDate.atStartOfDay()
-            .withHour(20).withMinute(0).withSecond(0).withNano(0);
-
-        // 알림 api 테스트를 위해 마감 + 2분 뒤에 알림 전송 확인하도록 설정
-        LocalDateTime now = LocalDateTime.now();
-        int hour = now.getHour();
-        int minute = now.getMinute() + 2;
+        // 오전 8시에 스터디 종료 관련 알림 일괄 전송
         LocalDateTime customTime = studyEndDate.atStartOfDay()
-            .withHour(hour).withMinute(minute).withSecond(0).withNano(0);
+            .withHour(8).withMinute(0).withSecond(0).withNano(0);
         scheduleNotification(
             studyChannel, NotificationType.STUDY_END_TOMORROW,
             "study-end-tomorrow-group", STUDY_END_TOMORROW_NOTIFICATION, customTime.minusDays(1));
