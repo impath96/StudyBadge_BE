@@ -1,6 +1,6 @@
 package com.tenten.studybadge.common.quartz;
 
-import static com.tenten.studybadge.common.constant.NotificationConstant.REPEAT_SCHEDULE_URL;
+import static com.tenten.studybadge.common.constant.NotificationConstant.SCHEDULE_RELATED_URL;
 import static com.tenten.studybadge.common.constant.NotificationConstant.TEN_MINUTES_BEFORE_SCHEDULE_START;
 
 import com.tenten.studybadge.notification.service.NotificationService;
@@ -26,9 +26,10 @@ public class RepeatScheduleNotificationJob implements Job {
         String scheduleName = context.getMergedJobDataMap().getString("scheduleName");
         LocalDateTime startTime = (LocalDateTime) context.getMergedJobDataMap().get("startTime");
         Long studyChannelId = context.getMergedJobDataMap().getLong("studyChannelId");
+        String formattedDate = context.getMergedJobDataMap().getString("formattedDate");
 
         String content = String.format(TEN_MINUTES_BEFORE_SCHEDULE_START, scheduleName);
-        String relateUrl = String.format(REPEAT_SCHEDULE_URL, studyChannelId, scheduleId);
+        String relateUrl = String.format(SCHEDULE_RELATED_URL, studyChannelId, formattedDate);
 
         log.info("RepeatScheduleNotificationJob 실행 for scheduleId: {}", scheduleId);
         log.info("스케줄 이름: {}, 시작 시간: {}, 스터디 채널 id: {}", scheduleName, startTime, studyChannelId);
