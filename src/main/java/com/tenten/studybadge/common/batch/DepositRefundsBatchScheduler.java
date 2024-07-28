@@ -21,11 +21,11 @@ public class DepositRefundsBatchScheduler {
 
     @Scheduled(cron = "0 0 6 * * ?")
     public void execute() throws JobExecutionException {
-        log.info("execute time : {}" , System.currentTimeMillis());
+        log.info("execute time : {}", System.currentTimeMillis());
         try {
             JobParameters parameters = new JobParametersBuilder()
                     .addLocalDateTime("date", LocalDateTime.now())
-                            .toJobParameters();
+                    .toJobParameters();
             jobLauncher.run(config.depositRefundsJob(), parameters);
         } catch (Exception e) {
             throw new JobExecutionException(e);
