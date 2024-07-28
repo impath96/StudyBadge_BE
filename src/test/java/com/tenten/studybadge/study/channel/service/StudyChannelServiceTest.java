@@ -808,4 +808,46 @@ class StudyChannelServiceTest {
         }
     }
 
+    @DisplayName("[스터디 채널 멤버 확인 테스트]")
+    @Nested
+    class CheckStudyMemberInStudyChannelTest {
+
+        @DisplayName("스터디 채널에 속한 멤버인지 확인 - 멤버인 경우")
+        @Test
+        void checkStudyMemberInStudyChannel_whenMemberExists() {
+            // given
+            long memberId = 1L;
+            long studyChannelId = 1L;
+
+            // 설정한 쿼리가 true를 반환하도록 mock 설정
+            given(studyMemberRepository.existsByMemberIdAndStudyChannelIdAndStudyMemberStatus(memberId, studyChannelId))
+                .willReturn(1);
+
+            // when
+            boolean isMember = studyChannelService.checkStudyMemberInStudyChannel(memberId, studyChannelId);
+
+            // then
+            assertThat(isMember).isTrue();
+            verify(studyMemberRepository, times(1)).existsByMemberIdAndStudyChannelIdAndStudyMemberStatus(memberId, studyChannelId);
+        }
+
+        @DisplayName("스터디 채널에 속한 멤버인지 확인 - 멤버가 아닌 경우")
+        @Test
+        void checkStudyMemberInStudyChannel_whenMemberDoesNotExist() {
+            // given
+            long memberId = 1L;
+            long studyChannelId = 1L;
+
+            // 설정한 쿼리가 false를 반환하도록 mock 설정
+            given(studyMemberRepository.existsByMemberIdAndStudyChannelIdAndStudyMemberStatus(memberId, studyChannelId))
+                .willReturn(0);
+
+            // when
+            boolean isMember = studyChannelService.checkStudyMemberInStudyChannel(memberId, studyChannelId);
+
+            // then
+            assertThat(isMember).isFalse();
+            verify(studyMemberRepository, times(1)).existsByMemberIdAndStudyChannelIdAndStudyMemberStatus(memberId, studyChannelId);
+        }
+    }
 }
