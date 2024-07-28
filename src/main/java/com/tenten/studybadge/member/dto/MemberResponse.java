@@ -11,6 +11,8 @@ import lombok.*;
 @Builder(toBuilder = true)
 public class MemberResponse {
 
+    private Long memberId;
+
     private String email;
 
     private String name;
@@ -33,6 +35,7 @@ public class MemberResponse {
     public static MemberResponse toResponse(Member member) {
 
         return MemberResponse.builder()
+                .memberId(member.getId())
                 .email(member.getEmail())
                 .name(member.getName())
                 .nickname(member.getNickname())
