@@ -1,5 +1,6 @@
 package com.tenten.studybadge.member.service;
 
+import com.tenten.studybadge.attendance.service.AttendanceService;
 import com.tenten.studybadge.common.component.AwsS3Service;
 import com.tenten.studybadge.common.email.MailService;
 import com.tenten.studybadge.common.exception.InvalidTokenException;
@@ -47,6 +48,7 @@ public class MemberService {
     private final JwtTokenProvider jwtTokenProvider;
     private final StudyMemberRepository studyMemberRepository;
     private final ParticipationRepository participationRepository;
+    private final AttendanceService attendanceService;
 
     public void signUp(MemberSignUpRequest signUpRequest, Platform platform) {
 
@@ -161,17 +163,17 @@ public class MemberService {
 
     public List<MemberStudyList> getMyStudy(Long memberId) {
 
-        List<StudyMember> studyMembers = studyMemberRepository.findByMemberId(memberId);
+        List<StudyMember> studyMembers = studyMemberRepository.findAllByMemberIdWithStudyChannel(memberId);
         if (studyMembers == null || studyMembers.isEmpty())
 
             throw new NotFoundMemberException();
 
-        return MemberStudyList.listToResponse(studyMembers);
+        return MemberStudyList.listToResponse(studyMembers, attendanceService::getAttendanceRatioForMember);
     }
 
     public List<MemberApplyList> getMyApply(Long memberId) {
 
-        List<Participation> participationList = participationRepository.findByMemberId(memberId);
+        List<Participation> participationList = participationRepository.findAllByMemberIdWithStudyChannel(memberId);
         if (participationList == null || participationList.isEmpty())
 
             throw new NotFoundParticipationException();

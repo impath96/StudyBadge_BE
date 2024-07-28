@@ -19,7 +19,10 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
 
     List<Participation> findByStudyChannelId(Long studyChannelId);
 
-    List<Participation> findByMemberId(Long memberId);
+    @Query("SELECT p FROM Participation p " +
+            "JOIN FETCH p.studyChannel " +
+            "WHERE p.member.id = :memberId" )
+    List<Participation> findAllByMemberIdWithStudyChannel(Long memberId);
 
     @Query("SELECT p FROM Participation p " +
             "JOIN FETCH p.member " +
