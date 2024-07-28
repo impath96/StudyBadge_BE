@@ -19,7 +19,7 @@ public class DepositRefundsBatchScheduler {
     private final JobLauncher jobLauncher;
     private final DepositRefundsBatchConfig config;
 
-    @Scheduled(cron = "0 0 9 * * ?")
+    @Scheduled(cron = "0 0 6 * * ?")
     public void execute() throws JobExecutionException {
         log.info("execute time : {}" , System.currentTimeMillis());
         try {
