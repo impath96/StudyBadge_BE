@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class BatchQuartzJob {
+public class DepositRefundsBatchScheduler {
 
     private final JobLauncher jobLauncher;
     private final DepositRefundsBatchConfig config;
