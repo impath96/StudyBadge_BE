@@ -195,6 +195,7 @@ public class MemberService {
 
         Member updateMember = member.toBuilder()
                 .account(updateRequest.getAccount())
+                .accountBank(updateRequest.getAccountBank())
                 .nickname(updateRequest.getNickname())
                 .introduction(updateRequest.getIntroduction())
                 .imgUrl(updateRequest.getImgUrl())
