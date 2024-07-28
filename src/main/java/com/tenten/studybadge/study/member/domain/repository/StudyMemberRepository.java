@@ -36,4 +36,12 @@ public interface StudyMemberRepository extends JpaRepository<StudyMember, Long> 
             "JOIN FETCH sm.member " +
             "WHERE sm.id = :id")
     Optional<StudyMember> findByIdWithMember(Long id);
+
+    @Query(value = "SELECT EXISTS ( " +
+        "SELECT 1 FROM study_member sm " +
+        "WHERE sm.member_id = :memberId " +
+        "AND sm.study_channel_id = :studyChannelId " +
+        "AND sm.study_member_status = 'PARTICIPATING')",
+        nativeQuery = true)
+    Integer existsByMemberIdAndStudyChannelIdAndStudyMemberStatus(Long memberId, Long studyChannelId);
 }

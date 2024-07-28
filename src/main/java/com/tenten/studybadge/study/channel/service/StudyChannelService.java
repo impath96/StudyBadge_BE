@@ -96,6 +96,11 @@ public class StudyChannelService {
         return studyChannel.toResponse(member);
     }
 
+    public boolean checkStudyMemberInStudyChannel(Long memberId, Long studyChannelId) {
+        Integer result = studyMemberRepository.existsByMemberIdAndStudyChannelIdAndStudyMemberStatus(memberId, studyChannelId);
+        return result != null && result == 1;
+    }
+
     public void startRecruitment(Long studyChannelId, Long memberId) {
         StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);

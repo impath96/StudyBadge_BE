@@ -1,6 +1,7 @@
 package com.tenten.studybadge.study.channel.controller;
 
 import com.tenten.studybadge.common.security.CustomUserDetails;
+import com.tenten.studybadge.common.security.LoginUser;
 import com.tenten.studybadge.common.utils.PagingUtils;
 import com.tenten.studybadge.study.channel.dto.*;
 import com.tenten.studybadge.study.channel.service.StudyChannelService;
@@ -99,4 +100,14 @@ public class StudyChannelController {
         return ResponseEntity.ok(studyChannelService.getStudyChannel(studyChannelId, principal == null ? null : principal.getId()));
     }
 
+    @GetMapping("/study-channels/{studyChannelId}/check")
+    @Operation(summary = "특정 스터디 채널에 속한 스터디 멤버인지 확인", description = "특정 스터디 채널을 조회하기 전에 스터디 멤버 체크하는 API")
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    public ResponseEntity<Boolean> checkStudyMemberInStudyChannel(
+        @LoginUser Long memberId,
+        @PathVariable Long studyChannelId
+    ) {
+        boolean isStudyMember = studyChannelService.checkStudyMemberInStudyChannel(memberId, studyChannelId);
+        return ResponseEntity.ok(isStudyMember);
+    }
 }
