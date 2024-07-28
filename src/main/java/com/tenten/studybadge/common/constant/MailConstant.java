@@ -8,7 +8,7 @@ public class MailConstant {
 
     public static final String UNICODE = "UTF-8";
 
-    public static final String BASE_URL = "http://127.0.0.1:8080";
+    public static final String BASE_URL = "http://localhost:5173";
     public static final String SIGNUP_BODY =  """
                                                 <h3> 안녕하세요, Study Badge 가입을 환영합니다.
                                                 아래 링크를 클릭해, 인증을 완료해주세요.</h3>
