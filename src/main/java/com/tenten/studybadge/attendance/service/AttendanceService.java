@@ -28,7 +28,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -64,7 +63,7 @@ public class AttendanceService {
         int totalDays = countAllScheduleDays(singleSchedules, repeatSchedules);
 
         // 스터디 멤버 별 총 출석 일수
-        Map<Long, Long> studyMemberAttendanceCountMap = new HashMap<>();
+        Map<Long, Long> studyMemberAttendanceCountMap = studyMembers.stream().collect(Collectors.toMap(StudyMember::getId, (studyMember) -> 0L));
 
         // 반복 일정
         for (RepeatSchedule repeatSchedule : repeatSchedules) {
