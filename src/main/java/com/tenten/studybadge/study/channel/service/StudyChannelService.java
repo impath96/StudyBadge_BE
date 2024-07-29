@@ -2,6 +2,7 @@ package com.tenten.studybadge.study.channel.service;
 
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
 import com.tenten.studybadge.common.exception.studychannel.InvalidStudyStartDateException;
+import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelDepositException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.member.domain.entity.Member;
@@ -12,6 +13,8 @@ import com.tenten.studybadge.participation.domain.repository.ParticipationReposi
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.study.channel.dto.*;
+import com.tenten.studybadge.study.deposit.domain.entity.StudyChannelDeposit;
+import com.tenten.studybadge.study.deposit.domain.repository.StudyChannelDepositRepository;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
@@ -40,6 +43,7 @@ public class StudyChannelService {
     private final MemberRepository memberRepository;
     private final ParticipationRepository participationRepository;
     private final NotificationSchedulerService notificationSchedulerService;
+    private final StudyChannelDepositRepository studyChannelDepositRepository;
 
     @Transactional
     public Long create(StudyChannelCreateRequest request, Long memberId) {
@@ -144,6 +148,19 @@ public class StudyChannelService {
         }
         studyChannel.edit(studyChannelEditRequest);
         studyChannelRepository.save(studyChannel);
+    }
+
+    public StudyEndResultResponse getStudyEndResult(Long studyChannelId, Long memberId) {
+        StudyChannelDeposit deposit = studyChannelDepositRepository
+                .findByStudyChannelIdAndMemberId(studyChannelId, memberId)
+                .orElseThrow(NotFoundStudyChannelDepositException::new);
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+
+        return StudyEndResultResponse.builder()
+                .memberName(member.getName())
+                .attendanceRatio(deposit.getAttendanceRatio())
+                .refundsAmount(deposit.getRefundsAmount())
+                .build();
     }
 
     public static class StudyChannelSpecification {

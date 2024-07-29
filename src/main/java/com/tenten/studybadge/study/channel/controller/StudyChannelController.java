@@ -110,4 +110,15 @@ public class StudyChannelController {
         boolean isStudyMember = studyChannelService.checkStudyMemberInStudyChannel(memberId, studyChannelId);
         return ResponseEntity.ok(isStudyMember);
     }
+
+    @GetMapping("/study-channels/{studyChannelId}/study-end-result")
+    @Operation(summary = "특정 스터디 채널이 종료 후 결과 조회", description = "특정 스터디 채널이 종료했을 때 스터디 멤버의 출석률과 환급금을 보여주도록 조회하는 API")
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    public ResponseEntity<StudyEndResultResponse> getStudyEndResult(
+            @LoginUser Long memberId,
+            @PathVariable Long studyChannelId
+    ) {
+        return ResponseEntity.ok(studyChannelService.getStudyEndResult(studyChannelId, memberId));
+    }
+
 }
