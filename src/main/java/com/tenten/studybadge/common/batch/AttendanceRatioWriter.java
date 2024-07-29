@@ -50,6 +50,7 @@ public class AttendanceRatioWriter implements ItemWriter<StudyMemberAttendanceRa
 
                 deposit.setAttendanceRatio(ratio.getAttendanceRatio());
                 deposit.setDepositStatus(DepositStatus.REFUND);
+                deposit.setRefundsAmount(myRefunds);
                 deposit.setAmount(0);
                 Member member = deposit.getMember();
                 Point point = Point.builder()
