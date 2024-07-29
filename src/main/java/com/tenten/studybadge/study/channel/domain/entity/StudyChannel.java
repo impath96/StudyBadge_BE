@@ -123,6 +123,7 @@ public class StudyChannel extends BaseEntity {
                 .startDate(this.studyDuration.getStudyStartDate())
                 .endDate(this.studyDuration.getStudyEndDate())
                 .capacity(this.recruitment.getRecruitmentNumber())
+                .recruitmentStatus(this.recruitment.getRecruitmentStatus())
                 .isLeader(isLeader(member))
                 .leaderName(leader.getMember().getName())
                 .subLeaderName(Objects.requireNonNullElse(subLeader, leader).getMember().getName());
