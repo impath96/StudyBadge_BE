@@ -32,7 +32,7 @@ jobs:
             
 
       - name: Make application.yml for develop branch
-        if: contains(github.ref, 'develop')
+        if: contains(github.ref, 'main')
         run: |
             mkdir -p ./src/main/resources
             echo "${{ secrets.YML }}" | base64 --decode > ./src/main/resources/application.yml
