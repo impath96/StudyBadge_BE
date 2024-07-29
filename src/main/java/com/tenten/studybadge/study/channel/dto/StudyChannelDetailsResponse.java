@@ -28,6 +28,12 @@ public class StudyChannelDetailsResponse {
     private RecruitmentStatus recruitmentStatus;
     private String leaderName;
     private String subLeaderName;
+    private boolean isStudyEnd;
+
     private boolean isLeader;
+    private boolean isStudyMember;
+    private String memberName;
+    private Double attendanceRatio;
+    private int refundsAmount;
 
 }

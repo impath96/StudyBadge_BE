@@ -31,6 +31,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -93,11 +94,77 @@ public class StudyChannelService {
 
     public StudyChannelDetailsResponse getStudyChannel(Long studyChannelId, @Nullable Long memberId) {
         StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
-        Member member = null;
-        if (memberId != null) {
-            member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        LocalDate now = LocalDate.now();
+        StudyChannelDetailsResponse.StudyChannelDetailsResponseBuilder builder = createDefaultResponseBuilder(studyChannel);
+
+
+        if (memberId == null) {
+            return responseForAnonymousMember(builder, studyChannel, now);
+        } else {
+            Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+            return responseForAuthMember(builder, studyChannel, member, now);
         }
-        return studyChannel.toResponse(member);
+
+    }
+
+    private StudyChannelDetailsResponse responseForAuthMember(
+            StudyChannelDetailsResponse.StudyChannelDetailsResponseBuilder builder,
+            StudyChannel studyChannel,
+            Member member,
+            LocalDate date) {
+
+        if (!studyChannel.isStudyMember(member.getId())) {
+            return builder.isStudyMember(false)
+                    .chattingUrl(null)
+                    .isStudyEnd(studyChannel.isStudyEnd(date))
+                    .build();
+        }
+
+        builder.isStudyMember(true)
+                .chattingUrl(studyChannel.getChattingUrl())
+                .isStudyEnd(studyChannel.isStudyEnd(date))
+                .isLeader(studyChannel.isLeader(member));
+
+        if (studyChannel.isStudyEnd(date)) {
+            StudyChannelDeposit deposit = studyChannelDepositRepository.findByStudyChannelIdAndMemberId(studyChannel.getId(), member.getId())
+                    .orElseThrow(NotFoundStudyChannelDepositException::new);
+
+            return builder.memberName(member.getName())
+                    .attendanceRatio(deposit.getAttendanceRatio())
+                    .refundsAmount(deposit.getRefundsAmount())
+                    .build();
+        } else {
+            return builder.build();
+        }
+    }
+
+    private StudyChannelDetailsResponse responseForAnonymousMember(
+            StudyChannelDetailsResponse.StudyChannelDetailsResponseBuilder builder,
+            StudyChannel studyChannel,
+            LocalDate date) {
+        return builder.isStudyMember(false)
+                .chattingUrl(null)
+                .isStudyEnd(studyChannel.isStudyEnd(date))
+                .build();
+    }
+
+    private StudyChannelDetailsResponse.StudyChannelDetailsResponseBuilder createDefaultResponseBuilder(StudyChannel studyChannel) {
+        StudyMember leader = studyChannel.getLeader();
+        StudyMember subLeader = studyChannel.getSubLeader();
+        return StudyChannelDetailsResponse.builder()
+                .studyChannelId(studyChannel.getId())
+                .studyChannelName(studyChannel.getName())
+                .studyChannelDescription(studyChannel.getDescription())
+                .deposit(studyChannel.getDeposit())
+                .category(studyChannel.getCategory())
+                .meetingType(studyChannel.getMeetingType())
+                .region(studyChannel.getRegion())
+                .startDate(studyChannel.getStudyDuration().getStudyStartDate())
+                .endDate(studyChannel.getStudyDuration().getStudyEndDate())
+                .capacity(studyChannel.getRecruitment().getRecruitmentNumber())
+                .recruitmentStatus(studyChannel.getRecruitment().getRecruitmentStatus())
+                .leaderName(leader.getMember().getName())
+                .subLeaderName(Objects.requireNonNullElse(subLeader, leader).getMember().getName());
     }
 
     public boolean checkStudyMemberInStudyChannel(Long memberId, Long studyChannelId) {
@@ -148,19 +215,6 @@ public class StudyChannelService {
         }
         studyChannel.edit(studyChannelEditRequest);
         studyChannelRepository.save(studyChannel);
-    }
-
-    public StudyEndResultResponse getStudyEndResult(Long studyChannelId, Long memberId) {
-        StudyChannelDeposit deposit = studyChannelDepositRepository
-                .findByStudyChannelIdAndMemberId(studyChannelId, memberId)
-                .orElseThrow(NotFoundStudyChannelDepositException::new);
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
-
-        return StudyEndResultResponse.builder()
-                .memberName(member.getName())
-                .attendanceRatio(deposit.getAttendanceRatio())
-                .refundsAmount(deposit.getRefundsAmount())
-                .build();
     }
 
     public static class StudyChannelSpecification {
