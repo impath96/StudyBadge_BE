@@ -52,7 +52,8 @@ public class MemberController {
         memberService.auth(email, code, LOCAL);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
-
+    @Operation(summary = "인증코드 재발송", description = "회원가입 시 보낸 인증코드 재발송")
+    @Parameter(name = "email", description = "이메일")
     @PostMapping("/resend")
     public ResponseEntity<Void> reSend(@RequestParam(name = "email") String email) {
         memberService.reSendCode(email, LOCAL);
