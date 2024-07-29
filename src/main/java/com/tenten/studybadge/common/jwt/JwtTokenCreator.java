@@ -1,6 +1,6 @@
 package com.tenten.studybadge.common.jwt;
 
-import com.tenten.studybadge.member.domain.type.MemberRole;
+import com.tenten.studybadge.type.member.MemberRole;
 import com.tenten.studybadge.common.token.dto.TokenDto;
 import com.tenten.studybadge.type.member.Platform;
 import io.jsonwebtoken.Claims;

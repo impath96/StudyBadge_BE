@@ -11,10 +11,12 @@ import static org.mockito.Mockito.verify;
 
 import com.tenten.studybadge.common.exception.schedule.IllegalArgumentForRepeatSituationException;
 import com.tenten.studybadge.common.exception.schedule.NotEqualSingleScheduleDate;
-import com.tenten.studybadge.common.exception.schedule.OutRangeScheduleException;
+import com.tenten.studybadge.common.exception.schedule.NotIncludedInRepeatScheduleException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.member.domain.entity.Member;
+import com.tenten.studybadge.notification.service.NotificationSchedulerService;
+import com.tenten.studybadge.notification.service.NotificationService;
 import com.tenten.studybadge.schedule.domain.entity.RepeatSchedule;
 import com.tenten.studybadge.schedule.domain.entity.SingleSchedule;
 import com.tenten.studybadge.schedule.domain.repository.RepeatScheduleRepository;
@@ -58,6 +60,10 @@ class ScheduleServiceTest {
     private RepeatScheduleRepository repeatScheduleRepository;
     @Mock
     private StudyChannelRepository studyChannelRepository;
+    @Mock
+    private NotificationService notificationService;
+    @Mock
+    private NotificationSchedulerService notificationSchedulerService;
 
     @Mock
     private StudyMemberRepository studyMemberRepository;
@@ -210,7 +216,8 @@ class ScheduleServiceTest {
 
             // when & then
             assertThrows(NotStudyLeaderException.class, () -> {
-                scheduleService.postSingleSchedule(singleScheduleRequestByStudyMember, 1L);
+                scheduleService.postSingleSchedule(
+                    1L, singleScheduleRequestByStudyMember);
             });
         }
         @Test
@@ -226,7 +233,7 @@ class ScheduleServiceTest {
 
             // when
             scheduleService.postSingleSchedule(
-                singleScheduleRequestWithoutPlace, 1L);
+                1L, singleScheduleRequestWithoutPlace);
 
             // then
             verify(singleScheduleRepository, times(1))
@@ -248,7 +255,7 @@ class ScheduleServiceTest {
 
             // when
             scheduleService.postRepeatSchedule(
-                repeatScheduleRequestWithoutPlace, 1L);
+                1L, repeatScheduleRequestWithoutPlace);
 
             // then
             verify(repeatScheduleRepository, times(1))
@@ -292,7 +299,7 @@ class ScheduleServiceTest {
 
             // when
             scheduleService.postSingleSchedule(
-                singleScheduleRequestWithPlace, 1L);
+                1L, singleScheduleRequestWithPlace);
 
             // then
             verify(singleScheduleRepository, times(1))
@@ -320,7 +327,8 @@ class ScheduleServiceTest {
 
             // when & then
             assertThrows(NotStudyLeaderException.class, () -> {
-                scheduleService.postRepeatSchedule(repeatScheduleRequestByStudyMember, 1L);
+                scheduleService.postRepeatSchedule(
+                    1L, repeatScheduleRequestByStudyMember);
             });
         }
         @Test
@@ -364,7 +372,7 @@ class ScheduleServiceTest {
 
             // when
             scheduleService.postRepeatSchedule(
-                repeatScheduleRequestWithPlace, 1L);
+                1L, repeatScheduleRequestWithPlace);
 
             // then
             verify(repeatScheduleRepository, times(1))
@@ -386,7 +394,7 @@ class ScheduleServiceTest {
 
             // when
             scheduleService.postRepeatSchedule(
-                repeatScheduleRequestWithoutPlace, 1L);
+                1L, repeatScheduleRequestWithoutPlace);
 
             // then
             verify(repeatScheduleRepository, times(1))
@@ -414,7 +422,7 @@ class ScheduleServiceTest {
 
             // when & then
             assertThrows(IllegalArgumentForRepeatSituationException.class, () -> {
-                scheduleService.postRepeatSchedule(wrongRequest, 1L);
+                scheduleService.postRepeatSchedule(1L, wrongRequest);
             });
         }
 
@@ -437,7 +445,7 @@ class ScheduleServiceTest {
 
             // when & then
             assertThrows(IllegalArgumentForRepeatSituationException.class, () -> {
-                scheduleService.postRepeatSchedule(wrongRequest, 1L);
+                scheduleService.postRepeatSchedule(1L, wrongRequest);
             });
         }
     }
@@ -445,12 +453,15 @@ class ScheduleServiceTest {
     @DisplayName("일정 조회")
     @Nested
     class ScheduleGetTest {
+
         @Test
         @DisplayName("스터디 채널 내의 일정 전체 조회 성공")
         public void success_testGetSchedulesInStudyChannel() {
             // given
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
+            given(studyMemberRepository.findByMemberIdAndStudyChannelId(1L, 1L))
+                .willReturn(Optional.of(studyMemberNotLeader));
             given(singleScheduleRepository.findAllByStudyChannelId(1L))
                 .willReturn(Arrays.asList(singleScheduleWithoutPlace));
             given(repeatScheduleRepository.findAllByStudyChannelId(1L))
@@ -458,7 +469,7 @@ class ScheduleServiceTest {
 
             // when
             List<ScheduleResponse> scheduleResponses =
-                scheduleService.getSchedulesInStudyChannel(1L);
+                scheduleService.getSchedulesInStudyChannel(1L,1L);
 
             // then
             assertEquals(2, scheduleResponses.size());
@@ -473,15 +484,18 @@ class ScheduleServiceTest {
             // given
             RepeatSchedule repeatSchedule2 =
                 RepeatSchedule.withoutIdBuilder()
-                .scheduleDate(LocalDate.of(2024, 5, 15))
-                .repeatEndDate(LocalDate.of(2024, 9, 15))
-                .studyChannel(studyChannel)
-                .build();
+                    .scheduleDate(LocalDate.of(2024, 5, 15))
+                    .repeatEndDate(LocalDate.of(2024, 9, 15))
+                    .studyChannel(studyChannel)
+                    .build();
             LocalDate selectMonthFirstDate = LocalDate.of(2024, 7, 1);
-            LocalDate selectMonthLastDate = selectMonthFirstDate.withDayOfMonth(selectMonthFirstDate.lengthOfMonth());
+            LocalDate selectMonthLastDate = selectMonthFirstDate.withDayOfMonth(
+                selectMonthFirstDate.lengthOfMonth());
 
             given(studyChannelRepository.findById(1L))
                 .willReturn(Optional.of(studyChannel));
+            given(studyMemberRepository.findByMemberIdAndStudyChannelId(1L, 1L))
+                .willReturn(Optional.of(studyMemberNotLeader));
             given(singleScheduleRepository.findAllByStudyChannelIdAndDateRange(
                 1L, selectMonthFirstDate, selectMonthLastDate))
                 .willReturn(Arrays.asList(singleScheduleWithoutPlace));
@@ -493,6 +507,7 @@ class ScheduleServiceTest {
             // when
             List<ScheduleResponse> scheduleResponses =
                 scheduleService.getSchedulesInStudyChannelForYearAndMonth(
+                    1L,
                 1L, 2024, 7);
 
             // then
@@ -500,10 +515,10 @@ class ScheduleServiceTest {
             verify(studyChannelRepository, times(1)).findById(1L);
             verify(singleScheduleRepository, times(1))
                 .findAllByStudyChannelIdAndDateRange(
-                1L, selectMonthFirstDate, selectMonthLastDate);
+                    1L, selectMonthFirstDate, selectMonthLastDate);
             verify(repeatScheduleRepository, times(1))
                 .findAllByStudyChannelIdAndDate(
-                1L, selectMonthFirstDate);
+                    1L, selectMonthFirstDate);
         }
 
         @Test
@@ -515,13 +530,47 @@ class ScheduleServiceTest {
 
             // when & then
             assertThrows(NotFoundStudyChannelException.class, () -> {
-              scheduleService.getSchedulesInStudyChannel(1L);
+              scheduleService.getSchedulesInStudyChannel(1L,1L);
             });
 
             // then
             verify(studyChannelRepository, times(1)).findById(1L);
             verify(singleScheduleRepository, times(0)).findAllByStudyChannelId(1L);
             verify(repeatScheduleRepository, times(0)).findAllByStudyChannelId(1L);
+        }
+
+        @DisplayName("단일 일정 자세히 조회")
+        @Test
+        public void success_testGetSingleScheduleDetailInStudyChannel() {
+            // given
+            given(studyMemberRepository.findByMemberIdAndStudyChannelId(1L, 1L))
+                .willReturn(Optional.of(studyMemberNotLeader));
+            given(singleScheduleRepository.findById(1L))
+                .willReturn(Optional.of(singleScheduleWithoutPlace));
+
+            // when
+            SingleSchedule singleSchedule =
+                scheduleService.getSingleSchedule(1L, 1L, 1L);
+
+            // then
+            assertEquals(singleScheduleWithoutPlace, singleSchedule);
+        }
+
+        @DisplayName("반복 일정 자세히 조회")
+        @Test
+        public void success_testGetRepeatScheduleDetailInStudyChannel() {
+            // given
+            given(studyMemberRepository.findByMemberIdAndStudyChannelId(1L, 1L))
+                .willReturn(Optional.of(studyMemberNotLeader));
+            given(repeatScheduleRepository.findById(1L))
+                .willReturn(Optional.of(repeatScheduleWithoutPlace));
+
+            // when
+            RepeatSchedule repeatSchedule =
+                scheduleService.getRepeatSchedule(1L, 1L, 1L);
+
+            // then
+            assertEquals(repeatScheduleWithoutPlace, repeatSchedule);
         }
     }
 
@@ -708,20 +757,24 @@ class ScheduleServiceTest {
     @Nested
     class ScheduleEditTest2 {
 
-        private RepeatSchedule repeatDailySchedule =
-            RepeatSchedule.withoutIdBuilder()
-            .scheduleName("7월 1일 부터 15일까지 매일 반복 일정")
-            .scheduleContent("Content for repeat meeting")
-            .scheduleDate(LocalDate.of(2024, 9, 1))
-            .scheduleStartTime(LocalTime.of(10, 0))
-            .scheduleEndTime(LocalTime.of(11, 0))
-            .repeatCycle(RepeatCycle.DAILY)
-            .repeatSituation(RepeatSituation.EVERYDAY)
-            .repeatEndDate(LocalDate.of(2024, 12, 29))
-            .isRepeated(true)
-            .studyChannel(studyChannel)
-            .placeId(null)
-            .build();
+        private RepeatSchedule repeatDailySchedule;
+
+        @BeforeEach
+        public void setUp() {
+            repeatDailySchedule = RepeatSchedule.withoutIdBuilder()
+                .scheduleName("7월 1일 부터 15일까지 매일 반복 일정")
+                .scheduleContent("Content for repeat meeting")
+                .scheduleDate(LocalDate.of(2024, 9, 1))
+                .scheduleStartTime(LocalTime.of(10, 0))
+                .scheduleEndTime(LocalTime.of(11, 0))
+                .repeatCycle(RepeatCycle.DAILY)
+                .repeatSituation(RepeatSituation.EVERYDAY)
+                .repeatEndDate(LocalDate.of(2024, 12, 29))
+                .isRepeated(true)
+                .studyChannel(studyChannel) // Ensure studyChannel is set
+                .placeId(null)
+                .build();
+        }
 
         @Test
         @DisplayName("일정 수정 실패(반복 일정 -> 단일 일정) - 스터디 리더가 아님")
@@ -1020,7 +1073,7 @@ class ScheduleServiceTest {
                 .thenReturn(Optional.of(studyLeader));
 
             // when & then
-            assertThrows(OutRangeScheduleException.class, () -> {
+            assertThrows(NotIncludedInRepeatScheduleException.class, () -> {
               scheduleService.putScheduleRepeatToSingle(1L, true, singleScheduleEditRequest);
             });
         }
@@ -1276,7 +1329,7 @@ class ScheduleServiceTest {
             given(repeatScheduleRepository.findById(2L)).willReturn(
                 Optional.of(repeatScheduleWithoutPlace));
             // when & then
-            assertThrows(OutRangeScheduleException.class, () -> {
+            assertThrows(NotIncludedInRepeatScheduleException.class, () -> {
                 scheduleService.deleteRepeatSchedule(1L, true, deleteRequest);
             });
         }

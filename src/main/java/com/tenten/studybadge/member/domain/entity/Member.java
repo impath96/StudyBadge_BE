@@ -1,7 +1,7 @@
 package com.tenten.studybadge.member.domain.entity;
 
 import com.tenten.studybadge.common.BaseEntity;
-import com.tenten.studybadge.member.domain.type.MemberRole;
+import com.tenten.studybadge.type.member.MemberRole;
 import com.tenten.studybadge.type.member.BadgeLevel;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
@@ -37,6 +37,8 @@ public class Member extends BaseEntity {
     private String imgUrl;
 
     private Boolean isAuth;
+
+    private Boolean isPasswordAuth;
 
     @Enumerated(EnumType.STRING)
     private MemberRole role;

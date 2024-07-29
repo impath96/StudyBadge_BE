@@ -11,7 +11,7 @@ public class PaymentResponse {
 
     private String payType;
 
-    private Long amount;
+    private Integer amount;
 
     private String orderName;
 

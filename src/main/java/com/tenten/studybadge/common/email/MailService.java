@@ -8,16 +8,19 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import static com.tenten.studybadge.common.constant.MailConstant.*;
 
 @Service
 @RequiredArgsConstructor
+@EnableAsync
 public class MailService {
 
     private final JavaMailSender javaMailSender;
-
+    @Async
     public void sendMail(MemberSignUpRequest signUpRequest, String authCode) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
 
@@ -26,6 +29,46 @@ public class MailService {
             String body = String.format(SIGNUP_BODY, BASE_URL, email, authCode);
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, UNICODE);
             mimeMessageHelper.setTo(signUpRequest.getEmail());
+            mimeMessageHelper.setSubject(SIGNUP_SUBJECT);
+            mimeMessageHelper.setText(body, true);
+
+        } catch (MessagingException e) {
+            throw new SendMailException();
+        }
+
+        javaMailSender.send(mimeMessage);
+
+    }
+
+    @Async
+    public void sendResetMail(String email, String authCode) {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+
+        try {
+
+            String body = String.format(RESET_PASSWORD_BODY, email);
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, UNICODE);
+            mimeMessageHelper.setTo(email);
+            mimeMessageHelper.setSubject(RESET_PASSWORD_SUBJECT);
+            mimeMessageHelper.setText(body + authCode, true);
+
+        } catch (MessagingException e) {
+            throw new SendMailException();
+        }
+
+        javaMailSender.send(mimeMessage);
+
+    }
+
+    @Async
+    public void reSendMail(String email, String authCode) {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+
+        try {
+
+            String body = String.format(SIGNUP_BODY, BASE_URL, email, authCode);
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, UNICODE);
+            mimeMessageHelper.setTo(email);
             mimeMessageHelper.setSubject(SIGNUP_SUBJECT);
             mimeMessageHelper.setText(body, true);
 

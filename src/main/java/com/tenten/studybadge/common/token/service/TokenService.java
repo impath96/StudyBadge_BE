@@ -6,7 +6,7 @@ import com.tenten.studybadge.common.jwt.JwtTokenCreator;
 import com.tenten.studybadge.common.jwt.JwtTokenProvider;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
-import com.tenten.studybadge.member.domain.type.MemberRole;
+import com.tenten.studybadge.type.member.MemberRole;
 import com.tenten.studybadge.common.token.dto.TokenDto;
 import com.tenten.studybadge.type.member.Platform;
 import io.jsonwebtoken.Claims;

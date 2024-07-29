@@ -1,11 +1,9 @@
 package com.tenten.studybadge.study.channel.controller;
 
 import com.tenten.studybadge.common.security.CustomUserDetails;
+import com.tenten.studybadge.common.security.LoginUser;
 import com.tenten.studybadge.common.utils.PagingUtils;
-import com.tenten.studybadge.study.channel.dto.SearchCondition;
-import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
-import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
-import com.tenten.studybadge.study.channel.dto.StudyChannelListResponse;
+import com.tenten.studybadge.study.channel.dto.*;
 import com.tenten.studybadge.study.channel.service.StudyChannelService;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
@@ -41,6 +39,18 @@ public class StudyChannelController {
         return ResponseEntity
                 .created(URI.create("/api/study-channels/" + studyChannelId))
                 .build();
+    }
+
+    @PutMapping("/study-channels/{studyChannelId}")
+    @Operation(summary = "스터디 채널 정보를 수정", description = "스터디 채널 정보를 수정하기 위해 사용되는 API" ,security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    @Parameter(name = "studyChannelEditRequest", description = "스터디 채널 정보를 수정할 때 필요한 정보들", required = true)
+    public ResponseEntity<Void> putStudyChannel(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable Long studyChannelId,
+            @Valid @RequestBody StudyChannelEditRequest studyChannelEditRequest) {
+        studyChannelService.editStudyChannel(studyChannelId, principal.getId(), studyChannelEditRequest);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/study-channels/{studyChannelId}/recruitment/start")
@@ -90,4 +100,14 @@ public class StudyChannelController {
         return ResponseEntity.ok(studyChannelService.getStudyChannel(studyChannelId, principal == null ? null : principal.getId()));
     }
 
+    @GetMapping("/study-channels/{studyChannelId}/check")
+    @Operation(summary = "특정 스터디 채널에 속한 스터디 멤버인지 확인", description = "특정 스터디 채널을 조회하기 전에 스터디 멤버 체크하는 API")
+    @Parameter(name = "studyChannelId", description = "스터디 채널 ID", required = true)
+    public ResponseEntity<Boolean> checkStudyMemberInStudyChannel(
+        @LoginUser Long memberId,
+        @PathVariable Long studyChannelId
+    ) {
+        boolean isStudyMember = studyChannelService.checkStudyMemberInStudyChannel(memberId, studyChannelId);
+        return ResponseEntity.ok(isStudyMember);
+    }
 }

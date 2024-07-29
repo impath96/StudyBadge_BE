@@ -6,14 +6,12 @@ import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelE
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
+import com.tenten.studybadge.notification.service.NotificationSchedulerService;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
-import com.tenten.studybadge.study.channel.dto.SearchCondition;
-import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
-import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
-import com.tenten.studybadge.study.channel.dto.StudyChannelListResponse;
+import com.tenten.studybadge.study.channel.dto.*;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
@@ -41,6 +39,7 @@ public class StudyChannelService {
     private final StudyMemberRepository studyMemberRepository;
     private final MemberRepository memberRepository;
     private final ParticipationRepository participationRepository;
+    private final NotificationSchedulerService notificationSchedulerService;
 
     @Transactional
     public Long create(StudyChannelCreateRequest request, Long memberId) {
@@ -97,6 +96,11 @@ public class StudyChannelService {
         return studyChannel.toResponse(member);
     }
 
+    public boolean checkStudyMemberInStudyChannel(Long memberId, Long studyChannelId) {
+        Integer result = studyMemberRepository.existsByMemberIdAndStudyChannelIdAndStudyMemberStatus(memberId, studyChannelId);
+        return result != null && result == 1;
+    }
+
     public void startRecruitment(Long studyChannelId, Long memberId) {
         StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
         Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
@@ -122,12 +126,24 @@ public class StudyChannelService {
 
         studyChannelRepository.save(studyChannel);
         participationRepository.saveAll(approveWaitingParticipationList);
+
+        notificationSchedulerService.scheduleStudyEndNotifications(studyChannel);
     }
 
     private void checkLeader(StudyChannel studyChannel, Member member) {
         if (!studyChannel.isLeader(member)) {
             throw new NotStudyLeaderException();
         }
+    }
+
+    public void editStudyChannel(Long studyChannelId, Long memberId, StudyChannelEditRequest studyChannelEditRequest) {
+        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
+        if (!studyChannel.isLeader(member)) {
+            throw new NotStudyLeaderException();
+        }
+        studyChannel.edit(studyChannelEditRequest);
+        studyChannelRepository.save(studyChannel);
     }
 
     public static class StudyChannelSpecification {

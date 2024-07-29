@@ -1,6 +1,6 @@
 package com.tenten.studybadge.member.controller;
 
-import com.tenten.studybadge.common.security.CustomUserDetails;
+import com.tenten.studybadge.common.security.LoginUser;
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
 import com.tenten.studybadge.common.token.dto.TokenDto;
 import com.tenten.studybadge.common.utils.CookieUtils;
@@ -17,10 +17,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+
+import java.util.List;
 
 import static com.tenten.studybadge.common.constant.TokenConstant.AUTHORIZATION;
 import static com.tenten.studybadge.type.member.Platform.LOCAL;
@@ -51,6 +52,14 @@ public class MemberController {
         memberService.auth(email, code, LOCAL);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+    @Operation(summary = "인증코드 재발송", description = "회원가입 시 보낸 인증코드 재발송")
+    @Parameter(name = "email", description = "이메일")
+    @PostMapping("/resend")
+    public ResponseEntity<Void> reSend(@RequestParam(name = "email") String email) {
+        memberService.reSendCode(email, LOCAL);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
     @Operation(summary = "로그인", description = "일반 로그인")
     @Parameter(name = "loginRequest", description = "로그인 요청 Dto")
     @PostMapping("/login")
@@ -77,28 +86,72 @@ public class MemberController {
     }
     @Operation(summary = "내 정보", description = "회원의 나의 정보", security = @SecurityRequirement(name = "bearerToken"))
     @GetMapping("/my-info")
-    public ResponseEntity<MemberResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails principal) {
+    public ResponseEntity<MemberResponse> getMyInfo(@LoginUser Long memberId) {
 
-        MemberResponse memberResponse = memberService.getMyInfo(principal.getId());
+        MemberResponse memberResponse = memberService.getMyInfo(memberId);
 
         return ResponseEntity.ok(memberResponse);
     }
+    @Operation(summary = "내 스터디 정보", description = "회원이 참여 중인 스터디 목록", security = @SecurityRequirement(name = "bearerToken"))
+    @GetMapping("/my-study")
+    public ResponseEntity<List<MemberStudyList>> getMyStudy(@LoginUser Long memberId) {
+
+        List<MemberStudyList> studyList = memberService.getMyStudy(memberId);
+
+        return ResponseEntity.ok(studyList);
+    }
+    @Operation(summary = "내 스터디 신청 정보", description = "회원이 신청한 스터디 목록", security = @SecurityRequirement(name = "bearerToken"))
+    @GetMapping("/my-apply")
+    public ResponseEntity<List<MemberApplyList>> getMyApply(@LoginUser Long memberId) {
+
+        List<MemberApplyList> applyList = memberService.getMyApply(memberId);
+
+        return ResponseEntity.ok(applyList);
+    }
+    @Operation(summary = "회원 정보 수정", description = "회원 정보 수정", security = @SecurityRequirement(name = "bearerToken"))
+    @Parameter(name = "updateRequest", description = "회원 정보를 수정할 요청 값")
     @PutMapping("/my-info/update")
-    public ResponseEntity<MemberResponse> memberUpdate(@AuthenticationPrincipal CustomUserDetails principal,
+    public ResponseEntity<MemberResponse> memberUpdate(@LoginUser Long memberId,
                                                  @RequestPart("updateRequest") MemberUpdateRequest updateRequest,
                                                  @RequestPart(value = "file", required = false) MultipartFile profile) {
 
-        memberService.memberUpdate(principal.getId(), updateRequest, profile);
+        memberService.memberUpdate(memberId, updateRequest, profile);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
-
+    @Operation(summary = "회원 탈퇴", description = "회원 상태를 탈퇴상태로 변경하는 API", security = @SecurityRequirement(name = "bearerToken"))
     @DeleteMapping("/withdrawal")
-    public ResponseEntity<Void> withdrawal(@AuthenticationPrincipal CustomUserDetails principal) {
+    public ResponseEntity<Void> withdrawal(@LoginUser Long memberId) {
 
-        memberService.withdrawal(principal.getId());
+        memberService.withdrawal(memberId);
 
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    @Operation(summary = "비밀번호 재설정 요청", description = "비밀번호 재설정 요청")
+    @Parameter(name = "email" , description = "비밀번호 재설정을 요청할 회원의 이메일")
+    @PostMapping("/password")
+    public ResponseEntity<Void> requestReset(@RequestParam(name = "email") String email) {
 
+        memberService.requestReset(email, LOCAL);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    @Operation(summary = "비밀번호 재설정 인증", description = "비밀번호 재설정을 위한 인증코드 비교 인증")
+    @GetMapping("/auth/password")
+    public ResponseEntity<Void> passwordAuth(@RequestParam(name = "email") String email, @RequestParam(name = "code") String code) {
+
+        memberService.authPassword(email, code, LOCAL);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    @Operation(summary = "비밀번호 재설정", description = "인증을 마친 회원의 비밀번호 재설정")
+    @Parameter(name = "email",  description = "비밀번호 재설정 할 회원의 이메일")
+    @Parameter(name = "newPassword", description = "새로운 비밀번호")
+    @PatchMapping("/password/reset")
+    public ResponseEntity<Void> resetPassword(@RequestParam(name = "email") String email, @RequestParam(name = "newPassword") String newPassword) {
+
+        memberService.resetPassword(email, newPassword, LOCAL);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

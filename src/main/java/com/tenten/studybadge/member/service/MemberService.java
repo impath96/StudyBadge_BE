@@ -1,37 +1,34 @@
 package com.tenten.studybadge.member.service;
 
+import com.tenten.studybadge.attendance.service.AttendanceService;
 import com.tenten.studybadge.common.component.AwsS3Service;
 import com.tenten.studybadge.common.email.MailService;
 import com.tenten.studybadge.common.exception.InvalidTokenException;
 import com.tenten.studybadge.common.exception.member.*;
+import com.tenten.studybadge.common.exception.participation.NotFoundParticipationException;
 import com.tenten.studybadge.common.jwt.JwtTokenProvider;
 import com.tenten.studybadge.common.redis.RedisService;
-import com.tenten.studybadge.common.security.CustomUserDetails;
-import com.tenten.studybadge.member.dto.MemberLoginRequest;
-import com.tenten.studybadge.member.dto.MemberResponse;
-import com.tenten.studybadge.member.dto.MemberSignUpRequest;
+import com.tenten.studybadge.member.dto.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.common.token.dto.TokenCreateDto;
-import com.tenten.studybadge.member.dto.MemberUpdateRequest;
+import com.tenten.studybadge.participation.domain.entity.Participation;
+import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
+import com.tenten.studybadge.study.member.domain.entity.StudyMember;
+import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.member.MemberStatus;
 import com.tenten.studybadge.type.member.Platform;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -49,7 +46,10 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    @Transactional
+    private final StudyMemberRepository studyMemberRepository;
+    private final ParticipationRepository participationRepository;
+    private final AttendanceService attendanceService;
+
     public void signUp(MemberSignUpRequest signUpRequest, Platform platform) {
 
         if(!mailService.isValidEmail(signUpRequest.getEmail())) {
@@ -60,25 +60,24 @@ public class MemberService {
             throw new NotMatchPasswordException();
         }
 
-        Member member = null;
+
 
         Optional<Member> byEmail = memberRepository.findByEmailAndPlatform(signUpRequest.getEmail(), platform);
         if (byEmail.isPresent()) {
-            member = byEmail.get();
 
-          if (!member.getStatus().equals(MemberStatus.WITHDRAWN)) {
-              throw new DuplicateEmailException();
-          }
-        } else {
+            Member member = byEmail.get();
 
-            member = new Member();
-
+            if (!member.getStatus().equals(MemberStatus.WITHDRAWN)) {
+                throw new DuplicateEmailException();
+            }
         }
+
+        Member member = byEmail.orElseGet(Member::new);
 
         memberRepository.save(MemberSignUpRequest.toEntity(member, signUpRequest));
 
-        String authCode = null;
-        authCode = redisService.generateAuthCode();
+
+        String authCode = redisService.generateAuthCode();
         redisService.saveAuthCode(signUpRequest.getEmail(), authCode);
 
         mailService.sendMail(signUpRequest, authCode);
@@ -105,6 +104,17 @@ public class MemberService {
         memberRepository.save(authMember);
 
         redisService.deleteAuthCode(email);
+    }
+
+    public void reSendCode(String email, Platform platform) {
+
+        memberRepository.findByEmailAndPlatform(email, platform)
+                .orElseThrow(NotFoundMemberException::new);
+
+        String authCode = redisService.generateAuthCode();
+        redisService.saveAuthCode(email, authCode);
+
+        mailService.reSendMail(email, authCode);
     }
 
     public TokenCreateDto login(MemberLoginRequest loginRequest, Platform platform) {
@@ -161,6 +171,26 @@ public class MemberService {
         return MemberResponse.toResponse(member);
     }
 
+    public List<MemberStudyList> getMyStudy(Long memberId) {
+
+        List<StudyMember> studyMembers = studyMemberRepository.findAllByMemberIdWithStudyChannel(memberId);
+        if (studyMembers == null || studyMembers.isEmpty())
+
+            throw new NotFoundMemberException();
+
+        return MemberStudyList.listToResponse(studyMembers, attendanceService::getAttendanceRatioForMember);
+    }
+
+    public List<MemberApplyList> getMyApply(Long memberId) {
+
+        List<Participation> participationList = participationRepository.findAllByMemberIdWithStudyChannel(memberId);
+        if (participationList == null || participationList.isEmpty())
+
+            throw new NotFoundParticipationException();
+
+        return MemberApplyList.listToResponse(participationList);
+
+    }
 
     public MemberResponse memberUpdate(Long memberId, MemberUpdateRequest updateRequest, MultipartFile profile) {
 
@@ -175,6 +205,7 @@ public class MemberService {
 
         Member updateMember = member.toBuilder()
                 .account(updateRequest.getAccount())
+                .accountBank(updateRequest.getAccountBank())
                 .nickname(updateRequest.getNickname())
                 .introduction(updateRequest.getIntroduction())
                 .imgUrl(updateRequest.getImgUrl())
@@ -186,12 +217,61 @@ public class MemberService {
 
     public void withdrawal(Long memberId) {
 
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(NotFoundMemberException::new);
 
         Member withdrawMember = member.toBuilder()
                 .status(MemberStatus.WITHDRAWN)
                 .build();
         memberRepository.save(withdrawMember);
+    }
+
+    public void requestReset(String email, Platform platform) {
+
+        Member member = memberRepository.findByEmailAndPlatform(email, platform)
+                .orElseThrow(NotFoundMemberException::new);
+
+        String authCode = redisService.generateAuthCode();
+
+        redisService.saveAuthCode(member.getEmail(), authCode);
+
+        mailService.sendResetMail(member.getEmail() , authCode);
+    }
+
+    public void authPassword(String email, String code, Platform platform) {
+
+        Member member = memberRepository.findByEmailAndPlatform(email, platform)
+                .orElseThrow(NotFoundMemberException::new);
+
+        if (!code.equals(redisService.getAuthCode(email))) {
+            throw new InvalidAuthCodeException();
+        }
+
+        Member authResetPassword = member.toBuilder()
+                .isPasswordAuth(true)
+                .build();
+        memberRepository.save(authResetPassword);
+
+        redisService.deleteAuthCode(email);
+    }
+
+    public void resetPassword(String email, String newPassword, Platform platform) {
+
+        Member member = memberRepository.findByEmailAndPlatform(email, platform)
+                .orElseThrow(NotFoundMemberException::new);
+
+        if (!member.getIsPasswordAuth()) {
+
+            throw new NotAuthorizedPasswordAuth();
+        }
+
+        String encPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+        Member passwordReset = member.toBuilder()
+                .password(encPassword)
+                .isPasswordAuth(false)
+                .build();
+        memberRepository.save(passwordReset);
     }
 }
 
