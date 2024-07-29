@@ -60,6 +60,26 @@ public class MailService {
 
     }
 
+    @Async
+    public void reSendMail(String email, String authCode) {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+
+        try {
+
+            String body = String.format(SIGNUP_BODY, BASE_URL, email, authCode);
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, UNICODE);
+            mimeMessageHelper.setTo(email);
+            mimeMessageHelper.setSubject(SIGNUP_SUBJECT);
+            mimeMessageHelper.setText(body, true);
+
+        } catch (MessagingException e) {
+            throw new SendMailException();
+        }
+
+        javaMailSender.send(mimeMessage);
+
+    }
+
     public boolean isValidEmail(String email) {
         return EmailValidator.getInstance().isValid(email);
     }

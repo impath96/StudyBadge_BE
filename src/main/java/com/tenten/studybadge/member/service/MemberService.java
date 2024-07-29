@@ -60,25 +60,24 @@ public class MemberService {
             throw new NotMatchPasswordException();
         }
 
-        Member member = null;
+
 
         Optional<Member> byEmail = memberRepository.findByEmailAndPlatform(signUpRequest.getEmail(), platform);
         if (byEmail.isPresent()) {
-            member = byEmail.get();
 
-          if (!member.getStatus().equals(MemberStatus.WITHDRAWN)) {
-              throw new DuplicateEmailException();
-          }
-        } else {
+            Member member = byEmail.get();
 
-            member = new Member();
-
+            if (!member.getStatus().equals(MemberStatus.WITHDRAWN)) {
+                throw new DuplicateEmailException();
+            }
         }
+
+        Member member = byEmail.orElseGet(Member::new);
 
         memberRepository.save(MemberSignUpRequest.toEntity(member, signUpRequest));
 
-        String authCode = null;
-        authCode = redisService.generateAuthCode();
+
+        String authCode = redisService.generateAuthCode();
         redisService.saveAuthCode(signUpRequest.getEmail(), authCode);
 
         mailService.sendMail(signUpRequest, authCode);
@@ -105,6 +104,17 @@ public class MemberService {
         memberRepository.save(authMember);
 
         redisService.deleteAuthCode(email);
+    }
+
+    public void reSendCode(String email, Platform platform) {
+
+        memberRepository.findByEmailAndPlatform(email, platform)
+                .orElseThrow(NotFoundMemberException::new);
+
+        String authCode = redisService.generateAuthCode();
+        redisService.saveAuthCode(email, authCode);
+
+        mailService.reSendMail(email, authCode);
     }
 
     public TokenCreateDto login(MemberLoginRequest loginRequest, Platform platform) {
