@@ -7,7 +7,7 @@ import static com.tenten.studybadge.common.constant.TokenConstant.REFRESH_TOKEN;
 import static com.tenten.studybadge.common.constant.TokenConstant.REFRESH_TOKEN_EXPIRES_IN_COOKIE;
 
 public class CookieUtils {
-    private static final String DOMAIN = "localhost";
+    private static final String DOMAIN = "study-badge.vercel.app";
     private static final String PATH = "/";
 
     public static ResponseCookie addCookie(String value) {
