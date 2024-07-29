@@ -52,6 +52,13 @@ public class MemberController {
         memberService.auth(email, code, LOCAL);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @PostMapping("/resend")
+    public ResponseEntity<Void> reSend(@RequestParam(name = "email") String email) {
+        memberService.reSendCode(email, LOCAL);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
     @Operation(summary = "로그인", description = "일반 로그인")
     @Parameter(name = "loginRequest", description = "로그인 요청 Dto")
     @PostMapping("/login")
