@@ -97,7 +97,6 @@ public class StudyChannelService {
         LocalDate now = LocalDate.now();
         StudyChannelDetailsResponse.StudyChannelDetailsResponseBuilder builder = createDefaultResponseBuilder(studyChannel);
 
-
         if (memberId == null) {
             return responseForAnonymousMember(builder, studyChannel, now);
         } else {
