@@ -34,6 +34,11 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
@@ -114,30 +119,28 @@ public class NotificationControllerTest {
                 .build())
             .build();
     }
-
     @Test
     @DisplayName("특정 사용자(member id: 1의 전체 알림 조회 성공")
     @WithMockUser(username = "testuser", roles = "USER")
     public void testGetNotifications() throws Exception {
         // given
-
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
         List<Notification> notifications = Arrays.asList(notificationScheduleCreate, notificationScheduleDelete);
-        List<NotificationResponse> notificationResponses = notifications.stream()
-            .map(Notification::toResponse)
-            .collect(Collectors.toList());
+        Page<Notification> notificationPage = new PageImpl<>(notifications, pageable, notifications.size());
 
         when(loginUserArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(loginUserArgumentResolver.resolveArgument(any(), any(), any(), any()))
-            .thenReturn(1L);
+        when(loginUserArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(1L);
         when(customUserDetails.getId()).thenReturn(1L);
-        when(notificationService.getNotifications(1L))
-            .thenReturn(notifications);
+        when(notificationService.getNotifications(1L, pageable)).thenReturn(notificationPage);
 
         // when & then
-        mockMvc.perform(get("/api/notifications"))
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$[0].content").value("일정 생성 알림"))
-              .andExpect(jsonPath("$[1].content").value("일정 삭제 알림"));
+        mockMvc.perform(get("/api/notifications")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "createdAt"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].content").value("일정 생성 알림"))
+            .andExpect(jsonPath("$.content[1].content").value("일정 삭제 알림"));
     }
 
     @Test
@@ -160,22 +163,22 @@ public class NotificationControllerTest {
     @WithMockUser(username = "testuser", roles = "USER")
     public void testGetUnreadNotifications() throws Exception {
         // given
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
         notificationScheduleDelete.setIsRead(true);
         List<Notification> unreadNotifications = Arrays.asList(notificationScheduleCreate);
-        List<NotificationResponse> notificationResponses = unreadNotifications.stream()
-            .map(Notification::toResponse)
-            .collect(Collectors.toList());
+        Page<Notification> unreadNotificationPage = new PageImpl<>(unreadNotifications, pageable, unreadNotifications.size());
 
         when(loginUserArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(loginUserArgumentResolver.resolveArgument(any(), any(), any(), any()))
-            .thenReturn(1L);
+        when(loginUserArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(1L);
         when(customUserDetails.getId()).thenReturn(1L);
-        when(notificationService.getUnreadNotifications(1L))
-            .thenReturn(unreadNotifications);
+        when(notificationService.getUnreadNotifications(1L, pageable)).thenReturn(unreadNotificationPage);
 
         // when & then
-        mockMvc.perform(get("/api/notifications/unread"))
+        mockMvc.perform(get("/api/notifications/unread")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "createdAt"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].content").value("일정 생성 알림"));
+            .andExpect(jsonPath("$.content[0].content").value("일정 생성 알림"));
     }
 }
