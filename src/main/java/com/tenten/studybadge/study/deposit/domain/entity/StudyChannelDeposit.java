@@ -43,7 +43,9 @@ public class StudyChannelDeposit extends BaseEntity {
 
     @Setter
     private Integer amount;                    // 예치한 금액
-    private LocalDateTime depositAt;        // 예치한 날짜
+    @Setter
+    private Integer refundsAmount;             // 환급한 금액
+    private LocalDateTime depositAt;           // 예치한 날짜
 
 }
 

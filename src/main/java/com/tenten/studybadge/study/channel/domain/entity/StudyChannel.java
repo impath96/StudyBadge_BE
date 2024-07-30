@@ -109,29 +109,8 @@ public class StudyChannel extends BaseEntity {
         recruitment.close();
     }
 
-    public StudyChannelDetailsResponse toResponse(Member member) {
-        StudyMember leader = getLeader();
-        StudyMember subLeader = getSubLeader();
-        StudyChannelDetailsResponse.StudyChannelDetailsResponseBuilder builder = StudyChannelDetailsResponse.builder()
-                .studyChannelId(this.id)
-                .studyChannelName(this.name)
-                .studyChannelDescription(this.description)
-                .deposit(this.deposit)
-                .category(this.category)
-                .meetingType(this.meetingType)
-                .region(this.region)
-                .startDate(this.studyDuration.getStudyStartDate())
-                .endDate(this.studyDuration.getStudyEndDate())
-                .capacity(this.recruitment.getRecruitmentNumber())
-                .isLeader(isLeader(member))
-                .leaderName(leader.getMember().getName())
-                .subLeaderName(Objects.requireNonNullElse(subLeader, leader).getMember().getName());
-
-        if (member != null && isStudyMember(member.getId())) {
-            builder.chattingUrl(this.chattingUrl);
-        }
-
-        return builder.build();
+    public boolean isStudyEnd(LocalDate date) {
+        return this.getStudyDuration().getStudyEndDate().isBefore(date);
     }
 
     public void edit(StudyChannelEditRequest studyChannelEditRequest) {
