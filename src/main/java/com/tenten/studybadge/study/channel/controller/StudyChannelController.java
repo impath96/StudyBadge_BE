@@ -110,4 +110,5 @@ public class StudyChannelController {
         boolean isStudyMember = studyChannelService.checkStudyMemberInStudyChannel(memberId, studyChannelId);
         return ResponseEntity.ok(isStudyMember);
     }
+
 }
