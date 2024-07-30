@@ -1,7 +1,7 @@
 package com.tenten.studybadge.point.controller;
 
 import com.tenten.studybadge.common.security.LoginUser;
-import com.tenten.studybadge.point.domain.service.PointService;
+import com.tenten.studybadge.point.service.PointService;
 import com.tenten.studybadge.point.dto.PointResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
