@@ -26,6 +26,7 @@ public class StudyChannelDetailsResponse {
     private LocalDate endDate;
     private int deposit;
     private RecruitmentStatus recruitmentStatus;
+    private int viewCnt;
     private String leaderName;
     private String subLeaderName;
     private boolean isStudyEnd;
