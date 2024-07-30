@@ -207,13 +207,20 @@ public class NotificationSchedulerService {
         LocalDate studyEndDate = studyChannel.getStudyDuration().getStudyEndDate();
         // 현재 날짜와 시간과 비교하여 스터디 채널 끝나는 날짜가 과거 날짜인지 확인
         if (studyEndDate.isBefore(LocalDate.now())) {
-            log.info("스터디 채널 끝나는 날짜가 현재보다 과거 날짜이므로 반복 일정 출석 체크 알림 스케줄링을 생략합니다.: " + studyEndDate);
+            log.info("스터디 채널 끝나는 날짜가 현재보다 과거 날짜이므로 스터디 채널 종료 관련 알림 스케줄링을 생략합니다.: " + studyEndDate);
             return; // 과거 날짜일 경우 스케줄링을 건너뜁니다.
         }
 
-        // 오전 8시에 스터디 종료 관련 알림 일괄 전송
+//        // 오전 8시에 스터디 종료 관련 알림 일괄 전송
+//        LocalDateTime customTime = studyEndDate.atStartOfDay()
+//            .withHour(8).withMinute(0).withSecond(0).withNano(0);
+
+        // 알림 api 테스트를 위해 마감 + 10분 뒤에 알림 전송 확인하도록 설정
+        LocalDateTime now = LocalDateTime.now();
+        int hour = now.getHour();
+        int minute = now.getMinute() + 10;
         LocalDateTime customTime = studyEndDate.atStartOfDay()
-            .withHour(8).withMinute(0).withSecond(0).withNano(0);
+            .withHour(hour).withMinute(minute).withSecond(0).withNano(0);
         scheduleNotification(
             studyChannel, NotificationType.STUDY_END_TOMORROW,
             "study-end-tomorrow-group", STUDY_END_TOMORROW_NOTIFICATION, customTime.minusDays(1));
