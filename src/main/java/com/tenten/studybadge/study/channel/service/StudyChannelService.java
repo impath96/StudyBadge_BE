@@ -93,7 +93,9 @@ public class StudyChannelService {
     }
 
     public StudyChannelDetailsResponse getStudyChannel(Long studyChannelId, @Nullable Long memberId) {
+        increaseViewCnt(studyChannelId);
         StudyChannel studyChannel = studyChannelRepository.findByIdWithMember(studyChannelId).orElseThrow(NotFoundStudyChannelException::new);
+
         LocalDate now = LocalDate.now();
         StudyChannelDetailsResponse.StudyChannelDetailsResponseBuilder builder = createDefaultResponseBuilder(studyChannel);
 
@@ -104,6 +106,14 @@ public class StudyChannelService {
             return responseForAuthMember(builder, studyChannel, member, now);
         }
 
+    }
+
+    private void increaseViewCnt(Long studyChannelId) {
+        // 문제점: 기본 JPA(SimpleJpaRepository) 쿼리 메서드의 경우 exists 시 count(*) 쿼리 사용
+        if (!studyChannelRepository.existsById(studyChannelId)) {
+            throw new NotFoundStudyChannelException();
+        }
+        studyChannelRepository.increaseViewCnt(studyChannelId);
     }
 
     private StudyChannelDetailsResponse responseForAuthMember(
@@ -162,6 +172,7 @@ public class StudyChannelService {
                 .endDate(studyChannel.getStudyDuration().getStudyEndDate())
                 .capacity(studyChannel.getRecruitment().getRecruitmentNumber())
                 .recruitmentStatus(studyChannel.getRecruitment().getRecruitmentStatus())
+                .viewCnt(studyChannel.getViewCnt())
                 .leaderName(leader.getMember().getName())
                 .subLeaderName(Objects.requireNonNullElse(subLeader, leader).getMember().getName());
     }
