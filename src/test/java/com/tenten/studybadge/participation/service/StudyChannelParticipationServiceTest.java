@@ -310,7 +310,7 @@ class StudyChannelParticipationServiceTest {
             assertThat(studyMemberCaptorValue.getStudyMemberRole()).isEqualTo(StudyMemberRole.STUDY_MEMBER);
 
             assertThat(pointCaptorValue.getMember().getId()).isEqualTo(1L);
-            assertThat(pointCaptorValue.getAmount()).isEqualTo(10_000);
+            assertThat(pointCaptorValue.getAmount()).isEqualTo(-10_000);
             assertThat(pointCaptorValue.getHistoryType()).isEqualTo(PointHistoryType.SPENT);
             assertThat(pointCaptorValue.getTransferType()).isEqualTo(TransferType.STUDY_DEPOSIT);
 
