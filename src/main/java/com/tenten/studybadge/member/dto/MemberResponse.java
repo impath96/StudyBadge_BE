@@ -23,6 +23,8 @@ public class MemberResponse {
 
     private String account;
 
+    private String accountBank;
+
     private String introduction;
 
     private String imgUrl;
@@ -40,6 +42,7 @@ public class MemberResponse {
                 .name(member.getName())
                 .nickname(member.getNickname())
                 .account(member.getAccount())
+                .accountBank(member.getAccountBank())
                 .badgeLevel(member.getBadgeLevel())
                 .introduction(member.getIntroduction())
                 .imgUrl(member.getImgUrl())
