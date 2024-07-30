@@ -158,7 +158,7 @@ public class PaymentService {
 
         if (payment == null || payment.isEmpty())
 
-            throw new NotFoundCustomerException();
+            throw new NotFoundPaymentException();
 
         return  PaymentHistory.listToResponse(payment);
 
