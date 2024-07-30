@@ -3,7 +3,7 @@ package com.tenten.studybadge.common.exception.payment;
 import com.tenten.studybadge.common.exception.basic.AbstractException;
 import org.springframework.http.HttpStatus;
 
-public class NotFoundCustomerException extends AbstractException {
+public class NotFoundPaymentException extends AbstractException {
 
     @Override
     public HttpStatus getHttpStatus() {
@@ -11,10 +11,10 @@ public class NotFoundCustomerException extends AbstractException {
     }
     @Override
     public String getErrorCode() {
-        return "NOT_FOUND_CUSTOMER";
+        return "NOT_FOUND_PAYMENT";
     }
     @Override
     public String getMessage() {
-        return "고객을 찾을 수 없습니다.";
+        return "결제내역이 존재하지 않습니다.";
     }
 }

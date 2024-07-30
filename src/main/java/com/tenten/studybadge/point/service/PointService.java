@@ -1,4 +1,4 @@
-package com.tenten.studybadge.point.domain.service;
+package com.tenten.studybadge.point.service;
 
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
 import com.tenten.studybadge.common.exception.point.NotFoundPointException;

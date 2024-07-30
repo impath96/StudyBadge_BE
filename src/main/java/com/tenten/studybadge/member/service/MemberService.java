@@ -194,25 +194,40 @@ public class MemberService {
 
     public MemberResponse memberUpdate(Long memberId, MemberUpdateRequest updateRequest, MultipartFile profile) {
 
-        String imgUrl = null;
 
         if (profile != null && !profile.isEmpty()) {
-            imgUrl = awsS3Service.uploadFile(profile);
+            String imgUrl = awsS3Service.uploadFile(profile);
             updateRequest.setImgUrl(imgUrl);
         }
 
-        Member member = memberRepository.findById(memberId).orElseThrow(NotFoundMemberException::new);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(NotFoundMemberException::new);
 
-        Member updateMember = member.toBuilder()
-                .account(updateRequest.getAccount())
-                .accountBank(updateRequest.getAccountBank())
-                .nickname(updateRequest.getNickname())
-                .introduction(updateRequest.getIntroduction())
-                .imgUrl(updateRequest.getImgUrl())
-                .build();
-        memberRepository.save(updateMember);
+        if ((member.getPlatform() == Platform.KAKAO || member.getPlatform() == Platform.NAVER)
+                && member.getStatus().equals(MemberStatus.WAIT_FOR_APPROVAL)) {
 
-        return MemberResponse.toResponse(updateMember);
+            member = member.toBuilder()
+                    .account(updateRequest.getAccount())
+                    .accountBank(updateRequest.getAccountBank())
+                    .nickname(updateRequest.getNickname())
+                    .introduction(updateRequest.getIntroduction())
+                    .imgUrl(updateRequest.getImgUrl())
+                    .status(MemberStatus.ACTIVE)
+                    .build();
+        } else {
+
+            member = member.toBuilder()
+                    .account(updateRequest.getAccount())
+                    .accountBank(updateRequest.getAccountBank())
+                    .nickname(updateRequest.getNickname())
+                    .introduction(updateRequest.getIntroduction())
+                    .imgUrl(updateRequest.getImgUrl())
+                    .build();
+        }
+
+        memberRepository.save(member);
+
+        return MemberResponse.toResponse(member);
     }
 
     public void withdrawal(Long memberId) {
