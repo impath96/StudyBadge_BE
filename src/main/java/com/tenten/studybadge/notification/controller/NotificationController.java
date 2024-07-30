@@ -12,6 +12,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,16 +49,14 @@ public class NotificationController {
     // 알림 전체 조회
     @GetMapping()
     @Operation(summary = "알림 전체 조회", description = "사용자에게 온 알림 전체 조회 api")
-    public ResponseEntity<List<NotificationResponse>> getNotifications(
-        @LoginUser Long memberId) {
-        List<Notification> notificationList =
-            notificationService.getNotifications(memberId);
+    public ResponseEntity<Page<NotificationResponse>> getNotifications(
+        @LoginUser Long memberId, @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<Notification> notificationPage =
+            notificationService.getNotifications(memberId, pageable);
 
-        List<NotificationResponse> responseList = notificationList.stream()
-            .map(Notification::toResponse)
-            .collect(Collectors.toList());
+        Page<NotificationResponse> responsePage = notificationPage.map(Notification::toResponse);
 
-        return ResponseEntity.ok(responseList);
+        return ResponseEntity.ok(responsePage);
     }
 
     // 알림 읽음 처리
@@ -70,15 +72,13 @@ public class NotificationController {
     // 안읽은 알림 전체 조회
     @GetMapping(value = "/unread")
     @Operation(summary = "안읽은 알림 전체 조회", description = "사용자에게 온 알림 중 안읽은 전체 조회 api")
-    public ResponseEntity<List<NotificationResponse>> getUnreadNotifications(
-        @LoginUser Long memberId) {
-        List<Notification> notificationList =
-            notificationService.getUnreadNotifications(memberId);
+    public ResponseEntity<Page<NotificationResponse>> getUnreadNotifications(
+        @LoginUser Long memberId, @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<Notification> notificationPage =
+            notificationService.getUnreadNotifications(memberId, pageable);
 
-        List<NotificationResponse> responseList = notificationList.stream()
-            .map(Notification::toResponse)
-            .collect(Collectors.toList());
+        Page<NotificationResponse> responsePage = notificationPage.map(Notification::toResponse);
 
-        return ResponseEntity.ok(responseList);
+        return ResponseEntity.ok(responsePage);
     }
 }

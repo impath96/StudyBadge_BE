@@ -4,6 +4,7 @@ import com.tenten.studybadge.notification.domain.entitiy.Notification;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,8 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    List<Notification> findAllByReceiverId(Long receiverId);
-    List<Notification> findAllByReceiverIdAndIsReadFalse(Long receiverId);
+    Page<Notification> findAllByReceiverIdOrderByCreatedAtDesc(Long receiverId, Pageable pageable);
+    Page<Notification> findAllByReceiverIdAndIsReadFalseOrderByCreatedAtDesc(Long receiverId, Pageable pageable);
     Optional<Notification> findByIdAndReceiverId(Long id, Long receiverId);
 
     @Query("SELECT n.id FROM Notification n WHERE n.createdAt < :cutoffDate")
