@@ -83,6 +83,7 @@ public class Notification extends BaseEntity {
             .content(this.getContent())
             .url(this.getUrl())
             .isRead(this.isRead)
+            .createdAt(this.getCreatedAt())
             .build();
     }
 }
