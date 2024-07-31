@@ -6,6 +6,7 @@ import com.tenten.studybadge.common.email.MailService;
 import com.tenten.studybadge.common.exception.InvalidTokenException;
 import com.tenten.studybadge.common.exception.member.*;
 import com.tenten.studybadge.common.exception.participation.NotFoundParticipationException;
+import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.jwt.JwtTokenProvider;
 import com.tenten.studybadge.common.redis.RedisService;
 import com.tenten.studybadge.member.dto.*;
@@ -176,7 +177,7 @@ public class MemberService {
         List<StudyMember> studyMembers = studyMemberRepository.findAllByMemberIdWithStudyChannel(memberId);
         if (studyMembers == null || studyMembers.isEmpty())
 
-            throw new NotFoundMemberException();
+            throw new NotFoundMyStudyException();
 
         return MemberStudyList.listToResponse(studyMembers, attendanceService::getAttendanceRatioForMember);
     }
