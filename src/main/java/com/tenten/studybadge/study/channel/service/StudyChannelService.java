@@ -1,6 +1,7 @@
 package com.tenten.studybadge.study.channel.service;
 
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
+import com.tenten.studybadge.common.exception.payment.NotEnoughPointException;
 import com.tenten.studybadge.common.exception.studychannel.InvalidStudyStartDateException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelDepositException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
@@ -10,6 +11,8 @@ import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.notification.service.NotificationSchedulerService;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
+import com.tenten.studybadge.point.domain.entity.Point;
+import com.tenten.studybadge.point.domain.repository.PointRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.study.channel.dto.*;
@@ -18,6 +21,9 @@ import com.tenten.studybadge.study.deposit.domain.repository.StudyChannelDeposit
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
+import com.tenten.studybadge.type.point.PointHistoryType;
+import com.tenten.studybadge.type.point.TransferType;
+import com.tenten.studybadge.type.study.deposit.DepositStatus;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,6 +52,7 @@ public class StudyChannelService {
     private final ParticipationRepository participationRepository;
     private final NotificationSchedulerService notificationSchedulerService;
     private final StudyChannelDepositRepository studyChannelDepositRepository;
+    private final PointRepository pointRepository;
 
     @Transactional
     public Long create(StudyChannelCreateRequest request, Long memberId) {
@@ -56,11 +64,16 @@ public class StudyChannelService {
         if (studyChannel.isStartDateBeforeTo(LocalDate.now(Clock.systemDefaultZone()))) {
             throw new InvalidStudyStartDateException();
         }
-
+        if (member.getPoint() < request.getDeposit()) {
+            throw new NotEnoughPointException();
+        }
         StudyMember studyMember = StudyMember.leader(member, studyChannel);
 
         studyChannelRepository.save(studyChannel);
         studyMemberRepository.save(studyMember);
+
+        Point point = deductPoint(member, studyChannel.getDeposit());
+        recordDeposit(studyChannel, member, studyMember, -1 * point.getAmount());
 
         return studyChannel.getId();
     }
@@ -225,6 +238,37 @@ public class StudyChannelService {
         }
         studyChannel.edit(studyChannelEditRequest);
         studyChannelRepository.save(studyChannel);
+    }
+
+    private void recordDeposit(StudyChannel channel, Member member, StudyMember studyMember, Integer amount) {
+        StudyChannelDeposit deposit = StudyChannelDeposit.builder()
+                .depositAt(LocalDateTime.now())
+                .amount(amount)
+                .refundsAmount(0)
+                .depositStatus(DepositStatus.DEPOSIT)
+                .studyChannel(channel)
+                .member(member)
+                .attendanceRatio(0.0)
+                .studyMember(studyMember)
+                .build();
+        studyChannelDepositRepository.save(deposit);
+    }
+
+    private Point deductPoint(Member member, Integer deposit) {
+
+        Point point = Point.builder()
+                .amount(-1 * deposit)
+                .member(member)
+                .historyType(PointHistoryType.SPENT)
+                .transferType(TransferType.STUDY_DEPOSIT)
+                .build();
+
+        Member updatedMember = member.toBuilder()
+                .point(member.getPoint() + point.getAmount())
+                .build();
+        pointRepository.save(point);
+        memberRepository.save(updatedMember);
+        return point;
     }
 
     public static class StudyChannelSpecification {

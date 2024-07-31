@@ -6,17 +6,24 @@ import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.notification.service.NotificationSchedulerService;
 import com.tenten.studybadge.participation.domain.entity.Participation;
 import com.tenten.studybadge.participation.domain.repository.ParticipationRepository;
+import com.tenten.studybadge.point.domain.entity.Point;
+import com.tenten.studybadge.point.domain.repository.PointRepository;
 import com.tenten.studybadge.study.channel.domain.entity.Recruitment;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.entity.StudyDuration;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
 import com.tenten.studybadge.study.channel.dto.*;
+import com.tenten.studybadge.study.deposit.domain.entity.StudyChannelDeposit;
+import com.tenten.studybadge.study.deposit.domain.repository.StudyChannelDepositRepository;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.participation.ParticipationStatus;
+import com.tenten.studybadge.type.point.PointHistoryType;
+import com.tenten.studybadge.type.point.TransferType;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
 import com.tenten.studybadge.type.study.channel.RecruitmentStatus;
+import com.tenten.studybadge.type.study.deposit.DepositStatus;
 import com.tenten.studybadge.type.study.member.StudyMemberRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,6 +68,12 @@ class StudyChannelServiceTest {
     @Mock
     private NotificationSchedulerService notificationSchedulerService;
 
+    @Mock
+    private PointRepository pointRepository;
+
+    @Mock
+    private StudyChannelDepositRepository depositRepository;
+
     @DisplayName("[스터디 채널 생성 테스트]")
     @Nested
     class CreateStudyChannelTest {
@@ -88,7 +101,7 @@ class StudyChannelServiceTest {
                     .depositDescription("스터디 채널 승인 시 자동으로 빠져나갑니다.")
                     .build();
 
-            Member member = mock(Member.class);
+            Member member = Member.builder().id(1L).point(20_000).build();
             given(memberRepository.findById(anyLong())).willReturn(Optional.of(member));
 
             // when
@@ -97,16 +110,39 @@ class StudyChannelServiceTest {
             // then
             ArgumentCaptor<StudyChannel> studyChannelCaptor = ArgumentCaptor.forClass(StudyChannel.class);
             ArgumentCaptor<StudyMember> studyMemberCaptor = ArgumentCaptor.forClass(StudyMember.class);
+            ArgumentCaptor<Point> pointCaptor = ArgumentCaptor.forClass(Point.class);
+            ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
+            ArgumentCaptor<StudyChannelDeposit> studyChannelDepositCaptor = ArgumentCaptor.forClass(StudyChannelDeposit.class);
 
             verify(studyChannelRepository, times(1)).save(studyChannelCaptor.capture());
             verify(studyMemberRepository, times(1)).save(studyMemberCaptor.capture());
+            verify(memberRepository, times(1)).save(memberCaptor.capture());
+            verify(pointRepository, times(1)).save(pointCaptor.capture());
+            verify(depositRepository, times(1)).save(studyChannelDepositCaptor.capture());
 
             StudyChannel studyChannel = studyChannelCaptor.getValue();
             StudyMember studyMember = studyMemberCaptor.getValue();
+            Member capturedMember = memberCaptor.getValue();
+            Point point = pointCaptor.getValue();
+            StudyChannelDeposit studyChannelDeposit = studyChannelDepositCaptor.getValue();
 
             assertThat(studyChannel.getRecruitment().getRecruitmentStatus()).isEqualTo(RecruitmentStatus.RECRUITING);
             assertThat(studyMember.getStudyChannel().getId()).isEqualTo(studyChannel.getId());
             assertThat(studyMember.getStudyMemberRole()).isEqualTo(StudyMemberRole.LEADER);
+
+            assertThat(point.getMember().getId()).isEqualTo(1L);
+            assertThat(point.getAmount()).isEqualTo(-10_000);
+            assertThat(point.getHistoryType()).isEqualTo(PointHistoryType.SPENT);
+            assertThat(point.getTransferType()).isEqualTo(TransferType.STUDY_DEPOSIT);
+
+            assertThat(capturedMember.getId()).isEqualTo(1L);
+            assertThat(capturedMember.getPoint()).isEqualTo(10_000);
+
+            assertThat(studyChannelDeposit.getStudyChannel()).isNotNull();
+            assertThat(studyChannelDeposit.getStudyMember()).isNotNull();
+            assertThat(studyChannelDeposit.getMember().getId()).isEqualTo(1L);
+            assertThat(studyChannelDeposit.getDepositStatus()).isEqualTo(DepositStatus.DEPOSIT);
+            assertThat(studyChannelDeposit.getAmount()).isEqualTo(10_000);
 
         }
 
@@ -311,6 +347,7 @@ class StudyChannelServiceTest {
             studyChannel.getStudyMembers().add(studyMember2);
 
             given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.existsById(1L)).willReturn(true);
             given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
 
             StudyChannelDetailsResponse response = studyChannelService.getStudyChannel(1L, 1L);
@@ -342,6 +379,7 @@ class StudyChannelServiceTest {
             studyChannel.getStudyMembers().add(studyMember);
 
             given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.existsById(1L)).willReturn(true);
             given(memberRepository.findById(3L)).willReturn(Optional.of(member3));
 
             StudyChannelDetailsResponse response = studyChannelService.getStudyChannel(1L, 3L);
@@ -378,6 +416,7 @@ class StudyChannelServiceTest {
             studyChannel.getStudyMembers().add(studyMember);
 
             given(studyChannelRepository.findByIdWithMember(1L)).willReturn(Optional.of(studyChannel));
+            given(studyChannelRepository.existsById(1L)).willReturn(true);
             given(memberRepository.findById(1L)).willReturn(Optional.of(member1));
 
             StudyChannelDetailsResponse response = studyChannelService.getStudyChannel(1L, 1L);
