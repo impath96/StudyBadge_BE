@@ -93,7 +93,7 @@ public class AttendanceService {
 
         for (StudyMember studyMember : studyMembers) {
             long attendanceDays = studyMemberAttendanceCountMap.get(studyMember.getId());
-            double attendanceRatio = (double) attendanceDays * 100 / totalDays;
+            double attendanceRatio = totalDays == 0 ? 0.0 : (double) attendanceDays * 100 / totalDays;
             attendanceInfoResponses.add(AttendanceInfoResponse.builder()
                     .memberId(studyMember.getMember().getId())
                     .studyMemberId(studyMember.getId())
