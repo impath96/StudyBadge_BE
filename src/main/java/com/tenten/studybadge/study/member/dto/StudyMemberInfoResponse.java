@@ -11,6 +11,7 @@ import lombok.Getter;
 @Builder
 public class StudyMemberInfoResponse {
 
+    private Long studyMemberId;
     private Long memberId;
     private String name;
     private String imageUrl;
