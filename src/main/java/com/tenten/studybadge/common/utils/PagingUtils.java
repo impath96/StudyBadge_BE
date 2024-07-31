@@ -16,7 +16,7 @@ public class PagingUtils {
 
     // TODO 정렬 기준 추가되면 어떻게 할지 고민
     private static Sort createSort(SortOrder sortOrder) {
-        if (sortOrder.equals(SortOrder.POPULAR)) {
+        if (sortOrder.equals(SortOrder.VIEW_COUNT)) {
             return Sort.by(Sort.Direction.DESC, "viewCnt");
         }
         return Sort.by(Sort.Direction.DESC, "createdAt");
