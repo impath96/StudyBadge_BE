@@ -94,7 +94,7 @@ public class StudyMemberService {
     }
 
     public List<ScheduleStudyMemberResponse> getStudyMembersSingleSchedule(Long studyChannelId, Long scheduleId, Long memberId) {
-        studyMemberRepository.findByMemberIdAndStudyChannelId(studyChannelId, memberId).orElseThrow(NotStudyMemberException::new);
+        studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId).orElseThrow(NotStudyMemberException::new);
         SingleSchedule singleSchedule = singleScheduleRepository.findById(scheduleId).orElseThrow(NotFoundSingleScheduleException::new);
         LocalDate scheduleDate = singleSchedule.getScheduleDate();
         LocalDate currentDate = LocalDate.now();
