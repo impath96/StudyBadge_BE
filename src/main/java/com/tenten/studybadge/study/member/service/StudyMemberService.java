@@ -109,7 +109,7 @@ public class StudyMemberService {
     }
 
     public List<ScheduleStudyMemberResponse> getStudyMembersRepeatSchedule(Long studyChannelId, Long scheduleId, Long memberId, LocalDate date) {
-        studyMemberRepository.findByMemberIdAndStudyChannelId(studyChannelId, memberId).orElseThrow(NotStudyMemberException::new);
+        studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId).orElseThrow(NotStudyMemberException::new);
         RepeatSchedule repeatSchedule = repeatScheduleRepository.findById(scheduleId).orElseThrow(NotFoundRepeatScheduleException::new);
         validate(repeatSchedule, date);
         LocalDate currentDate = LocalDate.now();
