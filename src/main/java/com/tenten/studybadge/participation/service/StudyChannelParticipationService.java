@@ -2,10 +2,7 @@ package com.tenten.studybadge.participation.service;
 
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
 import com.tenten.studybadge.common.exception.participation.*;
-import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberException;
-import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
-import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
-import com.tenten.studybadge.common.exception.studychannel.RecruitmentCompletedStudyChannelException;
+import com.tenten.studybadge.common.exception.studychannel.*;
 import com.tenten.studybadge.member.domain.entity.Member;
 import com.tenten.studybadge.member.domain.repository.MemberRepository;
 import com.tenten.studybadge.participation.domain.entity.Participation;
@@ -95,7 +92,9 @@ public class StudyChannelParticipationService {
         if (!participation.getParticipationStatus().equals(ParticipationStatus.APPROVE_WAITING)) {
             throw new InvalidApprovalStatusException();
         }
-
+        if (studyChannel.isFull()) {
+            throw new AlreadyStudyMemberFullException();
+        }
         StudyMember studyMember = approveMember(participation, studyChannel, applyMember);
         Point point = deductPoint(applyMember, studyChannel.getDeposit());
         recordDeposit(studyChannel, applyMember, studyMember, -1 * point.getAmount());

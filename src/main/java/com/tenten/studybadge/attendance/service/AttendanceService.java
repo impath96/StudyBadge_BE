@@ -56,7 +56,7 @@ public class AttendanceService {
     public List<AttendanceInfoResponse> getAttendanceRatioForStudyChannel(Long studyChannelId, Long memberId) {
 
         studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId).orElseThrow(NotStudyMemberException::new);
-        List<StudyMember> studyMembers = studyMemberRepository.findAllByStudyChannelIdWithMember(studyChannelId);
+        List<StudyMember> studyMembers = studyMemberRepository.findAllActiveStudyMembers(studyChannelId);
         List<SingleSchedule> singleSchedules = singleScheduleRepository.findAllByStudyChannelId(studyChannelId);
         List<RepeatSchedule> repeatSchedules = repeatScheduleRepository.findAllByStudyChannelId(studyChannelId);
 
