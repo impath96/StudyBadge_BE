@@ -69,6 +69,7 @@ public record OAuth2UserInfo(
                 .status(MemberStatus.WAIT_FOR_APPROVAL)
                 .platform(platform)
                 .isAuth(true)
+                .isPasswordAuth(false)
                 .build();
     }
 }
