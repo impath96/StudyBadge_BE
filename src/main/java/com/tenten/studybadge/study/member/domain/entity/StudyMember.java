@@ -69,6 +69,7 @@ public class StudyMember extends BaseEntity {
 
     public StudyMemberInfoResponse toResponse() {
         return StudyMemberInfoResponse.builder()
+                .studyMemberId(this.id)
                 .memberId(this.member.getId())
                 .name(this.member.getName())
                 .imageUrl(this.member.getImgUrl())
