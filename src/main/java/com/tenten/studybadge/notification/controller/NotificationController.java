@@ -9,6 +9,7 @@ import com.tenten.studybadge.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -44,8 +45,9 @@ public class NotificationController {
     @Operation(summary = "세션 연결", description = "클라이언트 측에서 세션 연결하는 api")
     @Parameter(name = "Last-Event-ID", description = "마지막 event id, 필수는 아님" )
     public SseEmitter subscribe(@LoginUser Long memberId,
-        @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
-        return notificationService.subscribe(memberId, lastEventId);
+        @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId,
+        HttpServletResponse response) {
+        return notificationService.subscribe(memberId, lastEventId, response);
     }
 
     // 알림 전체 조회
