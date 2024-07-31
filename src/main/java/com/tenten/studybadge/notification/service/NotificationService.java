@@ -15,6 +15,7 @@ import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.study.member.domain.repository.StudyMemberRepository;
 import com.tenten.studybadge.type.notification.NotificationType;
 import com.tenten.studybadge.type.study.member.StudyMemberStatus;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final long timeout = 2 * 60 * 1000L; // 2분 타임아웃
+    private final long timeout = 60 * 60 * 1000L; // 60분 타임아웃
     private final EmitterRepository emitterRepository;
     private final NotificationRepository notificationRepository;
     private final StudyMemberRepository studyMemberRepository;
@@ -55,7 +56,7 @@ public class NotificationService {
         return notificationRepository.findAllByReceiverIdAndIsReadFalseOrderByCreatedAtDesc(memberId, pageable);
     }
 
-    public SseEmitter subscribe(Long memberId, String lastEventId) {
+    public SseEmitter subscribe(Long memberId, String lastEventId, HttpServletResponse response) {
         String emitterId = makeTimeIncludeId(memberId);
         SseEmitter sseEmitter = new SseEmitter(timeout);
 
@@ -83,6 +84,10 @@ public class NotificationService {
         if (hasLostData(lastEventId)) {
             sendLostData(lastEventId, memberId, emitterId, sseEmitter);
         }
+
+        response.setHeader("X-Accel-Buffering", "no"); // NGINX PROXY 에서의 필요설정 불필요한 버퍼링방지
+        response.setHeader("Connection", "keep-alive");
+        response.setHeader("Cache-Control", "no-cache");
 
         return sseEmitter;
     }

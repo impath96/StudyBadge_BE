@@ -46,11 +46,11 @@ public class MailService {
 
         try {
 
-            String body = String.format(RESET_PASSWORD_BODY, email);
+            String body = String.format(RESET_PASSWORD_BODY, authCode, email);
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, UNICODE);
             mimeMessageHelper.setTo(email);
             mimeMessageHelper.setSubject(RESET_PASSWORD_SUBJECT);
-            mimeMessageHelper.setText(body + authCode, true);
+            mimeMessageHelper.setText(body, true);
 
         } catch (MessagingException e) {
             throw new SendMailException();
