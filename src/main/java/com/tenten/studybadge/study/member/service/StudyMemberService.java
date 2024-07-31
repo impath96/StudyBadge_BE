@@ -59,7 +59,7 @@ public class StudyMemberService {
         if (!studyMemberRepository.existsByStudyChannelIdAndMemberId(studyChannelId, memberId)) {
             throw new NotStudyMemberException();
         }
-        List<StudyMember> studyMembers = studyMemberRepository.findAllByStudyChannelIdWithMember(studyChannelId);
+        List<StudyMember> studyMembers = studyMemberRepository.findAllActiveStudyMembers(studyChannelId);
 
         boolean isLeader = studyMembers.stream()
                 .anyMatch(studyMember -> studyMember.getMember().getId().equals(memberId) && studyMember.isLeader());
@@ -99,7 +99,7 @@ public class StudyMemberService {
         LocalDate scheduleDate = singleSchedule.getScheduleDate();
         LocalDate currentDate = LocalDate.now();
 
-        List<StudyMember> studyMembers = studyMemberRepository.findAllByStudyChannelIdWithMember(studyChannelId);
+        List<StudyMember> studyMembers = studyMemberRepository.findAllActiveStudyMembers(studyChannelId);
 
         if (scheduleDate.isBefore(currentDate)) {
             List<Attendance> attendances = attendanceRepository.findAllBySingleScheduleId(scheduleId);
@@ -114,7 +114,7 @@ public class StudyMemberService {
         validate(repeatSchedule, date);
         LocalDate currentDate = LocalDate.now();
 
-        List<StudyMember> studyMembers = studyMemberRepository.findAllByStudyChannelIdWithMember(studyChannelId);
+        List<StudyMember> studyMembers = studyMemberRepository.findAllActiveStudyMembers(studyChannelId);
 
         if (date.isBefore(currentDate)) {
             LocalDateTime startDateTime = date.atStartOfDay();

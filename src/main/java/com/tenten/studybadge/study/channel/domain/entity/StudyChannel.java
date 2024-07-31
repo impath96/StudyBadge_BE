@@ -5,18 +5,17 @@ import com.tenten.studybadge.common.exception.studychannel.AlreadyStudyMemberFul
 import com.tenten.studybadge.common.exception.studychannel.InSufficientMinMemberException;
 import com.tenten.studybadge.common.exception.studychannel.NotChangeRecruitmentStatusException;
 import com.tenten.studybadge.member.domain.entity.Member;
-import com.tenten.studybadge.study.channel.dto.StudyChannelDetailsResponse;
 import com.tenten.studybadge.study.channel.dto.StudyChannelEditRequest;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
+import com.tenten.studybadge.type.study.member.StudyMemberStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Getter
 @Entity
@@ -93,7 +92,7 @@ public class StudyChannel extends BaseEntity {
         if (!recruitment.isCompleted()) {
             throw new NotChangeRecruitmentStatusException();
         }
-        if (recruitment.getRecruitmentNumber() == studyMembers.size()) {
+        if (isFull()) {    // TODO 확인해보기 -
             throw new AlreadyStudyMemberFullException();
         }
         recruitment.start();
@@ -103,7 +102,7 @@ public class StudyChannel extends BaseEntity {
         if (isRecruitmentCompleted()) {
             throw new NotChangeRecruitmentStatusException();
         }
-        if (studyMembers.size() < 3) {
+        if (getValidMemberCount() < 3) {
             throw new InSufficientMinMemberException();
         }
         recruitment.close();
@@ -113,9 +112,17 @@ public class StudyChannel extends BaseEntity {
         return this.getStudyDuration().getStudyEndDate().isBefore(date);
     }
 
+    public int getValidMemberCount() {
+        return (int) studyMembers.stream().filter(studyMember -> studyMember.getStudyMemberStatus().equals(StudyMemberStatus.PARTICIPATING)).count();
+    }
+
     public void edit(StudyChannelEditRequest studyChannelEditRequest) {
         this.name = studyChannelEditRequest.getName();
         this.description = studyChannelEditRequest.getDescription();
         this.chattingUrl = studyChannelEditRequest.getChattingUrl();
+    }
+
+    public boolean isFull() {
+        return getValidMemberCount() == recruitment.getRecruitmentNumber();
     }
 }
