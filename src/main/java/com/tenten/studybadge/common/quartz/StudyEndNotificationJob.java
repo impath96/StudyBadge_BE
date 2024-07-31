@@ -24,7 +24,7 @@ public class StudyEndNotificationJob implements Job {
         String notificationType = context.getMergedJobDataMap().getString("notificationType");
 
         String content = String.format(messageTemplate, studyChannelName);
-        String relateUrl = String.format("/channel/%d", studyChannelId); // 클라이언트 url
+        String relateUrl = String.format("/channel/%d/information", studyChannelId); // 클라이언트 url
 
         notificationService.sendNotificationToStudyChannel(
             studyChannelId, NotificationType.valueOf(notificationType), content, relateUrl);
