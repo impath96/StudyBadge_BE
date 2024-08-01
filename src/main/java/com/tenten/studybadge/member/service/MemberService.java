@@ -236,6 +236,18 @@ public class MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(NotFoundMemberException::new);
 
+        if (member.getPoint() > 0 ) {
+
+            throw new ExistPointException();
+        }
+
+        String refreshToken = String.format(REFRESH_TOKEN_FORMAT, member.getId(), member.getPlatform());
+        if (redisTemplate.opsForValue().get(refreshToken) != null) {
+
+            redisTemplate.delete(refreshToken);
+        }
+
+
         Member withdrawMember = member.toBuilder()
                 .status(MemberStatus.WITHDRAWN)
                 .build();
