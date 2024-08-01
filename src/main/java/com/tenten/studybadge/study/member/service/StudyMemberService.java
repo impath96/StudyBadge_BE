@@ -85,11 +85,14 @@ public class StudyMemberService {
         StudyMember target = getStudyMember(studyChannel, studyMemberId);
 
         if (subLeader != null) {
-            throw new AlreadyExistsSubLeaderException();
+            subLeader.setStudyMemberRole(StudyMemberRole.STUDY_MEMBER);
+            target.setStudyMemberRole(StudyMemberRole.SUB_LEADER);
+            studyMemberRepository.save(subLeader);
+            studyMemberRepository.save(target);
+        }else {
+            target.setStudyMemberRole(StudyMemberRole.SUB_LEADER);
+            studyMemberRepository.save(target);
         }
-
-        target.setStudyMemberRole(StudyMemberRole.SUB_LEADER);
-        studyMemberRepository.save(target);
 
     }
 
