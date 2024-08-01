@@ -96,33 +96,25 @@ public class StudyMemberService {
     public List<ScheduleStudyMemberResponse> getStudyMembersSingleSchedule(Long studyChannelId, Long scheduleId, Long memberId) {
         studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId).orElseThrow(NotStudyMemberException::new);
         SingleSchedule singleSchedule = singleScheduleRepository.findById(scheduleId).orElseThrow(NotFoundSingleScheduleException::new);
-        LocalDate scheduleDate = singleSchedule.getScheduleDate();
-        LocalDate currentDate = LocalDate.now();
 
         List<StudyMember> studyMembers = studyMemberRepository.findAllActiveStudyMembers(studyChannelId);
 
-        if (scheduleDate.isBefore(currentDate)) {
-            List<Attendance> attendances = attendanceRepository.findAllBySingleScheduleId(scheduleId);
-            return response(studyMembers, attendances);
-        }
-        return response(studyMembers, Collections.emptyList());
+        List<Attendance> attendances = attendanceRepository.findAllBySingleScheduleId(scheduleId);
+        return response(studyMembers, attendances);
     }
 
     public List<ScheduleStudyMemberResponse> getStudyMembersRepeatSchedule(Long studyChannelId, Long scheduleId, Long memberId, LocalDate date) {
         studyMemberRepository.findByMemberIdAndStudyChannelId(memberId, studyChannelId).orElseThrow(NotStudyMemberException::new);
         RepeatSchedule repeatSchedule = repeatScheduleRepository.findById(scheduleId).orElseThrow(NotFoundRepeatScheduleException::new);
         validate(repeatSchedule, date);
-        LocalDate currentDate = LocalDate.now();
 
         List<StudyMember> studyMembers = studyMemberRepository.findAllActiveStudyMembers(studyChannelId);
 
-        if (date.isBefore(currentDate)) {
-            LocalDateTime startDateTime = date.atStartOfDay();
-            LocalDateTime endDateTime = startDateTime.plusDays(1);
-            List<Attendance> attendances = attendanceRepository.findAllByRepeatScheduleIdAndAttendanceDateTimeBetween(scheduleId, startDateTime, endDateTime);
-            return response(studyMembers, attendances);
-        }
-        return response(studyMembers, Collections.emptyList());
+        LocalDateTime startDateTime = date.atStartOfDay();
+        LocalDateTime endDateTime = startDateTime.plusDays(1);
+        List<Attendance> attendances = attendanceRepository.findAllByRepeatScheduleIdAndAttendanceDateTimeBetween(scheduleId, startDateTime, endDateTime);
+        return response(studyMembers, attendances);
+
     }
 
     public void leaveStudyChannel(Long studyChannelId, Long studyMemberId, Long memberId) {
