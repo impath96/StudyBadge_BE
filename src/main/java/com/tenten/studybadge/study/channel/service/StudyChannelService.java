@@ -3,7 +3,6 @@ package com.tenten.studybadge.study.channel.service;
 import com.tenten.studybadge.common.exception.member.NotFoundMemberException;
 import com.tenten.studybadge.common.exception.payment.NotEnoughPointException;
 import com.tenten.studybadge.common.exception.studychannel.InvalidStudyStartDateException;
-import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelDepositException;
 import com.tenten.studybadge.common.exception.studychannel.NotFoundStudyChannelException;
 import com.tenten.studybadge.common.exception.studychannel.NotStudyLeaderException;
 import com.tenten.studybadge.member.domain.entity.Member;
@@ -15,7 +14,8 @@ import com.tenten.studybadge.point.domain.entity.Point;
 import com.tenten.studybadge.point.domain.repository.PointRepository;
 import com.tenten.studybadge.study.channel.domain.entity.StudyChannel;
 import com.tenten.studybadge.study.channel.domain.repository.StudyChannelRepository;
-import com.tenten.studybadge.study.channel.dto.*;
+import com.tenten.studybadge.study.channel.dto.StudyChannelCreateRequest;
+import com.tenten.studybadge.study.channel.dto.StudyChannelEditRequest;
 import com.tenten.studybadge.study.deposit.domain.entity.StudyChannelDeposit;
 import com.tenten.studybadge.study.deposit.domain.repository.StudyChannelDepositRepository;
 import com.tenten.studybadge.study.member.domain.entity.StudyMember;
@@ -24,12 +24,7 @@ import com.tenten.studybadge.type.participation.ParticipationStatus;
 import com.tenten.studybadge.type.point.PointHistoryType;
 import com.tenten.studybadge.type.point.TransferType;
 import com.tenten.studybadge.type.study.deposit.DepositStatus;
-import com.tenten.studybadge.type.study.member.StudyMemberRole;
-import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,10 +32,6 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
