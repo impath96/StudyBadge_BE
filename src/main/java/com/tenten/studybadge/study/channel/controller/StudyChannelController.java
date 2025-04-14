@@ -4,6 +4,7 @@ import com.tenten.studybadge.common.security.CustomUserDetails;
 import com.tenten.studybadge.common.security.LoginUser;
 import com.tenten.studybadge.common.utils.PagingUtils;
 import com.tenten.studybadge.study.channel.dto.*;
+import com.tenten.studybadge.study.channel.service.StudyChannelQueryService;
 import com.tenten.studybadge.study.channel.service.StudyChannelService;
 import com.tenten.studybadge.type.study.channel.Category;
 import com.tenten.studybadge.type.study.channel.MeetingType;
@@ -28,6 +29,7 @@ import java.net.URI;
 public class StudyChannelController {
 
     private final StudyChannelService studyChannelService;
+    private final StudyChannelQueryService studyChannelQueryService;
 
     @PostMapping("/study-channels")
     @Operation(summary = "스터디 채널을 생성", description = "스터디 채널을 만들기 위해 사용되는 API", security = @SecurityRequirement(name = "bearerToken"))
@@ -86,7 +88,7 @@ public class StudyChannelController {
         @RequestParam(name = "status", required = false) RecruitmentStatus status,
         @RequestParam(name = "category", required = false) Category category
     ) {
-        return ResponseEntity.ok(studyChannelService.getStudyChannels(PagingUtils.createPageable(page, size, sortOrder), new SearchCondition(type, status, category)));
+        return ResponseEntity.ok(studyChannelQueryService.getStudyChannels(PagingUtils.createPageable(page, size, sortOrder), new SearchCondition(type, status, category)));
     }
 
     @GetMapping("/study-channels/{studyChannelId}")
@@ -96,7 +98,7 @@ public class StudyChannelController {
             @AuthenticationPrincipal CustomUserDetails principal,
             @PathVariable Long studyChannelId
     ) {
-        return ResponseEntity.ok(studyChannelService.getStudyChannel(studyChannelId, principal == null ? null : principal.getId()));
+        return ResponseEntity.ok(studyChannelQueryService.getStudyChannel(studyChannelId, principal == null ? null : principal.getId()));
     }
 
     @GetMapping("/study-channels/{studyChannelId}/check")
